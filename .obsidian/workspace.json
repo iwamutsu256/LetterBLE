@@ -1,0 +1,213 @@
+{
+  "main": {
+    "id": "6da57f4c4da289cd",
+    "type": "split",
+    "children": [
+      {
+        "id": "8179dffa99172765",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "d9a6eeb06c84a21e",
+            "type": "leaf",
+            "state": {
+              "type": "canvas",
+              "state": {
+                "file": "MEMO/ハッカソン-手紙BLE.canvas",
+                "viewState": {
+                  "x": -1225.9604333639224,
+                  "y": 601.6345024430591,
+                  "zoom": -1.2222223917643236
+                }
+              },
+              "icon": "lucide-layout-dashboard",
+              "title": "ハッカソン-手紙BLE"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "ae6a874f1535e241",
+    "type": "split",
+    "children": [
+      {
+        "id": "bd6f7c58a6af9643",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "1ff2cb7b475f1ce4",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "ファイルエクスプローラ"
+            }
+          },
+          {
+            "id": "5286029b0a310b41",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "検索"
+            }
+          },
+          {
+            "id": "e0b7f7c03fa418e2",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "ブックマーク"
+            }
+          }
+        ]
+      },
+      {
+        "id": "8a7e6df4685c5fab",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "a486c5c5b7d38ce7",
+            "type": "leaf",
+            "state": {
+              "type": "git-view",
+              "state": {},
+              "icon": "git-pull-request",
+              "title": "Source Control"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "5aa3b2e4253d9d71",
+    "type": "split",
+    "children": [
+      {
+        "id": "cc9136ab03ad6aae",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "b8abcbca4bd3d6ee",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "README.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "READMEへのバックリンク"
+            }
+          },
+          {
+            "id": "751ca50d6d4fa82e",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "README.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "READMEからのアウトゴーイングリンク"
+            }
+          },
+          {
+            "id": "1d3412f11f260b9e",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "タグ"
+            }
+          },
+          {
+            "id": "a4685b4ffb71d603",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "すべてのプロパティ"
+            }
+          },
+          {
+            "id": "2f9709430f067235",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "MEMO/ハッカソン-手紙BLE.canvas",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "ハッカソン-手紙BLEのアウトライン"
+            }
+          }
+        ],
+        "currentTab": 4
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:クイックスイッチャーを開く": false,
+      "graph:グラフビューを開く": false,
+      "canvas:新規キャンバスを作成": false,
+      "daily-notes:今日のデイリーノートを開く": false,
+      "templates:テンプレートを挿入": false,
+      "command-palette:コマンドパレットを開く": false,
+      "bases:新規ベースを作成": false,
+      "obsidian-git:Open Git source control": false
+    }
+  },
+  "active": "d9a6eeb06c84a21e",
+  "lastOpenFiles": [
+    "MEMO/エンティティ：手紙.md",
+    "MEMO/エンティティ：ユーザー.md",
+    "README.md",
+    "db.md"
+  ]
+}
