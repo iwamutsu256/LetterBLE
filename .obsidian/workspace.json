@@ -15,9 +15,9 @@
               "state": {
                 "file": "MEMO/ハッカソン-手紙BLE.canvas",
                 "viewState": {
-                  "x": -1225.9604333639224,
-                  "y": 601.6345024430591,
-                  "zoom": -1.2222223917643236
+                  "x": 226.41118252469425,
+                  "y": 1591.9998285650402,
+                  "zoom": -0.11111134847005277
                 }
               },
               "icon": "lucide-layout-dashboard",
@@ -175,13 +175,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "MEMO/ハッカソン-手紙BLE.canvas",
+                "file": "MEMO/05-20に決めたこと.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "ハッカソン-手紙BLEのアウトライン"
+              "title": "05-20に決めたことのアウトライン"
             }
           }
         ],
