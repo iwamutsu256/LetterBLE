@@ -233,6 +233,13 @@ toNodeId          → to_node_id
 6. tree更新（node / edge追加）
 7. 自分が宛先なら is_survival=false に更新
 
+### 投函処理
+ 
+1. LETTERSに手紙を登録
+2. 差出人をrootノードとしてtreeに登録
+3. 投函位置をLOCATIONSに保存
+4. 差出人端末からは本文を見えない状態にする（投函後に下書き削除）
+
 ---
 
 ## データ構造
