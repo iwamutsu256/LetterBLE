@@ -225,12 +225,13 @@ toNodeId          → to_node_id
 
 処理内容:
 
-1. Encounterの重複チェック
-2. 相手の手紙取得（is_survival=true）
-3. 自分へコピー
-4. location記録
-5. tree更新
-6. 宛先ならis_survival=false
+1. Encounterの重複チェック（一定時間以内の同一ペアはスキップ）
+2. 相手の手紙取得（is_survival=true かつ 相手が運搬中）
+3. 自分がすでにtreeに含まれる手紙はスキップ
+4. 自分の運搬リストに追加
+5. location記録
+6. tree更新（node / edge追加）
+7. 自分が宛先なら is_survival=false に更新
 
 ---
 
