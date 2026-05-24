@@ -107,6 +107,17 @@ di/            AppContainer.kt（依存関係の生成
 
 ---
 
+## データモデル
+ 
+### Firestoreコレクション名
+ 
+```
+USERS
+LETTERS
+LOCATIONS
+ENCOUNTERS
+```
+
 ## コア機能（重要）
 
 ### すれ違い処理（RelayLetterUseCase）
