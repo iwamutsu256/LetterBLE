@@ -5,3 +5,7 @@
  * - 再利用UI
  * - Map
  */
+
+// TODO: 再利用可能なUIコンポーネントを定義する
+// TODO: Button, Card, MapViewなどを作る
+// TODO: ViewModelには依存しない

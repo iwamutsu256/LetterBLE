@@ -8,6 +8,10 @@
  * - アプリロジックを書かない
  */
 
+// TODO: 色・フォント変更があればここで定義する
+// TODO: ロジックは書かない
+
+
 
 package com.example.letterble.ui.theme
 

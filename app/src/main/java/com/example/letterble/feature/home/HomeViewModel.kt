@@ -8,3 +8,8 @@
  * 注意:
  * - NavControllerを持たない
  */
+
+// TODO: ナビゲーションイベント用のSharedFlowを定義する
+// TODO: onReceivedClickedでNavigateToReceivedをemitする
+// TODO: onCarryingClickedでNavigateToCarryをemitする
+// TODO: onCreateLetterClickedでNavigateToEditをemitする

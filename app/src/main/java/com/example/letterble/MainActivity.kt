@@ -32,8 +32,12 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            // TODO: アプリ全体のThemeを適用する
             LetterBLETheme {
+                // TODO: アプリ全体のNavControllerを生成する
+                // TODO: rememberNavController()を使ってNavControllerを作成する
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                    // TODO: AppNavGraph(navController)を呼び出す
                     Greeting(
                         name = "Android",
                         modifier = Modifier.padding(innerPadding)
@@ -43,6 +47,8 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
+// TODO: BLEやRepositoryの初期化を書く場合はここではなくDIで行う
 
 @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {
