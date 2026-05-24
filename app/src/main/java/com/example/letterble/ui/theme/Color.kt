@@ -1,3 +1,14 @@
+/**
+ * Theme系ファイル
+ *
+ * 役割:
+ * - 色設定
+ *
+ * 注意:
+ * - アプリロジックを書かない
+ */
+
+
 package com.example.letterble.ui.theme
 
 import androidx.compose.ui.graphics.Color

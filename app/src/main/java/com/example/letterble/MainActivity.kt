@@ -1,3 +1,17 @@
+/**
+ * アプリのエントリーポイント
+ *
+ * 役割:
+ * - NavControllerを生成
+ * - AppNavGraphを呼び出して画面遷移を開始する
+ * - グローバルなUIテーマ適用
+ *
+ * 注意:
+ * - ビジネスロジックは書かない
+ * - ViewModelは持たない（画面ごとに持つ）
+ */
+
+
 package com.example.letterble
 
 import android.os.Bundle
