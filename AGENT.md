@@ -240,6 +240,9 @@ toNodeId          → to_node_id
 3. 投函位置をLOCATIONSに保存
 4. 差出人端末からは本文を見えない状態にする（投函後に下書き削除）
 
+### 受信判定
+ 
+- `to_user = 自分` かつ `is_survival = false` の手紙が受信済み
 ---
 
 ## データ構造
