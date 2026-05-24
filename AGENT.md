@@ -46,6 +46,7 @@ navigation/    ナビゲーション
 domain/        UseCase + Model
 data/          Repository + DataSource
 ui/            共通UI
+di/            AppContainer.kt（依存関係の生成
 ```
 
 ---
