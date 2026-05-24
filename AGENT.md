@@ -198,6 +198,27 @@ data class Post(
 )
 ```
 
+### Firestoreフィールド名の対応
+ 
+Kotlinのプロパティ名とFirestoreのフィールド名は以下の通り対応させる。
+ 
+```
+userName          → user_name
+carryingLetterIds → carrying_letter_ids
+letterId          → letter_id
+toUser            → to_user
+fromUser          → from_user
+isSurvival        → is_survival
+locationId        → location_id
+encounterId       → encounter_id
+userA             → userA
+userB             → userB
+fromNodeId        → from_node_id
+toNodeId          → to_node_id
+```
+ 
+---
+
 ## コア機能（重要）
 
 ### すれ違い処理（RelayLetterUseCase）
