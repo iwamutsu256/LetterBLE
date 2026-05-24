@@ -118,6 +118,86 @@ LOCATIONS
 ENCOUNTERS
 ```
 
+### 各モデルのフィールド
+ 
+**User**
+```kotlin
+data class User(
+    val userName: String = "",           // PK・ユーザー名（本名推奨）
+    val carryingLetterIds: List<String> = emptyList()  // 運搬中の手紙IDリスト
+)
+```
+ 
+**Letter**
+```kotlin
+data class Letter(
+    val letterId: String = "",
+    val toUser: String = "",             // 宛先ユーザー名
+    val fromUser: String = "",           // 差出人ユーザー名
+    val sentence: String = "",           // 本文
+    val isSurvival: Boolean = true,      // 未到達=true、到達済み=false
+    val tree: Tree = Tree()              // 木構造（nodes / edges）
+)
+```
+ 
+**Location**
+```kotlin
+data class Location(
+    val locationId: String = "",
+    val letterId: String = "",
+    val userName: String = "",
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0,
+    val timestamp: Long = 0L
+)
+```
+ 
+**Encounter**
+```kotlin
+data class Encounter(
+    val encounterId: String = "",
+    val userA: String = "",
+    val userB: String = "",
+    val timestamp: Long = 0L
+)
+```
+ 
+**Node**
+```kotlin
+data class Node(
+    val id: String = "",
+    val userName: String = "",
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0
+)
+```
+ 
+**Edge**
+```kotlin
+data class Edge(
+    val fromNodeId: String = "",
+    val toNodeId: String = ""
+)
+```
+ 
+**Tree**
+```kotlin
+data class Tree(
+    val nodes: List<Node> = emptyList(),
+    val edges: List<Edge> = emptyList()
+)
+```
+ 
+**Post**
+```kotlin
+data class Post(
+    val id: String = "",
+    val name: String = "",
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0
+)
+```
+
 ## コア機能（重要）
 
 ### すれ違い処理（RelayLetterUseCase）
