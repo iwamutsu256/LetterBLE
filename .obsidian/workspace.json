@@ -11,17 +11,14 @@
             "id": "d9a6eeb06c84a21e",
             "type": "leaf",
             "state": {
-              "type": "canvas",
+              "type": "markdown",
               "state": {
-                "file": "MEMO/ハッカソン-手紙BLE.canvas",
-                "viewState": {
-                  "x": 226.41118252469425,
-                  "y": 1591.9998285650402,
-                  "zoom": -0.11111134847005277
-                }
+                "file": "overallAppDesign.md",
+                "mode": "source",
+                "source": false
               },
-              "icon": "lucide-layout-dashboard",
-              "title": "ハッカソン-手紙BLE"
+              "icon": "lucide-file",
+              "title": "overallAppDesign"
             }
           }
         ]
@@ -175,13 +172,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "MEMO/05-20に決めたこと.md",
+                "file": "overallAppDesign.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "05-20に決めたことのアウトライン"
+              "title": "overallAppDesignのアウトライン"
             }
           }
         ],
@@ -189,7 +186,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 300,
+    "collapsed": true
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -205,6 +203,16 @@
   },
   "active": "d9a6eeb06c84a21e",
   "lastOpenFiles": [
+    "processingFlowDefinition.md",
+    "overallAppDesign.md",
+    "MEMO/ハッカソン-手紙BLE.canvas",
+    "relayLetterUseCase.md",
+    "registerScreen.md",
+    "recievedScreen.md",
+    "homeScreen.md",
+    "editLetterScreen.md",
+    "db_update.md",
+    "carryScreen.md",
     "MEMO/エンティティ：手紙.md",
     "MEMO/エンティティ：ユーザー.md",
     "README.md",
