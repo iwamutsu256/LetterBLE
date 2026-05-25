@@ -1,0 +1,49 @@
+name: Sync assignment memo
+
+on:
+  issues:
+    types:
+      - closed
+      - reopened
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: read
+
+concurrency:
+  group: sync-assignment-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Sync MEMO/割り振り.md
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: "20"
+
+      - name: Sync issue states
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node .github/scripts/sync-assignment-md.js
+
+      - name: Commit changes
+        run: |
+          if git diff --quiet -- MEMO/割り振り.md; then
+            echo "No assignment memo changes."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add MEMO/割り振り.md
+          git commit -m "Sync assignment memo with issue states"
+          git push
