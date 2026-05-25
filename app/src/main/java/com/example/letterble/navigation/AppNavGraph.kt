@@ -73,7 +73,9 @@ fun AppNavGraph(navController: NavHostController) {
             arguments = listOf(navArgument(Destinations.LETTER_ID_ARG) { type = NavType.StringType })
         ) { backStackEntry ->
             ReceivedDetailScreen(
-                letterId = backStackEntry.arguments?.getString(Destinations.LETTER_ID_ARG).orEmpty(),
+                letterId = Destinations.decodeLetterId(
+                    backStackEntry.arguments?.getString(Destinations.LETTER_ID_ARG).orEmpty()
+                ),
                 onBackClicked = navController::popBackStack
             )
         }
@@ -92,7 +94,9 @@ fun AppNavGraph(navController: NavHostController) {
             arguments = listOf(navArgument(Destinations.LETTER_ID_ARG) { type = NavType.StringType })
         ) { backStackEntry ->
             CarryDetailScreen(
-                letterId = backStackEntry.arguments?.getString(Destinations.LETTER_ID_ARG).orEmpty(),
+                letterId = Destinations.decodeLetterId(
+                    backStackEntry.arguments?.getString(Destinations.LETTER_ID_ARG).orEmpty()
+                ),
                 onBackClicked = navController::popBackStack
             )
         }

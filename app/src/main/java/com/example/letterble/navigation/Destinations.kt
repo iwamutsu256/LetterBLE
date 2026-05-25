@@ -8,6 +8,8 @@
  */
 package com.example.letterble.navigation
 
+import android.net.Uri
+
 /**
  * 画面遷移の route 文字列を一元管理する。
  */
@@ -28,12 +30,19 @@ object Destinations {
      *
      * @param letterId 詳細表示する手紙ID
      */
-    fun receivedDetail(letterId: String): String = "received/$letterId"
+    fun receivedDetail(letterId: String): String = "received/${Uri.encode(letterId)}"
 
     /**
      * 運搬中手紙の詳細画面へ遷移するための実 route を作成する。
      *
      * @param letterId 詳細表示する手紙ID
      */
-    fun carryDetail(letterId: String): String = "carry/$letterId"
+    fun carryDetail(letterId: String): String = "carry/${Uri.encode(letterId)}"
+
+    /**
+     * routeから取り出した手紙IDを画面で扱う値へ戻す。
+     *
+     * @param encodedLetterId route上でエンコードされた手紙ID
+     */
+    fun decodeLetterId(encodedLetterId: String): String = Uri.decode(encodedLetterId)
 }
