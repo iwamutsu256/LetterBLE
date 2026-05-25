@@ -7,8 +7,8 @@
 package com.example.letterble.domain.model
 
 data class Encounter(
-    val encounterId: String,
-    val userA: String,
-    val userB: String,
-    val timestamp: Long
+    val encounterId: String = "",
+    val userA: String = "",
+    val userB: String = "",
+    val timestamp: Long = 0L
 )

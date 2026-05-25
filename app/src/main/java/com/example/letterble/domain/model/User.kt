@@ -7,6 +7,6 @@
 package com.example.letterble.domain.model
 
 data class User(
-    val userName: String,
-    val carryingLetterIds: List<String>
+    val userName: String = "",
+    val carryingLetterIds: List<String> = emptyList()
 )

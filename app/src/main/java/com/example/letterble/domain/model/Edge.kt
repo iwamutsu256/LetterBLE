@@ -7,6 +7,6 @@
 package com.example.letterble.domain.model
 
 data class Edge(
-    val fromNodeId: String,
-    val toNodeId: String
+    val fromNodeId: String = "",
+    val toNodeId: String = ""
 )

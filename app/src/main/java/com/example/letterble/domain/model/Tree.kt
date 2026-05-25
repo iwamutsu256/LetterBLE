@@ -7,6 +7,6 @@
 package com.example.letterble.domain.model
 
 data class Tree(
-    val nodes: List<Node>,
-    val edges: List<Edge>
+    val nodes: List<Node> = emptyList(),
+    val edges: List<Edge> = emptyList()
 )

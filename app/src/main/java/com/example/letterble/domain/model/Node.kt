@@ -7,8 +7,8 @@
 package com.example.letterble.domain.model
 
 data class Node(
-    val id: String,
-    val userName: String,
-    val latitude: Double,
-    val longitude: Double
+    val id: String = "",
+    val userName: String = "",
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0
 )
