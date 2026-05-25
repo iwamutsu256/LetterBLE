@@ -13,15 +13,32 @@ package com.example.letterble.feature.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.letterble.data.repository.UserRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+
+data class HomeUiState(
+    val currentUserName: String = ""
+)
 
 /**
  * ホーム画面のUIイベントを画面遷移イベントへ変換するViewModel。
  */
-class HomeViewModel : ViewModel() {
+class HomeViewModel(
+    private val userRepository: UserRepository
+) : ViewModel() {
+    private val _uiState = MutableStateFlow(HomeUiState())
+
+    /**
+     * UI層が購読するホーム画面の状態。
+     */
+    val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
+
     private val _navigationEvents = MutableSharedFlow<HomeNavigationEvent>()
 
     /**
@@ -29,15 +46,28 @@ class HomeViewModel : ViewModel() {
      */
     val navigationEvents: SharedFlow<HomeNavigationEvent> = _navigationEvents.asSharedFlow()
 
+    init {
+        loadCurrentUserName()
+    }
+
     /**
-     * 受信した手紙ボタンが押されたときに呼ばれる。
+     * ローカルに保存されている現在ユーザー名を読み込む。
+     */
+    private fun loadCurrentUserName() {
+        _uiState.value = _uiState.value.copy(
+            currentUserName = userRepository.getCurrentUserName().orEmpty()
+        )
+    }
+
+    /**
+     * 受信した手紙のボタンが押されたときに呼ばれる。
      */
     fun onReceivedClicked() {
         emitNavigation(HomeNavigationEvent.NavigateToReceived)
     }
 
     /**
-     * 運搬中の手紙ボタンが押されたときに呼ばれる。
+     * 運搬中の手紙のボタンが押されたときに呼ばれる。
      */
     fun onCarryClicked() {
         emitNavigation(HomeNavigationEvent.NavigateToCarry)
