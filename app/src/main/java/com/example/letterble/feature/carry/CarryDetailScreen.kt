@@ -1,3 +1,10 @@
+/**
+ * CarryDetailScreen.kt
+ *
+ * 役割:
+ * - 運搬中の手紙の詳細を表示する
+ * - 経路ツリー表示へつなぐ
+ */
 package com.example.letterble.feature.carry
 
 import androidx.compose.foundation.layout.Arrangement
@@ -15,6 +22,13 @@ import androidx.compose.ui.unit.dp
 // TODO: 手紙の到達状態をViewModelから取得して表示する
 // TODO: tree表示UIを作る
 // TODO: letterIdを使ってCarryViewModelの詳細読み込みを呼ぶ
+/**
+ * 運搬中の手紙の詳細画面の最小UIを表示する。
+ *
+ * @param letterId 詳細表示する手紙ID
+ * @param onBackClicked 前の画面へ戻るためのコールバック
+ * @param modifier 画面全体に適用するModifier
+ */
 @Composable
 fun CarryDetailScreen(
     letterId: String,

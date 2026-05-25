@@ -1,3 +1,15 @@
+/**
+ * AppNavGraph.kt
+ *
+ * 役割:
+ * - 全画面の遷移ルートを定義する
+ * - NavHostを定義する
+ * - 画面間のルーティングを管理する
+ *
+ * 注意:
+ * - ビジネスロジックを書かない
+ * - ViewModelの代わりに状態管理をしない
+ */
 package com.example.letterble.navigation
 
 import androidx.compose.runtime.Composable
@@ -16,6 +28,8 @@ import com.example.letterble.feature.register.RegisterScreen
 
 /**
  * アプリ全体の画面遷移を定義する。
+ *
+ * @param navController 画面遷移を実行するNavController
  */
 @Composable
 fun AppNavGraph(navController: NavHostController) {

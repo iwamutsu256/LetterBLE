@@ -1,3 +1,10 @@
+/**
+ * ReceivedScreen.kt
+ *
+ * 役割:
+ * - 受信した手紙の一覧を表示する
+ * - 手紙選択イベントを画面遷移へつなぐ
+ */
 package com.example.letterble.feature.received
 
 import androidx.compose.foundation.layout.Arrangement
@@ -16,6 +23,13 @@ import androidx.compose.ui.unit.dp
 // TODO: 画面表示時にReceivedViewModel.loadReceivedLetters()を呼ぶ
 // TODO: アイテムクリックでReceivedViewModel.onLetterClicked()を呼ぶ
 // TODO: 仮IDではなくViewModelの選択イベントから詳細へ遷移する
+/**
+ * 受信した手紙一覧画面の最小UIを表示する。
+ *
+ * @param onLetterClicked 手紙が選択されたときに詳細画面へ進むためのコールバック
+ * @param onBackClicked 前の画面へ戻るためのコールバック
+ * @param modifier 画面全体に適用するModifier
+ */
 @Composable
 fun ReceivedScreen(
     onLetterClicked: (String) -> Unit,

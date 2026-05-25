@@ -1,3 +1,10 @@
+/**
+ * CarryScreen.kt
+ *
+ * 役割:
+ * - 運搬中の手紙一覧を表示する
+ * - 手紙選択イベントを画面遷移へつなぐ
+ */
 package com.example.letterble.feature.carry
 
 import androidx.compose.foundation.layout.Arrangement
@@ -16,6 +23,13 @@ import androidx.compose.ui.unit.dp
 // TODO: 画面表示時にCarryViewModel.loadCarryingLetters()を呼ぶ
 // TODO: 手紙クリックでCarryViewModelの選択イベントを呼ぶ
 // TODO: 仮IDではなくViewModelの選択イベントから詳細へ遷移する
+/**
+ * 運搬中の手紙一覧画面の最小UIを表示する。
+ *
+ * @param onLetterClicked 手紙が選択されたときに詳細画面へ進むためのコールバック
+ * @param onBackClicked 前の画面へ戻るためのコールバック
+ * @param modifier 画面全体に適用するModifier
+ */
 @Composable
 fun CarryScreen(
     onLetterClicked: (String) -> Unit,

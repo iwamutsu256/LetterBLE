@@ -1,3 +1,10 @@
+/**
+ * ReceivedDetailScreen.kt
+ *
+ * 役割:
+ * - 受信した手紙の詳細を表示する
+ * - 経路ツリー表示へつなぐ
+ */
 package com.example.letterble.feature.received
 
 import androidx.compose.foundation.layout.Arrangement
@@ -15,6 +22,13 @@ import androidx.compose.ui.unit.dp
 // TODO: 手紙の詳細（本文・差出人）をViewModelから取得して表示する
 // TODO: tree表示の切り替え（地図/グラフ）UIを作る
 // TODO: letterIdを使ってReceivedViewModelの詳細読み込みを呼ぶ
+/**
+ * 受信した手紙の詳細画面の最小UIを表示する。
+ *
+ * @param letterId 詳細表示する手紙ID
+ * @param onBackClicked 前の画面へ戻るためのコールバック
+ * @param modifier 画面全体に適用するModifier
+ */
 @Composable
 fun ReceivedDetailScreen(
     letterId: String,

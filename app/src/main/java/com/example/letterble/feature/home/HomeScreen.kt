@@ -1,3 +1,10 @@
+/**
+ * HomeScreen.kt
+ *
+ * 役割:
+ * - ホーム画面のナビゲーションボタンを表示する
+ * - ViewModelのイベントを受け取り画面遷移コールバックを呼ぶ
+ */
 package com.example.letterble.feature.home
 
 import androidx.compose.foundation.layout.Arrangement
@@ -14,6 +21,15 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.letterble.ui.components.CommonButton
 
+/**
+ * ホーム画面を表示する。
+ *
+ * @param onReceivedClicked 受信一覧画面へ遷移するときに呼ぶコールバック
+ * @param onCarryClicked 運搬中一覧画面へ遷移するときに呼ぶコールバック
+ * @param onCreateLetterClicked 手紙作成画面へ遷移するときに呼ぶコールバック
+ * @param modifier 画面全体に適用するModifier
+ * @param viewModel ホーム画面のイベントを管理するViewModel
+ */
 @Composable
 fun HomeScreen(
     onReceivedClicked: () -> Unit,

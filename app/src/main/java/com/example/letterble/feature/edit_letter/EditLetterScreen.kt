@@ -1,3 +1,13 @@
+/**
+ * EditLetterScreen.kt
+ *
+ * 役割:
+ * - 手紙入力UIを表示する
+ * - 手紙作成の状態を画面に反映する
+ *
+ * 注意:
+ * - 手紙作成ロジックはViewModel / UseCaseへ委譲する
+ */
 package com.example.letterble.feature.edit_letter
 
 import androidx.compose.foundation.layout.Arrangement
@@ -18,6 +28,12 @@ import androidx.compose.ui.unit.dp
 // TODO: 投函先ポスト選択ボタンを作る
 // TODO: 送信ボタンを作る
 // TODO: EditLetterViewModelのstateをUIに反映する
+/**
+ * 手紙作成画面の最小UIを表示する。
+ *
+ * @param onBackClicked 前の画面へ戻るためのコールバック
+ * @param modifier 画面全体に適用するModifier
+ */
 @Composable
 fun EditLetterScreen(
     onBackClicked: () -> Unit,

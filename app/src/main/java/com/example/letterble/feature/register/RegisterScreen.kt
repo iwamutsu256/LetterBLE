@@ -1,3 +1,14 @@
+/**
+ * RegisterScreen.kt
+ *
+ * 役割:
+ * - ユーザー登録UIを表示する
+ * - ユーザー入力を受け付ける
+ *
+ * 注意:
+ * - 状態はViewModelから取得する
+ * - Repositoryへ直接アクセスしない
+ */
 package com.example.letterble.feature.register
 
 import androidx.compose.foundation.layout.Arrangement
@@ -16,6 +27,12 @@ import androidx.compose.ui.unit.dp
 // TODO: RegisterViewModelのstateをcollectしてUIに反映する
 // TODO: ボタンでRegisterViewModelの登録イベントを呼び出す
 // TODO: 位置情報・Bluetoothの権限要求UIを表示する
+/**
+ * ユーザー登録画面の最小UIを表示する。
+ *
+ * @param onRegistered 登録完了後にホーム画面へ進むためのコールバック
+ * @param modifier 画面全体に適用するModifier
+ */
 @Composable
 fun RegisterScreen(
     onRegistered: () -> Unit,

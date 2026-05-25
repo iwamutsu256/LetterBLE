@@ -1,3 +1,11 @@
+/**
+ * Destinations.kt
+ *
+ * 役割:
+ * - 画面遷移のルート文字列を一元管理する
+ * - 文字列の打ち間違いを防ぐ
+ * - 引数付きルートの形式をまとめる
+ */
 package com.example.letterble.navigation
 
 /**
@@ -15,7 +23,17 @@ object Destinations {
     const val RECEIVED_DETAIL = "received/{$LETTER_ID_ARG}"
     const val CARRY_DETAIL = "carry/{$LETTER_ID_ARG}"
 
+    /**
+     * 受信手紙の詳細画面へ遷移するための実 route を作成する。
+     *
+     * @param letterId 詳細表示する手紙ID
+     */
     fun receivedDetail(letterId: String): String = "received/$letterId"
 
+    /**
+     * 運搬中手紙の詳細画面へ遷移するための実 route を作成する。
+     *
+     * @param letterId 詳細表示する手紙ID
+     */
     fun carryDetail(letterId: String): String = "carry/$letterId"
 }
