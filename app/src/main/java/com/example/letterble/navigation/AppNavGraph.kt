@@ -3,15 +3,98 @@
  *
  * 役割:
  * - 全画面の遷移ルートを定義する
- * - NavHostを定義
- * - 画面間のルーティング管理
+ * - NavHostを定義する
+ * - 画面間のルーティングを管理する
  *
  * 注意:
- * - ロジックを書かない
+ * - ビジネスロジックを書かない
+ * - ViewModelの代わりに状態管理をしない
  */
+package com.example.letterble.navigation
 
-// TODO: NavHostを定義する
-// TODO: startDestinationを"register"に設定する
-// TODO: 各画面のcomposable(route)を追加する
-// TODO: 引数付き画面（detailなど）のroute定義を追加する
-// TODO: 各ScreenにNavControllerを渡す
+import androidx.compose.runtime.Composable
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import com.example.letterble.feature.carry.CarryDetailScreen
+import com.example.letterble.feature.carry.CarryScreen
+import com.example.letterble.feature.edit_letter.EditLetterScreen
+import com.example.letterble.feature.home.HomeScreen
+import com.example.letterble.feature.received.ReceivedDetailScreen
+import com.example.letterble.feature.received.ReceivedScreen
+import com.example.letterble.feature.register.RegisterScreen
+
+/**
+ * アプリ全体の画面遷移を定義する。
+ *
+ * @param navController 画面遷移を実行するNavController
+ */
+@Composable
+fun AppNavGraph(navController: NavHostController) {
+    NavHost(
+        navController = navController,
+        startDestination = Destinations.REGISTER
+    ) {
+        composable(Destinations.REGISTER) {
+            RegisterScreen(
+                onRegistered = {
+                    navController.navigate(Destinations.HOME) {
+                        popUpTo(Destinations.REGISTER) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Destinations.HOME) {
+            HomeScreen(
+                onReceivedClicked = { navController.navigate(Destinations.RECEIVED) },
+                onCarryClicked = { navController.navigate(Destinations.CARRY) },
+                onCreateLetterClicked = { navController.navigate(Destinations.EDIT_LETTER) }
+            )
+        }
+
+        composable(Destinations.EDIT_LETTER) {
+            EditLetterScreen(onBackClicked = navController::popBackStack)
+        }
+
+        composable(Destinations.RECEIVED) {
+            ReceivedScreen(
+                onLetterClicked = { letterId ->
+                    navController.navigate(Destinations.receivedDetail(letterId))
+                },
+                onBackClicked = navController::popBackStack
+            )
+        }
+
+        composable(
+            route = Destinations.RECEIVED_DETAIL,
+            arguments = listOf(navArgument(Destinations.LETTER_ID_ARG) { type = NavType.StringType })
+        ) { backStackEntry ->
+            ReceivedDetailScreen(
+                letterId = backStackEntry.arguments?.getString(Destinations.LETTER_ID_ARG).orEmpty(),
+                onBackClicked = navController::popBackStack
+            )
+        }
+
+        composable(Destinations.CARRY) {
+            CarryScreen(
+                onLetterClicked = { letterId ->
+                    navController.navigate(Destinations.carryDetail(letterId))
+                },
+                onBackClicked = navController::popBackStack
+            )
+        }
+
+        composable(
+            route = Destinations.CARRY_DETAIL,
+            arguments = listOf(navArgument(Destinations.LETTER_ID_ARG) { type = NavType.StringType })
+        ) { backStackEntry ->
+            CarryDetailScreen(
+                letterId = backStackEntry.arguments?.getString(Destinations.LETTER_ID_ARG).orEmpty(),
+                onBackClicked = navController::popBackStack
+            )
+        }
+    }
+}

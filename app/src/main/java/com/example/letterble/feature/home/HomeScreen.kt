@@ -2,11 +2,77 @@
  * HomeScreen.kt
  *
  * 役割:
- * - ナビゲーションボタン表示
- * - ViewModelのイベントを受け取り画面遷移
+ * - ホーム画面のナビゲーションボタンを表示する
+ * - ViewModelのイベントを受け取り画面遷移コールバックを呼ぶ
  */
+package com.example.letterble.feature.home
 
-// TODO: 受信・運搬・手紙作成ボタンを表示する
-// TODO: ボタン押下でViewModelの関数を呼ぶ
-// TODO: ViewModelのイベントをcollectする
-// TODO: イベントに応じてnavController.navigate()を実行する
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.letterble.ui.components.CommonButton
+
+/**
+ * ホーム画面を表示する。
+ *
+ * @param onReceivedClicked 受信一覧画面へ遷移するときに呼ぶコールバック
+ * @param onCarryClicked 運搬中一覧画面へ遷移するときに呼ぶコールバック
+ * @param onCreateLetterClicked 手紙作成画面へ遷移するときに呼ぶコールバック
+ * @param modifier 画面全体に適用するModifier
+ * @param viewModel ホーム画面のイベントを管理するViewModel
+ */
+@Composable
+fun HomeScreen(
+    onReceivedClicked: () -> Unit,
+    onCarryClicked: () -> Unit,
+    onCreateLetterClicked: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: HomeViewModel = viewModel()
+) {
+    LaunchedEffect(viewModel) {
+        viewModel.navigationEvents.collect { event ->
+            when (event) {
+                HomeNavigationEvent.NavigateToReceived -> onReceivedClicked()
+                HomeNavigationEvent.NavigateToCarry -> onCarryClicked()
+                HomeNavigationEvent.NavigateToEditLetter -> onCreateLetterClicked()
+            }
+        }
+    }
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "ホーム",
+            style = MaterialTheme.typography.headlineMedium
+        )
+        CommonButton(
+            text = "受信した手紙",
+            modifier = Modifier.padding(top = 24.dp),
+            onClick = viewModel::onReceivedClicked
+        )
+        CommonButton(
+            text = "運搬中の手紙",
+            modifier = Modifier.padding(top = 8.dp),
+            onClick = viewModel::onCarryClicked
+        )
+        CommonButton(
+            text = "手紙を書く",
+            modifier = Modifier.padding(top = 8.dp),
+            onClick = viewModel::onCreateLetterClicked
+        )
+    }
+}
