@@ -1,11 +1,21 @@
-/**
- * Destinations.kt
- *
- * 役割:
- * - 画面遷移のルート文字列を一元管理
- * - 文字列のミス防止
- */
+package com.example.letterble.navigation
 
-// TODO: 各画面のrouteを定数として定義する
-// TODO: 文字列のハードコードを避ける
-// TODO: 引数付きルートのフォーマットも定義する（例: "detail/{id}"）
+/**
+ * 画面遷移の route 文字列を一元管理する。
+ */
+object Destinations {
+    const val REGISTER = "register"
+    const val HOME = "home"
+    const val EDIT_LETTER = "edit_letter"
+    const val RECEIVED = "received"
+    const val CARRY = "carry"
+
+    const val LETTER_ID_ARG = "letterId"
+
+    const val RECEIVED_DETAIL = "received/{$LETTER_ID_ARG}"
+    const val CARRY_DETAIL = "carry/{$LETTER_ID_ARG}"
+
+    fun receivedDetail(letterId: String): String = "received/$letterId"
+
+    fun carryDetail(letterId: String): String = "carry/$letterId"
+}
