@@ -1,14 +1,14 @@
 /**
- * Node.kt
+ * Post.kt
  *
  * 役割:
- * - tree構造の構成要素
+ * - 郵便ポストの位置情報モデル
  */
 package com.example.letterble.domain.model
 
-data class Node(
+data class Post(
     val id: String,
-    val userName: String,
+    val name: String,
     val latitude: Double,
     val longitude: Double
 )
