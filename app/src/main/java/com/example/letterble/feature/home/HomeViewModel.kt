@@ -11,8 +11,11 @@
  */
 package com.example.letterble.feature.home
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.letterble.data.datasource.local.UserLocalDataSource
 import com.example.letterble.data.repository.UserRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -87,6 +90,24 @@ class HomeViewModel(
         viewModelScope.launch {
             _navigationEvents.emit(event)
         }
+    }
+}
+
+class HomeViewModelFactory(
+    private val context: Context
+) : ViewModelProvider.Factory {
+    @Suppress("UNCHECKED_CAST")
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(HomeViewModel::class.java)) {
+            val userLocalDataSource = UserLocalDataSource(context.applicationContext)
+            val userRepository = UserRepository(
+                userLocalDataSource = userLocalDataSource
+            )
+
+            return HomeViewModel(userRepository) as T
+        }
+
+        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
 
