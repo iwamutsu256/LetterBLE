@@ -26,6 +26,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -44,9 +45,13 @@ import com.example.letterble.ui.components.CommonButton
 @Composable
 fun RegisterScreen(
     onRegistered: () -> Unit,
-    modifier: Modifier = Modifier,
-    viewModel: RegisterViewModel = viewModel()
+    modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+    val viewModel: RegisterViewModel = viewModel(
+        factory = RegisterViewModelFactory(context)
+    )
+
     val uiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(uiState.isRegistered) {
