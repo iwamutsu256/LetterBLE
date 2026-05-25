@@ -1,11 +1,43 @@
-/**
- * ReceivedDetailScreen.kt
- *
- * 役割:
- * - 手紙詳細表示
- * - tree表示切り替え
- */
+package com.example.letterble.feature.received
 
-// TODO: 手紙の詳細（本文・差出人）を表示する
-// TODO: tree表示の切り替え（地図/グラフ）UIを作る
-// TODO: ViewModelから選択中の手紙データを取得する
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+
+@Composable
+fun ReceivedDetailScreen(
+    letterId: String,
+    onBackClicked: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "受信詳細",
+            style = MaterialTheme.typography.headlineMedium
+        )
+        Text(
+            modifier = Modifier.padding(top = 12.dp),
+            text = "ID: $letterId"
+        )
+        Button(
+            modifier = Modifier.padding(top = 24.dp),
+            onClick = onBackClicked
+        ) {
+            Text("戻る")
+        }
+    }
+}

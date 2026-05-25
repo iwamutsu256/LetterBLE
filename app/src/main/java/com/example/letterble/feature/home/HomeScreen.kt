@@ -1,12 +1,33 @@
-/**
- * HomeScreen.kt
- *
- * 役割:
- * - ナビゲーションボタン表示
- * - ViewModelのイベントを受け取り画面遷移
- */
+package com.example.letterble.feature.home
 
-// TODO: 受信・運搬・手紙作成ボタンを表示する
-// TODO: ボタン押下でViewModelの関数を呼ぶ
-// TODO: ViewModelのイベントをcollectする
-// TODO: イベントに応じてnavController.navigate()を実行する
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+
+@Composable
+fun HomeScreen(
+    onReceivedClicked: () -> Unit,
+    onCarryClicked: () -> Unit,
+    onCreateLetterClicked: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "ホーム",
+            style = MaterialTheme.typography.headlineMedium
+        )
+    }
+}
