@@ -12,6 +12,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
+// TODO: 受信手紙一覧をLazyColumnなどで表示する
+// TODO: 画面表示時にReceivedViewModel.loadReceivedLetters()を呼ぶ
+// TODO: アイテムクリックでReceivedViewModel.onLetterClicked()を呼ぶ
+// TODO: 仮IDではなくViewModelの選択イベントから詳細へ遷移する
 @Composable
 fun ReceivedScreen(
     onLetterClicked: (String) -> Unit,

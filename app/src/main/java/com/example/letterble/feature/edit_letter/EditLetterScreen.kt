@@ -12,6 +12,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
+// TODO: 宛先入力UIを作成する
+// TODO: 本文入力UIを作成する
+// TODO: 下書き保存ボタンを作る
+// TODO: 投函先ポスト選択ボタンを作る
+// TODO: 送信ボタンを作る
+// TODO: EditLetterViewModelのstateをUIに反映する
 @Composable
 fun EditLetterScreen(
     onBackClicked: () -> Unit,

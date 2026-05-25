@@ -12,6 +12,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
+// TODO: 運搬中手紙一覧をLazyColumnなどで表示する
+// TODO: 画面表示時にCarryViewModel.loadCarryingLetters()を呼ぶ
+// TODO: 手紙クリックでCarryViewModelの選択イベントを呼ぶ
+// TODO: 仮IDではなくViewModelの選択イベントから詳細へ遷移する
 @Composable
 fun CarryScreen(
     onLetterClicked: (String) -> Unit,

@@ -12,6 +12,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
+// TODO: 手紙の詳細（本文・差出人）をViewModelから取得して表示する
+// TODO: tree表示の切り替え（地図/グラフ）UIを作る
+// TODO: letterIdを使ってReceivedViewModelの詳細読み込みを呼ぶ
 @Composable
 fun ReceivedDetailScreen(
     letterId: String,

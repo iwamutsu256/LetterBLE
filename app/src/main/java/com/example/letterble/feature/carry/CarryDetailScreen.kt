@@ -12,6 +12,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
+// TODO: 手紙の到達状態をViewModelから取得して表示する
+// TODO: tree表示UIを作る
+// TODO: letterIdを使ってCarryViewModelの詳細読み込みを呼ぶ
 @Composable
 fun CarryDetailScreen(
     letterId: String,

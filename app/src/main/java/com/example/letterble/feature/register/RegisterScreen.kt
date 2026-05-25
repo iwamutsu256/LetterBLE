@@ -12,6 +12,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
+// TODO: TextFieldでユーザー名入力を受け付ける
+// TODO: RegisterViewModelのstateをcollectしてUIに反映する
+// TODO: ボタンでRegisterViewModelの登録イベントを呼び出す
+// TODO: 位置情報・Bluetoothの権限要求UIを表示する
 @Composable
 fun RegisterScreen(
     onRegistered: () -> Unit,
