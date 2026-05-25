@@ -38,11 +38,4 @@ object Destinations {
      * @param letterId 詳細表示する手紙ID
      */
     fun carryDetail(letterId: String): String = "carry/${Uri.encode(letterId)}"
-
-    /**
-     * routeから取り出した手紙IDを画面で扱う値へ戻す。
-     *
-     * @param encodedLetterId route上でエンコードされた手紙ID
-     */
-    fun decodeLetterId(encodedLetterId: String): String = Uri.decode(encodedLetterId)
 }
