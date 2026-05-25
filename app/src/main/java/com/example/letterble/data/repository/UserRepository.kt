@@ -15,9 +15,11 @@
 package com.example.letterble.data.repository
 
 import com.example.letterble.data.datasource.firestore.UserFirestoreDataSource
+import com.example.letterble.data.datasource.local.UserLocalDataSource
 import com.example.letterble.domain.model.User
 
 class UserRepository(
+    private val userLocalDataSource: UserLocalDataSource,
     private val userFirestoreDataSource: UserFirestoreDataSource = UserFirestoreDataSource()
 ) {
     suspend fun saveUser(userName: String) {
@@ -31,5 +33,17 @@ class UserRepository(
 
     suspend fun getUser(userName: String): User? {
         return userFirestoreDataSource.getUser(userName)
+    }
+
+    fun saveCurrentUserName(userName: String) {
+        userLocalDataSource.saveCurrentUserName(userName)
+    }
+
+    fun getCurrentUserName(): String? {
+        return userLocalDataSource.getCurrentUserName()
+    }
+
+    fun clearCurrentUserName() {
+        userLocalDataSource.clearCurrentUserName()
     }
 }

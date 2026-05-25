@@ -6,7 +6,7 @@
  * - 登録処理の制御
  * - BLE開始トリガー
  *
- * 呼び出す:
+ * 呼び出し:
  * - UserRepository
  * - BleRepository
  */
@@ -20,8 +20,11 @@
 
 package com.example.letterble.feature.register
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.letterble.data.datasource.local.UserLocalDataSource
 import com.example.letterble.data.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -95,5 +98,23 @@ class RegisterViewModel(
                 isRegistered = true
             )
         }
+    }
+}
+
+class RegisterViewModelFactory(
+    private val context: Context
+) : ViewModelProvider.Factory {
+    @Suppress("UNCHECKED_CAST")
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(RegisterViewModel::class.java)) {
+            val userLocalDataSource = UserLocalDataSource(context.applicationContext)
+            val userRepository = UserRepository(
+                userLocalDataSource = userLocalDataSource
+            )
+
+            return RegisterViewModel(userRepository) as T
+        }
+
+        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

@@ -86,9 +86,10 @@ fun RegisterScreen(
             )
         )
 
-        if (uiState.errorMessage != null) {
+        val errorMessage = uiState.errorMessage
+        if (errorMessage != null) {
             Text(
-                text = uiState.errorMessage,
+                text = errorMessage,
                 modifier = Modifier.padding(top = 8.dp),
                 color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.bodySmall
