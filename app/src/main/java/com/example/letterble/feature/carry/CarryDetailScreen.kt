@@ -17,7 +17,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.letterble.ui.theme.LetterBLETheme
 
 // TODO: 手紙の到達状態をViewModelから取得して表示する
 // TODO: tree表示UIを作る
@@ -31,6 +33,19 @@ import androidx.compose.ui.unit.dp
  */
 @Composable
 fun CarryDetailScreen(
+    letterId: String,
+    onBackClicked: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    CarryDetailScreenContent(
+        letterId = letterId,
+        onBackClicked = onBackClicked,
+        modifier = modifier
+    )
+}
+
+@Composable
+fun CarryDetailScreenContent(
     letterId: String,
     onBackClicked: () -> Unit,
     modifier: Modifier = Modifier
@@ -56,5 +71,16 @@ fun CarryDetailScreen(
         ) {
             Text("戻る")
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun CarryDetailScreenContentPreview() {
+    LetterBLETheme {
+        CarryDetailScreenContent(
+            letterId = "sample-carry-letter",
+            onBackClicked = {}
+        )
     }
 }

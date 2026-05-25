@@ -17,7 +17,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.letterble.ui.theme.LetterBLETheme
 
 // TODO: 受信手紙一覧をLazyColumnなどで表示する
 // TODO: 画面表示時にReceivedViewModel.loadReceivedLetters()を呼ぶ
@@ -32,6 +34,19 @@ import androidx.compose.ui.unit.dp
  */
 @Composable
 fun ReceivedScreen(
+    onLetterClicked: (String) -> Unit,
+    onBackClicked: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    ReceivedScreenContent(
+        onLetterClicked = onLetterClicked,
+        onBackClicked = onBackClicked,
+        modifier = modifier
+    )
+}
+
+@Composable
+fun ReceivedScreenContent(
     onLetterClicked: (String) -> Unit,
     onBackClicked: () -> Unit,
     modifier: Modifier = Modifier
@@ -59,5 +74,16 @@ fun ReceivedScreen(
         ) {
             Text("戻る")
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ReceivedScreenContentPreview() {
+    LetterBLETheme {
+        ReceivedScreenContent(
+            onLetterClicked = {},
+            onBackClicked = {}
+        )
     }
 }

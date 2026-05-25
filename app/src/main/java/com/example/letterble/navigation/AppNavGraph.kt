@@ -13,10 +13,12 @@
 package com.example.letterble.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.letterble.feature.carry.CarryDetailScreen
 import com.example.letterble.feature.carry.CarryScreen
@@ -25,6 +27,7 @@ import com.example.letterble.feature.home.HomeScreen
 import com.example.letterble.feature.received.ReceivedDetailScreen
 import com.example.letterble.feature.received.ReceivedScreen
 import com.example.letterble.feature.register.RegisterScreen
+import com.example.letterble.ui.theme.LetterBLETheme
 
 /**
  * アプリ全体の画面遷移を定義する。
@@ -96,5 +99,13 @@ fun AppNavGraph(navController: NavHostController) {
                 onBackClicked = navController::popBackStack
             )
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun AppNavGraphPreview() {
+    LetterBLETheme {
+        AppNavGraph(navController = rememberNavController())
     }
 }

@@ -20,7 +20,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.letterble.ui.theme.LetterBLETheme
 
 // TODO: 宛先入力UIを作成する
 // TODO: 本文入力UIを作成する
@@ -36,6 +38,17 @@ import androidx.compose.ui.unit.dp
  */
 @Composable
 fun EditLetterScreen(
+    onBackClicked: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    EditLetterScreenContent(
+        onBackClicked = onBackClicked,
+        modifier = modifier
+    )
+}
+
+@Composable
+fun EditLetterScreenContent(
     onBackClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -56,5 +69,13 @@ fun EditLetterScreen(
         ) {
             Text("戻る")
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun EditLetterScreenContentPreview() {
+    LetterBLETheme {
+        EditLetterScreenContent(onBackClicked = {})
     }
 }

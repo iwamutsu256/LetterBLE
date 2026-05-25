@@ -17,9 +17,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.letterble.ui.components.CommonButton
+import com.example.letterble.ui.theme.LetterBLETheme
 
 /**
  * ホーム画面を表示する。
@@ -48,6 +50,21 @@ fun HomeScreen(
         }
     }
 
+    HomeScreenContent(
+        onReceivedClicked = viewModel::onReceivedClicked,
+        onCarryClicked = viewModel::onCarryClicked,
+        onCreateLetterClicked = viewModel::onCreateLetterClicked,
+        modifier = modifier
+    )
+}
+
+@Composable
+fun HomeScreenContent(
+    onReceivedClicked: () -> Unit,
+    onCarryClicked: () -> Unit,
+    onCreateLetterClicked: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -62,17 +79,29 @@ fun HomeScreen(
         CommonButton(
             text = "受信した手紙",
             modifier = Modifier.padding(top = 24.dp),
-            onClick = viewModel::onReceivedClicked
+            onClick = onReceivedClicked
         )
         CommonButton(
             text = "運搬中の手紙",
             modifier = Modifier.padding(top = 8.dp),
-            onClick = viewModel::onCarryClicked
+            onClick = onCarryClicked
         )
         CommonButton(
             text = "手紙を書く",
             modifier = Modifier.padding(top = 8.dp),
-            onClick = viewModel::onCreateLetterClicked
+            onClick = onCreateLetterClicked
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun HomeScreenContentPreview() {
+    LetterBLETheme {
+        HomeScreenContent(
+            onReceivedClicked = {},
+            onCarryClicked = {},
+            onCreateLetterClicked = {}
         )
     }
 }

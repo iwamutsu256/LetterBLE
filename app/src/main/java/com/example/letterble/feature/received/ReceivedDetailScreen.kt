@@ -17,7 +17,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.letterble.ui.theme.LetterBLETheme
 
 // TODO: 手紙の詳細（本文・差出人）をViewModelから取得して表示する
 // TODO: tree表示の切り替え（地図/グラフ）UIを作る
@@ -31,6 +33,19 @@ import androidx.compose.ui.unit.dp
  */
 @Composable
 fun ReceivedDetailScreen(
+    letterId: String,
+    onBackClicked: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    ReceivedDetailScreenContent(
+        letterId = letterId,
+        onBackClicked = onBackClicked,
+        modifier = modifier
+    )
+}
+
+@Composable
+fun ReceivedDetailScreenContent(
     letterId: String,
     onBackClicked: () -> Unit,
     modifier: Modifier = Modifier
@@ -56,5 +71,16 @@ fun ReceivedDetailScreen(
         ) {
             Text("戻る")
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ReceivedDetailScreenContentPreview() {
+    LetterBLETheme {
+        ReceivedDetailScreenContent(
+            letterId = "sample-received-letter",
+            onBackClicked = {}
+        )
     }
 }
