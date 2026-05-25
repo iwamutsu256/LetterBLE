@@ -83,7 +83,7 @@ class RegisterViewModel(
             } catch (exception: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    errorMessage = "ユーザー登録に失敗しました"
+                    errorMessage = exception.message ?: "ユーザー登録に失敗しました"
                 )
             }
         }
