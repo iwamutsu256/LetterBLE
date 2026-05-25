@@ -8,6 +8,7 @@
 package com.example.letterble.feature.home
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -15,8 +16,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.letterble.ui.components.CommonButton
@@ -28,16 +32,20 @@ import com.example.letterble.ui.components.CommonButton
  * @param onCarryClicked 運搬中一覧画面へ遷移するときに呼ぶコールバック
  * @param onCreateLetterClicked 手紙作成画面へ遷移するときに呼ぶコールバック
  * @param modifier 画面全体に適用するModifier
- * @param viewModel ホーム画面のイベントを管理するViewModel
  */
 @Composable
 fun HomeScreen(
     onReceivedClicked: () -> Unit,
     onCarryClicked: () -> Unit,
     onCreateLetterClicked: () -> Unit,
-    modifier: Modifier = Modifier,
-    viewModel: HomeViewModel = viewModel()
+    modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+    val viewModel: HomeViewModel = viewModel(
+        factory = HomeViewModelFactory(context)
+    )
+    val uiState by viewModel.uiState.collectAsState()
+
     LaunchedEffect(viewModel) {
         viewModel.navigationEvents.collect { event ->
             when (event) {
@@ -48,31 +56,46 @@ fun HomeScreen(
         }
     }
 
-    Column(
+    Box(
         modifier = modifier
             .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(24.dp)
     ) {
-        Text(
-            text = "ホーム",
-            style = MaterialTheme.typography.headlineMedium
-        )
-        CommonButton(
-            text = "受信した手紙",
-            modifier = Modifier.padding(top = 24.dp),
-            onClick = viewModel::onReceivedClicked
-        )
-        CommonButton(
-            text = "運搬中の手紙",
-            modifier = Modifier.padding(top = 8.dp),
-            onClick = viewModel::onCarryClicked
-        )
-        CommonButton(
-            text = "手紙を書く",
-            modifier = Modifier.padding(top = 8.dp),
-            onClick = viewModel::onCreateLetterClicked
-        )
+        if (uiState.currentUserName.isNotBlank()) {
+            Text(
+                text = uiState.currentUserName,
+                modifier = Modifier.align(Alignment.TopStart),
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "ホーム",
+                style = MaterialTheme.typography.headlineMedium
+            )
+
+            CommonButton(
+                text = "受信した手紙",
+                modifier = Modifier.padding(top = 24.dp),
+                onClick = viewModel::onReceivedClicked
+            )
+
+            CommonButton(
+                text = "運搬中の手紙",
+                modifier = Modifier.padding(top = 8.dp),
+                onClick = viewModel::onCarryClicked
+            )
+
+            CommonButton(
+                text = "手紙を書く",
+                modifier = Modifier.padding(top = 8.dp),
+                onClick = viewModel::onCreateLetterClicked
+            )
+        }
     }
 }
