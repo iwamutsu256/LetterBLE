@@ -56,7 +56,8 @@ fun ReceivedDetailScreen(
         factory = ReceivedViewModelFactory(
             userRepository = appContainer.userRepository,
             letterRepository = appContainer.letterRepository,
-            locationRepository = appContainer.locationRepository
+            locationRepository = appContainer.locationRepository,
+            buildRouteTreeUseCase = appContainer.buildRouteTreeUseCase
         )
     )
 

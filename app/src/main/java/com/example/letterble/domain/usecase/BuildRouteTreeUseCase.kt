@@ -16,6 +16,15 @@ import com.example.letterble.domain.model.Tree
 
 class BuildRouteTreeUseCase {
 
+    fun buildTree(savedTree: Tree, locations: List<Location>): Tree {
+        return if (savedTree.hasRoute()) {
+            // Firestore の LETTERS.tree は中継時に親子関係つきで更新されるため、表示用の正とする。
+            savedTree
+        } else {
+            buildTree(locations)
+        }
+    }
+
     fun buildTree(locations: List<Location>): Tree {
         if (locations.isEmpty()) {
             return Tree()
@@ -48,5 +57,9 @@ class BuildRouteTreeUseCase {
             latitude = latitude,
             longitude = longitude
         )
+    }
+
+    private fun Tree.hasRoute(): Boolean {
+        return nodes.isNotEmpty() || edges.isNotEmpty()
     }
 }

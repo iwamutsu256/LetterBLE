@@ -12,6 +12,7 @@ import com.example.letterble.data.repository.LetterRepository
 import com.example.letterble.data.repository.LocationRepository
 import com.example.letterble.data.repository.TreeRepository
 import com.example.letterble.data.repository.UserRepository
+import com.example.letterble.domain.usecase.BuildRouteTreeUseCase
 
 /**
  * App-wide dependency entry point.
@@ -34,6 +35,9 @@ interface AppContainer {
 
     // 経路 Tree データを上位層へ提供する Repository。
     val treeRepository: TreeRepository
+
+    // 保存済み Tree と Location 履歴から表示用 Tree を決める UseCase。
+    val buildRouteTreeUseCase: BuildRouteTreeUseCase
 }
 
 class DefaultAppContainer(
@@ -58,4 +62,5 @@ class DefaultAppContainer(
     override val locationRepository = LocationRepository(locationFirestoreDataSource)
     override val encounterRepository = EncounterRepository(encounterFirestoreDataSource)
     override val treeRepository = TreeRepository(treeFirestoreDataSource)
+    override val buildRouteTreeUseCase = BuildRouteTreeUseCase()
 }
