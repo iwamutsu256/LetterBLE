@@ -67,24 +67,41 @@ class TreeFirestoreDataSource(
         newUser: String,
         location: Location
     ) {
-        val currentTree = getTree(letterId)
-        val parentNode = currentTree.nodes.firstOrNull { node -> node.userName == parentUser }
-        val newNode = Node(
-            id = newUser,
-            userName = newUser,
-            latitude = location.latitude,
-            longitude = location.longitude
-        )
-        val newEdge = Edge(
-            fromNodeId = parentNode?.id ?: parentUser,
-            toNodeId = newNode.id
-        )
-        val updatedTree = Tree(
-            nodes = currentTree.nodes + newNode,
-            edges = currentTree.edges + newEdge
-        )
+        val letterDocument = lettersCollection.document(letterId)
 
-        updateTree(letterId, updatedTree)
+        firestore.runTransaction { transaction ->
+            val document = transaction.get(letterDocument)
+            val currentTree = document.get(FirestoreFields.Letter.TREE).toTree()
+
+            val parentNode = currentTree.nodes.firstOrNull { node ->
+                node.userName == parentUser
+            }
+
+            val newNode = Node(
+                id = newUser,
+                userName = newUser,
+                latitude = location.latitude,
+                longitude = location.longitude
+            )
+
+            val newEdge = Edge(
+                fromNodeId = parentNode?.id ?: parentUser,
+                toNodeId = newNode.id
+            )
+
+            val updatedTree = Tree(
+                nodes = currentTree.nodes + newNode,
+                edges = currentTree.edges + newEdge
+            )
+
+            transaction.update(
+                letterDocument,
+                FirestoreFields.Letter.TREE,
+                updatedTree.toFirestoreMap()
+            )
+
+            null
+        }.awaitResult()
     }
 }
 
