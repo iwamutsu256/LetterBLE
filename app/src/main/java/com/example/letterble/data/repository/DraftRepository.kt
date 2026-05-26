@@ -7,8 +7,37 @@
  * 使用Datasource:
  * - Local（SharedPreferences）
  */
+package com.example.letterble.data.repository
 
-// TODO: 各DataSourceを受け取る
-// TODO: DataSourceの関数を呼び出すラッパーを作る
-// TODO: 上位層に返すデータの整形を行う（必要なら）
-// TODO: ビジネスロジックを書かない
+import com.example.letterble.data.datasource.local.DraftLetter
+import com.example.letterble.data.datasource.local.DraftLocalDataSource
+
+/**
+ * 下書き保存を上位層へ公開するRepository。
+ *
+ * DataSource呼び出しのラッパーに留め、入力判定などの画面都合はViewModelで扱う。
+ */
+class DraftRepository(
+    private val draftLocalDataSource: DraftLocalDataSource
+) {
+    /**
+     * 下書きを保存する。
+     */
+    fun saveDraft(draft: DraftLetter) {
+        draftLocalDataSource.saveDraft(draft)
+    }
+
+    /**
+     * 下書きを読み込む。
+     */
+    fun loadDraft(): DraftLetter {
+        return draftLocalDataSource.loadDraft()
+    }
+
+    /**
+     * 下書きを削除する。
+     */
+    fun clearDraft() {
+        draftLocalDataSource.clearDraft()
+    }
+}
