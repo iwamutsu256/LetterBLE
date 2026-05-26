@@ -26,7 +26,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.letterble.di.AppContainer
-import com.example.letterble.domain.model.Letter
 
 /**
  * 運搬中の手紙の詳細画面を表示する。
@@ -134,12 +133,9 @@ private fun CarryLetterDetailContent(
  */
 @Composable
 private fun CarryLetterDetail(
-    letter: Letter,
+    letter: CarryLetterDetailInfo,
     modifier: Modifier = Modifier
 ) {
-    val nodeCount = letter.tree.nodes.size
-    val edgeCount = letter.tree.edges.size
-
     Column(modifier = modifier.fillMaxWidth()) {
         Text("差出人: ${letter.fromUser}")
         Text(
@@ -152,7 +148,7 @@ private fun CarryLetterDetail(
         )
         Text(
             modifier = Modifier.padding(top = 8.dp),
-            text = "経路概要: ${nodeCount}地点 / ${edgeCount}区間"
+            text = "経路概要: ${letter.routeNodeCount}地点 / ${letter.routeEdgeCount}区間"
         )
     }
 }

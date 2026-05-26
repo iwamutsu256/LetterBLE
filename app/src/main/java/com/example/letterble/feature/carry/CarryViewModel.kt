@@ -24,15 +24,40 @@ data class CarryUiState(
     // この端末に保存されている現在ユーザー名。
     val currentUserName: String = "",
     // 現在ユーザーが運搬している未到達の手紙一覧。
-    val carryingLetters: List<Letter> = emptyList(),
+    val carryingLetters: List<CarryLetterListItem> = emptyList(),
     // 詳細画面で表示する対象の手紙。
-    val selectedLetter: Letter? = null,
+    val selectedLetter: CarryLetterDetailInfo? = null,
     // Firestore から読み込み中かどうか。
     val isLoading: Boolean = false,
     // 詳細データを Firestore から読み込み中かどうか。
     val isDetailLoading: Boolean = false,
     // 画面に表示するエラーメッセージ。エラーがなければ null。
     val errorMessage: String? = null
+)
+
+/**
+ * 一覧画面に表示してよい手紙情報。
+ *
+ * 本文を UI state に載せないことで、運搬中画面から誤って本文を表示できないようにする。
+ */
+data class CarryLetterListItem(
+    val letterId: String,
+    val toUser: String,
+    val fromUser: String
+)
+
+/**
+ * 詳細画面に表示してよい手紙情報。
+ *
+ * 運搬中の人には本文を見せないため、sentence はこの型に含めない。
+ */
+data class CarryLetterDetailInfo(
+    val letterId: String,
+    val toUser: String,
+    val fromUser: String,
+    val isSurvival: Boolean,
+    val routeNodeCount: Int,
+    val routeEdgeCount: Int
 )
 
 /**
@@ -78,7 +103,7 @@ class CarryViewModel(
                 // USERS の carrying_letter_ids を基点に運搬中の手紙だけを取得する。
                 val letters = letterRepository.getCarryingLetters(currentUserName)
                 _uiState.value = _uiState.value.copy(
-                    carryingLetters = letters,
+                    carryingLetters = letters.map { letter -> letter.toCarryListItem() },
                     isLoading = false
                 )
             } catch (exception: Exception) {
@@ -107,7 +132,7 @@ class CarryViewModel(
         // 一覧にある手紙なら先に state へ反映し、詳細画面の初期表示を早くする。
         val cachedLetter = _uiState.value.carryingLetters.firstOrNull { letter ->
             letter.letterId == letterId
-        }
+        }?.toCarryDetailInfo()
 
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(
@@ -120,7 +145,7 @@ class CarryViewModel(
                 // 詳細画面は letterId を入口にするため、一覧未経由でも Repository から取得する。
                 val letter = letterRepository.getLetter(letterId)
                 _uiState.value = _uiState.value.copy(
-                    selectedLetter = letter,
+                    selectedLetter = letter?.toCarryDetailInfo(),
                     isDetailLoading = false,
                     errorMessage = if (letter == null) "手紙が見つかりませんでした" else null
                 )
@@ -133,6 +158,39 @@ class CarryViewModel(
             }
         }
     }
+}
+
+// Repository から受け取った Letter から、一覧表示に必要な情報だけを抜き出す。
+private fun Letter.toCarryListItem(): CarryLetterListItem {
+    return CarryLetterListItem(
+        letterId = letterId,
+        toUser = toUser,
+        fromUser = fromUser
+    )
+}
+
+// Repository から受け取った Letter から、本文を除いた詳細表示用データを作る。
+private fun Letter.toCarryDetailInfo(): CarryLetterDetailInfo {
+    return CarryLetterDetailInfo(
+        letterId = letterId,
+        toUser = toUser,
+        fromUser = fromUser,
+        isSurvival = isSurvival,
+        routeNodeCount = tree.nodes.size,
+        routeEdgeCount = tree.edges.size
+    )
+}
+
+// 一覧から詳細へ進む直後の仮表示用に、一覧情報だけから本文なしの詳細データを作る。
+private fun CarryLetterListItem.toCarryDetailInfo(): CarryLetterDetailInfo {
+    return CarryLetterDetailInfo(
+        letterId = letterId,
+        toUser = toUser,
+        fromUser = fromUser,
+        isSurvival = true,
+        routeNodeCount = 0,
+        routeEdgeCount = 0
+    )
 }
 
 /**
