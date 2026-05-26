@@ -62,7 +62,10 @@ fun AppNavGraph(
         }
 
         composable(Destinations.EDIT_LETTER) {
-            EditLetterScreen(onBackClicked = navController::popBackStack)
+            EditLetterScreen(
+                appContainer = appContainer,
+                onBackClicked = navController::popBackStack
+            )
         }
 
         composable(Destinations.RECEIVED) {
