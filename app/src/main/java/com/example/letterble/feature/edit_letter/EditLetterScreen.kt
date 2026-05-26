@@ -10,19 +10,25 @@
  */
 package com.example.letterble.feature.edit_letter
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -50,6 +56,15 @@ fun EditLetterScreen(
     )
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var showBackConfirmDialog by remember { mutableStateOf(false) }
+
+    fun requestBack() {
+        if (uiState.hasInput) {
+            showBackConfirmDialog = true
+        } else {
+            onBackClicked()
+        }
+    }
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
@@ -57,6 +72,40 @@ fun EditLetterScreen(
                 EditLetterEvent.NavigateToPostSelect -> onSubmitClicked()
             }
         }
+    }
+
+    BackHandler {
+        requestBack()
+    }
+
+    if (showBackConfirmDialog) {
+        AlertDialog(
+            onDismissRequest = { showBackConfirmDialog = false },
+            title = { Text("下書きの扱い") },
+            text = { Text("入力中の内容を下書きとして保持しますか？") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.onSaveDraftClicked()
+                        showBackConfirmDialog = false
+                        onBackClicked()
+                    }
+                ) {
+                    Text("保持")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.onClearDraftClicked()
+                        showBackConfirmDialog = false
+                        onBackClicked()
+                    }
+                ) {
+                    Text("削除")
+                }
+            }
+        )
     }
 
     Column(
@@ -119,7 +168,7 @@ fun EditLetterScreen(
         CommonButton(
             text = "戻る",
             modifier = Modifier.padding(top = 8.dp),
-            onClick = onBackClicked
+            onClick = ::requestBack
         )
     }
 }
