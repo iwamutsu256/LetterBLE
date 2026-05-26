@@ -86,6 +86,7 @@ fun AppNavGraph(
 
         composable(Destinations.CARRY) {
             CarryScreen(
+                appContainer = appContainer,
                 onLetterClicked = { letterId ->
                     navController.navigate(Destinations.carryDetail(letterId))
                 },
@@ -98,6 +99,7 @@ fun AppNavGraph(
             arguments = listOf(navArgument(Destinations.LETTER_ID_ARG) { type = NavType.StringType })
         ) { backStackEntry ->
             CarryDetailScreen(
+                appContainer = appContainer,
                 letterId = backStackEntry.arguments?.getString(Destinations.LETTER_ID_ARG).orEmpty(),
                 onBackClicked = navController::popBackStack
             )
