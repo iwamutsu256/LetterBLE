@@ -181,6 +181,159 @@ private fun ReceivedDetailContent(
         DetailCard(title = "宛先", value = letter.toUser.ifBlank { "不明" })
         DetailCard(title = "本文", value = letter.sentence.ifBlank { "本文なし" })
         DetailCard(title = "経路概要", value = detail.routeSummary)
+        ReceivedRouteContent(detail = detail)
+    }
+}
+
+/**
+ * #60 用の簡易経路表示。
+ *
+ * Google Mapsなどの地図表示をここで無理に作る書き方もあるが、
+ * 共通MapViewはまだ未実装なので、まずはTreeとLocationをテキストで確認できる形にしている。
+ * 後で地図実装が入ったときに差し替えやすいよう、この経路表示だけ独立したComposableに分けている。
+ */
+@Composable
+private fun ReceivedRouteContent(
+    detail: ReceivedLetterDetail
+) {
+    val tree = detail.tree
+    val locations = detail.locations
+    val hasRoute = tree.nodes.isNotEmpty() || tree.edges.isNotEmpty() || locations.isNotEmpty()
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = "経路",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            if (!hasRoute) {
+                Text(
+                    text = "経路情報はありません",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                return@Column
+            }
+
+            RouteNodesContent(detail = detail)
+            RouteEdgesContent(detail = detail)
+            RouteLocationsContent(detail = detail)
+        }
+    }
+}
+
+/**
+ * Tree.nodesを経由ユーザーの一覧として表示する。
+ *
+ * NodeにはuserNameと座標が入るので、地図がなくても
+ * 「誰を経由したか」「その地点の座標は何か」を確認できる。
+ */
+@Composable
+private fun RouteNodesContent(
+    detail: ReceivedLetterDetail
+) {
+    val nodes = detail.tree.nodes
+
+    if (nodes.isEmpty()) {
+        RouteSection(title = "経由ユーザー", lines = listOf("経由ユーザー情報はありません"))
+        return
+    }
+
+    RouteSection(
+        title = "経由ユーザー",
+        lines = nodes.mapIndexed { index, node ->
+            "${index + 1}. ${node.userName.ifBlank { "不明" }} (${node.latitude}, ${node.longitude})"
+        }
+    )
+}
+
+/**
+ * Tree.edgesをユーザー同士のつながりとして表示する。
+ *
+ * Edgeはnode id同士の接続なので、idからNodeを探してユーザー名に変換している。
+ * 見つからない場合はidをそのまま出し、壊れたデータでも画面が落ちないようにしている。
+ */
+@Composable
+private fun RouteEdgesContent(
+    detail: ReceivedLetterDetail
+) {
+    val nodesById = detail.tree.nodes.associateBy { node -> node.id }
+    val edges = detail.tree.edges
+
+    if (edges.isEmpty()) {
+        RouteSection(title = "つながり", lines = listOf("つながり情報はありません"))
+        return
+    }
+
+    RouteSection(
+        title = "つながり",
+        lines = edges.map { edge ->
+            val from = nodesById[edge.fromNodeId]?.userName?.ifBlank { edge.fromNodeId } ?: edge.fromNodeId
+            val to = nodesById[edge.toNodeId]?.userName?.ifBlank { edge.toNodeId } ?: edge.toNodeId
+            "$from -> $to"
+        }
+    )
+}
+
+/**
+ * LOCATIONSの履歴を表示する。
+ *
+ * Treeは表示用の経路構造、Locationは実際に記録された地点履歴。
+ * 両方を出すことで、経路ツリーとFirestore上の位置履歴を見比べられる。
+ */
+@Composable
+private fun RouteLocationsContent(
+    detail: ReceivedLetterDetail
+) {
+    val locations = detail.locations
+
+    if (locations.isEmpty()) {
+        RouteSection(title = "位置履歴", lines = listOf("位置履歴はありません"))
+        return
+    }
+
+    RouteSection(
+        title = "位置履歴",
+        lines = locations.mapIndexed { index, location ->
+            "${index + 1}. ${location.userName.ifBlank { "不明" }} (${location.latitude}, ${location.longitude})"
+        }
+    )
+}
+
+/**
+ * 経路カード内の小さな見出しと行一覧。
+ *
+ * 同じTextの並びを3箇所に直書きすると、余白や文字サイズを変えたいときに修正箇所が増える。
+ * 小さな部品にして、経由ユーザー・つながり・位置履歴で同じ見た目を使う。
+ */
+@Composable
+private fun RouteSection(
+    title: String,
+    lines: List<String>
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.Bold
+        )
+        lines.forEach { line ->
+            Text(
+                text = line,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
     }
 }
 
