@@ -24,6 +24,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -70,6 +71,17 @@ fun ReceivedScreen(
      * collectAsState()を使うことで、loadingや一覧が変わったとき画面が自然に更新される。
      */
     val uiState by viewModel.uiState.collectAsState()
+
+    /**
+     * 画面が表示されたタイミングで一覧を読み込む。
+     *
+     * ViewModelのinitで自動読み込みする書き方もできるが、
+     * 同じViewModelを詳細画面でも使うため、initに置くと詳細画面でも一覧読み込みが走ってしまう。
+     * そのため、一覧画面に必要な読み込みはReceivedScreen側から明示的に呼ぶ。
+     */
+    LaunchedEffect(viewModel) {
+        viewModel.loadReceivedLetters()
+    }
 
     Column(
         modifier = modifier

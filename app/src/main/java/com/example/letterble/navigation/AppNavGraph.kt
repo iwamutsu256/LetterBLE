@@ -80,6 +80,7 @@ fun AppNavGraph(
             arguments = listOf(navArgument(Destinations.LETTER_ID_ARG) { type = NavType.StringType })
         ) { backStackEntry ->
             ReceivedDetailScreen(
+                appContainer = appContainer,
                 letterId = backStackEntry.arguments?.getString(Destinations.LETTER_ID_ARG).orEmpty(),
                 onBackClicked = navController::popBackStack
             )

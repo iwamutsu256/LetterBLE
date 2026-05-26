@@ -140,11 +140,6 @@ class ReceivedViewModel(
      */
     val uiState: StateFlow<ReceivedUiState> = _uiState.asStateFlow()
 
-    init {
-        // 画面を開いたときに一度読み込む。手動更新が必要になったら同じ関数を再利用できる。
-        loadReceivedLetters()
-    }
-
     /**
      * 現在ユーザー宛てに届いた手紙を読み込む。
      *
