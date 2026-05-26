@@ -38,14 +38,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 // UI に余白やサイズなどを指定するために使う。
 import androidx.compose.ui.Modifier
-// ViewModelFactory に渡す Context を取得するために使う。
-import androidx.compose.ui.platform.LocalContext
 // キーボードの IME アクションを指定するために使う。
 import androidx.compose.ui.text.input.ImeAction
 // dp 単位の余白を指定するために使う。
 import androidx.compose.ui.unit.dp
 // Compose で ViewModel を取得するために使う。
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.letterble.di.AppContainer
 // アプリ共通のボタン。
 import com.example.letterble.ui.components.CommonButton
 
@@ -54,18 +53,16 @@ import com.example.letterble.ui.components.CommonButton
  */
 @Composable
 fun RegisterScreen(
+    // AppContainer から ViewModel に必要な依存を受け取る。
+    appContainer: AppContainer,
     // 登録完了後に Home へ進むため、AppNavGraph から渡される処理。
     onRegistered: () -> Unit,
     // 外側から画面全体の Modifier を渡せるようにする。
     modifier: Modifier = Modifier
 ) {
-    // Factory で ViewModel を作るため、現在の Context を取得する。
-    val context = LocalContext.current
-
-    // RegisterViewModelFactory を使って、Repository 付きの RegisterViewModel を作る。
+    // AppContainer の Repository を渡して RegisterViewModel を作る。
     val viewModel: RegisterViewModel = viewModel(
-        // Context を渡して Factory を作る。
-        factory = RegisterViewModelFactory(context)
+        factory = RegisterViewModelFactory(appContainer.userRepository)
     )
 
     // ViewModel の uiState を Compose 画面で読める形に変換する。
