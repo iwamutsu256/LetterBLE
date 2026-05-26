@@ -34,12 +34,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 // UI に余白やサイズなどを指定するために使う。
 import androidx.compose.ui.Modifier
-// ViewModelFactory に渡す Context を取得するために使う。
-import androidx.compose.ui.platform.LocalContext
 // dp 単位の余白を指定するために使う。
 import androidx.compose.ui.unit.dp
 // Compose で ViewModel を取得するために使う。
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.letterble.di.AppContainer
 // アプリ共通のボタン。
 import com.example.letterble.ui.components.CommonButton
 
@@ -48,6 +47,8 @@ import com.example.letterble.ui.components.CommonButton
  */
 @Composable
 fun HomeScreen(
+    // AppContainer から ViewModel に必要な依存を受け取る。
+    appContainer: AppContainer,
     // 受信一覧画面へ遷移するため、AppNavGraph から渡される処理。
     onReceivedClicked: () -> Unit,
     // 運搬中一覧画面へ遷移するため、AppNavGraph から渡される処理。
@@ -57,13 +58,9 @@ fun HomeScreen(
     // 外側から画面全体の Modifier を渡せるようにする。
     modifier: Modifier = Modifier
 ) {
-    // Factory で ViewModel を作るため、現在の Context を取得する。
-    val context = LocalContext.current
-
-    // HomeViewModelFactory を使って、Repository 付きの HomeViewModel を作る。
+    // AppContainer の Repository を渡して HomeViewModel を作る。
     val viewModel: HomeViewModel = viewModel(
-        // Context を渡して Factory を作る。
-        factory = HomeViewModelFactory(context)
+        factory = HomeViewModelFactory(appContainer.userRepository)
     )
 
     // ViewModel の uiState を Compose 画面で読める形に変換する。

@@ -8,16 +8,12 @@
 // このファイルが登録画面 feature の置き場所にあることを示す。
 package com.example.letterble.feature.register
 
-// ViewModelFactory で UserLocalDataSource を作るために Context を使う。
-import android.content.Context
 // 画面の状態管理をする ViewModel の基底クラス。
 import androidx.lifecycle.ViewModel
 // 引数が必要な ViewModel を作るための Factory。
 import androidx.lifecycle.ViewModelProvider
 // ViewModel の中で coroutine を起動するために使う。
 import androidx.lifecycle.viewModelScope
-// 現在ユーザー名を端末内に保存する DataSource。
-import com.example.letterble.data.datasource.local.UserLocalDataSource
 // ユーザー情報の保存・取得をまとめて扱う Repository。
 import com.example.letterble.data.repository.UserRepository
 // 画面状態を変更できる StateFlow。
@@ -159,24 +155,15 @@ class RegisterViewModel(
  * Compose の viewModel() にこの Factory を渡して作る。
  */
 class RegisterViewModelFactory(
-    // UserLocalDataSource を作るために Context を受け取る。
-    private val context: Context
+    // AppContainer で組み立て済みの Repository を受け取る。
+    private val userRepository: UserRepository
 ) : ViewModelProvider.Factory {
     // ViewModelProvider.Factory の create 関数を実装する。
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         // 作ろうとしている ViewModel が RegisterViewModel か確認する。
         if (modelClass.isAssignableFrom(RegisterViewModel::class.java)) {
-            // 端末内保存用 DataSource を作る。
-            val userLocalDataSource = UserLocalDataSource(context.applicationContext)
-
-            // UserRepository を作る。
-            val userRepository = UserRepository(
-                // 現在ユーザー名の保存・取得に使う DataSource を渡す。
-                userLocalDataSource = userLocalDataSource
-            )
-
-            // Repository を渡して RegisterViewModel を作る。
+            // AppContainer から受け取った Repository を渡して RegisterViewModel を作る。
             return RegisterViewModel(userRepository) as T
         }
 
