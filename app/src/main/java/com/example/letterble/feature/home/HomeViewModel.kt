@@ -14,6 +14,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 // ViewModel の中で coroutine を起動するために使う。
 import androidx.lifecycle.viewModelScope
+import com.example.letterble.data.repository.LetterRepository
 // ユーザー情報の保存・取得をまとめて扱う Repository。
 import com.example.letterble.data.repository.UserRepository
 // 一回きりの画面遷移イベントを流すために使う。
@@ -36,15 +37,22 @@ import kotlinx.coroutines.launch
  */
 data class HomeUiState(
     // ホーム左上に表示する現在ユーザー名。
-    val currentUserName: String = ""
-)
+    val currentUserName: String = "",
+    val receivedLetterCount: Int = 0,
+    val isReceivedStatusLoading: Boolean = false,
+    val receivedStatusErrorMessage: String? = null
+) {
+    val hasReceivedLetters: Boolean
+        get() = receivedLetterCount > 0
+}
 
 /**
  * ホーム画面の状態と画面遷移イベントを管理する ViewModel。
  */
 class HomeViewModel(
     // 現在ユーザー名を取得するための Repository。
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val letterRepository: LetterRepository
 ) : ViewModel() {
     // ViewModel 内部で更新するホーム画面の状態。
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -68,11 +76,53 @@ class HomeViewModel(
      * 端末内に保存されている現在ユーザー名を読み込む。
      */
     private fun loadCurrentUserName() {
+        val currentUserName = userRepository.getCurrentUserName().orEmpty()
+
         // Repository から現在ユーザー名を取得して、画面状態に入れる。
         _uiState.value = _uiState.value.copy(
             // 保存されていない場合は空文字にする。
-            currentUserName = userRepository.getCurrentUserName().orEmpty()
+            currentUserName = currentUserName
         )
+
+        loadReceivedStatus(currentUserName)
+    }
+
+    fun refreshReceivedStatus() {
+        loadReceivedStatus(_uiState.value.currentUserName)
+    }
+
+    private fun loadReceivedStatus(currentUserName: String) {
+        if (currentUserName.isBlank()) {
+            _uiState.value = _uiState.value.copy(
+                receivedLetterCount = 0,
+                isReceivedStatusLoading = false,
+                receivedStatusErrorMessage = null
+            )
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                isReceivedStatusLoading = true,
+                receivedStatusErrorMessage = null
+            )
+
+            try {
+                val receivedCount = letterRepository.getReceivedLetters(currentUserName).size
+
+                _uiState.value = _uiState.value.copy(
+                    receivedLetterCount = receivedCount,
+                    isReceivedStatusLoading = false,
+                    receivedStatusErrorMessage = null
+                )
+            } catch (exception: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    receivedLetterCount = 0,
+                    isReceivedStatusLoading = false,
+                    receivedStatusErrorMessage = exception.message
+                )
+            }
+        }
     }
 
     /**
@@ -119,7 +169,8 @@ class HomeViewModel(
  */
 class HomeViewModelFactory(
     // AppContainer で組み立て済みの Repository を受け取る。
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val letterRepository: LetterRepository
 ) : ViewModelProvider.Factory {
     // ViewModelProvider.Factory の create 関数を実装する。
     @Suppress("UNCHECKED_CAST")
@@ -127,7 +178,7 @@ class HomeViewModelFactory(
         // 作ろうとしている ViewModel が HomeViewModel か確認する。
         if (modelClass.isAssignableFrom(HomeViewModel::class.java)) {
             // AppContainer から受け取った Repository を渡して HomeViewModel を作る。
-            return HomeViewModel(userRepository) as T
+            return HomeViewModel(userRepository, letterRepository) as T
         }
 
         // HomeViewModel 以外を作ろうとした場合はエラーにする。
