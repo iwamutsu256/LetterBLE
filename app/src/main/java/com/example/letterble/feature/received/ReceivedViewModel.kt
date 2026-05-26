@@ -17,8 +17,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.letterble.data.repository.LetterRepository
+import com.example.letterble.data.repository.LocationRepository
 import com.example.letterble.data.repository.UserRepository
 import com.example.letterble.domain.model.Letter
+import com.example.letterble.domain.model.Location
+import com.example.letterble.domain.model.Tree
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -42,6 +45,34 @@ data class ReceivedLetterListItem(
 )
 
 /**
+ * 受信詳細画面に表示するためのデータ。
+ *
+ * 詳細画面では本文全文、差出人、宛先、経路情報が必要になる。
+ * Letterをそのまま渡すだけでも本文は表示できるが、
+ * 経路概要や位置履歴も同じ画面で使うため、詳細画面用の型にまとめている。
+ */
+data class ReceivedLetterDetail(
+    val letter: Letter,
+    val tree: Tree,
+    val locations: List<Location>,
+    val routeSummary: String
+)
+
+/**
+ * 詳細読み込みだけの状態。
+ *
+ * 一覧のloading/errorと詳細のloading/errorを同じ変数にすると、
+ * 一覧読み込み中なのか詳細読み込み中なのか区別しにくい。
+ * そのため、詳細用の状態はReceivedUiStateの中で別のまとまりにしている。
+ */
+data class ReceivedDetailUiState(
+    val selectedLetterId: String = "",
+    val detail: ReceivedLetterDetail? = null,
+    val isLoading: Boolean = false,
+    val errorMessage: String? = null
+)
+
+/**
  * ReceivedScreenが見る状態を1つにまとめたもの。
  *
  * 画面側で複数の変数を別々に持つ書き方もできるが、
@@ -52,7 +83,8 @@ data class ReceivedUiState(
     val currentUserName: String = "",
     val receivedLetters: List<ReceivedLetterListItem> = emptyList(),
     val isLoading: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val detailState: ReceivedDetailUiState = ReceivedDetailUiState()
 ) {
     /**
      * 空表示を出すべきかどうかをViewModel側で判定するための値。
@@ -82,7 +114,15 @@ class ReceivedViewModel(
      * Firestoreのwhere条件をViewModelに直接書くこともできるが、
      * ViewModelは画面状態の管理に寄せたいので、取得条件はRepository/DataSource側に任せる。
      */
-    private val letterRepository: LetterRepository
+    private val letterRepository: LetterRepository,
+    /**
+     * 手紙がどの地点を経由したかを取るためのRepository。
+     *
+     * #57ではLetter.treeだけでも経路は見られるが、Task8には
+     * LocationRepository.getLocationsByLetter(letterId)も含まれている。
+     * そのため、詳細読み込み時に位置履歴も一緒に取り、経路概要に使える状態にしておく。
+     */
+    private val locationRepository: LocationRepository
 ) : ViewModel() {
     /**
      * ViewModelの中だけで更新する可変のStateFlow。
@@ -164,6 +204,87 @@ class ReceivedViewModel(
             }
         }
     }
+
+    /**
+     * 選択された手紙の詳細を読み込む。
+     *
+     * 手順:
+     * 1. 一覧で選ばれたletterIdを受け取る
+     * 2. LetterRepository.getLetter(letterId)で本文・差出人・宛先・treeを取得する
+     * 3. LocationRepository.getLocationsByLetter(letterId)で移動履歴を取得する
+     * 4. 詳細画面用のReceivedLetterDetailにまとめてstateへ入れる
+     *
+     * BuildRouteTreeUseCase.buildTree(locations)を使う書き方もあるが、
+     * 現時点ではBuildRouteTreeUseCaseがまだ未実装。
+     * そのため、#57ではFirestore上のLetter.treeを正とし、locationsは経路概要の補助情報として保持する。
+     */
+    fun loadLetterDetail(letterId: String) {
+        val trimmedLetterId = letterId.trim()
+
+        if (trimmedLetterId.isBlank()) {
+            _uiState.value = _uiState.value.copy(
+                detailState = ReceivedDetailUiState(
+                    selectedLetterId = "",
+                    isLoading = false,
+                    errorMessage = "手紙IDが指定されていません"
+                )
+            )
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                detailState = _uiState.value.detailState.copy(
+                    selectedLetterId = trimmedLetterId,
+                    detail = null,
+                    isLoading = true,
+                    errorMessage = null
+                )
+            )
+
+            try {
+                val letter = letterRepository.getLetter(trimmedLetterId)
+
+                if (letter == null) {
+                    _uiState.value = _uiState.value.copy(
+                        detailState = _uiState.value.detailState.copy(
+                            selectedLetterId = trimmedLetterId,
+                            detail = null,
+                            isLoading = false,
+                            errorMessage = "手紙が見つかりません"
+                        )
+                    )
+                    return@launch
+                }
+
+                val locations = locationRepository.getLocationsByLetter(trimmedLetterId)
+                val detail = ReceivedLetterDetail(
+                    letter = letter,
+                    tree = letter.tree,
+                    locations = locations,
+                    routeSummary = letter.tree.toRouteSummary(locations)
+                )
+
+                _uiState.value = _uiState.value.copy(
+                    detailState = _uiState.value.detailState.copy(
+                        selectedLetterId = trimmedLetterId,
+                        detail = detail,
+                        isLoading = false,
+                        errorMessage = null
+                    )
+                )
+            } catch (exception: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    detailState = _uiState.value.detailState.copy(
+                        selectedLetterId = trimmedLetterId,
+                        detail = null,
+                        isLoading = false,
+                        errorMessage = exception.message ?: "手紙の詳細読み込みに失敗しました"
+                    )
+                )
+            }
+        }
+    }
 }
 
 /**
@@ -175,14 +296,16 @@ class ReceivedViewModel(
  */
 class ReceivedViewModelFactory(
     private val userRepository: UserRepository,
-    private val letterRepository: LetterRepository
+    private val letterRepository: LetterRepository,
+    private val locationRepository: LocationRepository
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ReceivedViewModel::class.java)) {
             return ReceivedViewModel(
                 userRepository = userRepository,
-                letterRepository = letterRepository
+                letterRepository = letterRepository,
+                locationRepository = locationRepository
             ) as T
         }
 
@@ -206,6 +329,20 @@ private fun Letter.toReceivedLetterListItem(): ReceivedLetterListItem {
         // 受信一覧はisSurvival=falseのものだけだが、画面側で状態表示しやすい名前に変えておく。
         isDelivered = !isSurvival
     )
+}
+
+/**
+ * 経路を画面に出すための短い説明文を作る。
+ *
+ * ここで地図そのものは作らない。#60で地図や簡易リストを作る予定なので、
+ * #57では詳細画面が最低限「何人・何地点を経由したか」を表示できる文字列だけ用意する。
+ */
+private fun Tree.toRouteSummary(locations: List<Location>): String {
+    val nodeCount = nodes.size
+    val edgeCount = edges.size
+    val locationCount = locations.size
+
+    return "経由ユーザー数: ${nodeCount} / 経路数: ${edgeCount} / 位置履歴数: ${locationCount}"
 }
 
 // プレビュー文字数を直書きにしないための定数。あとでUIに合わせて調整しやすい。
