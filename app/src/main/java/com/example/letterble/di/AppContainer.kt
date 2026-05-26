@@ -1,17 +1,22 @@
 package com.example.letterble.di
 
 import android.content.Context
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import com.example.letterble.data.datasource.firestore.EncounterFirestoreDataSource
 import com.example.letterble.data.datasource.firestore.LetterFirestoreDataSource
 import com.example.letterble.data.datasource.firestore.LocationFirestoreDataSource
 import com.example.letterble.data.datasource.firestore.TreeFirestoreDataSource
 import com.example.letterble.data.datasource.firestore.UserFirestoreDataSource
+import com.example.letterble.data.datasource.local.DraftLocalDataSource
 import com.example.letterble.data.datasource.local.UserLocalDataSource
+import com.example.letterble.data.repository.DraftRepository
 import com.example.letterble.data.repository.EncounterRepository
 import com.example.letterble.data.repository.LetterRepository
 import com.example.letterble.data.repository.LocationRepository
 import com.example.letterble.data.repository.TreeRepository
 import com.example.letterble.data.repository.UserRepository
+import com.example.letterble.feature.edit_letter.EditLetterViewModel
 
 /**
  * App-wide dependency entry point.
@@ -40,7 +45,7 @@ class DefaultAppContainer(
     context: Context
 ) : AppContainer {
     // SharedPreferences 用 DataSource は ApplicationContext から一度だけ作る。
-    private val userLocalDataSource = UserLocalDataSource(context.applicationContext)
+    private val applicationContext = context.applicationContext
 
     // Firestore 用 DataSource も AppContainer 側でまとめて生成する。
     private val userFirestoreDataSource = UserFirestoreDataSource()
@@ -49,11 +54,30 @@ class DefaultAppContainer(
     private val encounterFirestoreDataSource = EncounterFirestoreDataSource()
     private val treeFirestoreDataSource = TreeFirestoreDataSource()
 
+    // 現在ユーザー名用のローカル DataSource を AppContainer で管理する。
+    private val userLocalDataSource = UserLocalDataSource(applicationContext)
+
+    // 下書き用のローカル DataSource も同じ AppContainer で管理する。
+    private val draftLocalDataSource = DraftLocalDataSource(applicationContext)
+
     override val userRepository: UserRepository = UserRepository(
         userLocalDataSource = userLocalDataSource,
         userFirestoreDataSource = userFirestoreDataSource
     )
 
+    private val draftRepository = DraftRepository(draftLocalDataSource)
+
+    /**
+     * 手紙作成画面に必要な依存関係を渡して ViewModel を生成する。
+     */
+    override fun editLetterViewModelFactory(): ViewModelProvider.Factory {
+        return object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return EditLetterViewModel(draftRepository) as T
+            }
+        }
+    }
     override val letterRepository = LetterRepository(letterFirestoreDataSource)
     override val locationRepository = LocationRepository(locationFirestoreDataSource)
     override val encounterRepository = EncounterRepository(encounterFirestoreDataSource)
