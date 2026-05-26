@@ -18,6 +18,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.letterble.di.AppContainer
 import com.example.letterble.feature.carry.CarryDetailScreen
 import com.example.letterble.feature.carry.CarryScreen
 import com.example.letterble.feature.edit_letter.EditLetterScreen
@@ -32,13 +33,17 @@ import com.example.letterble.feature.register.RegisterScreen
  * @param navController 画面遷移を実行するNavController
  */
 @Composable
-fun AppNavGraph(navController: NavHostController) {
+fun AppNavGraph(
+    navController: NavHostController,
+    appContainer: AppContainer
+) {
     NavHost(
         navController = navController,
         startDestination = Destinations.REGISTER
     ) {
         composable(Destinations.REGISTER) {
             RegisterScreen(
+                appContainer = appContainer,
                 onRegistered = {
                     navController.navigate(Destinations.HOME) {
                         popUpTo(Destinations.REGISTER) { inclusive = true }
@@ -49,6 +54,7 @@ fun AppNavGraph(navController: NavHostController) {
 
         composable(Destinations.HOME) {
             HomeScreen(
+                appContainer = appContainer,
                 onReceivedClicked = { navController.navigate(Destinations.RECEIVED) },
                 onCarryClicked = { navController.navigate(Destinations.CARRY) },
                 onCreateLetterClicked = { navController.navigate(Destinations.EDIT_LETTER) }
