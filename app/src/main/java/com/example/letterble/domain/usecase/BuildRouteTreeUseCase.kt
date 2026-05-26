@@ -11,6 +11,7 @@ package com.example.letterble.domain.usecase
 
 import com.example.letterble.domain.model.Location
 import com.example.letterble.domain.model.Node
+import com.example.letterble.domain.model.Edge
 import com.example.letterble.domain.model.Tree
 
 class BuildRouteTreeUseCase {
@@ -20,11 +21,23 @@ class BuildRouteTreeUseCase {
             return Tree()
         }
 
-        val nodes = locations.mapIndexed { index, location ->
+        val sortedLocations = locations.sortedBy { location -> location.timestamp }
+
+        val nodes = sortedLocations.mapIndexed { index, location ->
             location.toNode(index)
         }
+        val edges = nodes.zipWithNext { fromNode, toNode ->
+            Edge(
+                fromNodeId = fromNode.id,
+                toNodeId = toNode.id
+            )
+        }
 
-        return Tree(nodes = nodes)
+        return Tree(
+            nodes = nodes,
+            // Location には親子関係がないため、時系列で隣り合う地点を経路としてつなぐ。
+            edges = edges
+        )
     }
 
     private fun Location.toNode(index: Int): Node {
