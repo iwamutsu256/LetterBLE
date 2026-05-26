@@ -25,8 +25,12 @@ data class CarryUiState(
     val currentUserName: String = "",
     // 現在ユーザーが運搬している未到達の手紙一覧。
     val carryingLetters: List<Letter> = emptyList(),
+    // 詳細画面で表示する対象の手紙。
+    val selectedLetter: Letter? = null,
     // Firestore から読み込み中かどうか。
     val isLoading: Boolean = false,
+    // 詳細データを Firestore から読み込み中かどうか。
+    val isDetailLoading: Boolean = false,
     // 画面に表示するエラーメッセージ。エラーがなければ null。
     val errorMessage: String? = null
 )
@@ -82,6 +86,49 @@ class CarryViewModel(
                     carryingLetters = emptyList(),
                     isLoading = false,
                     errorMessage = exception.message ?: "運搬中の手紙を取得できませんでした"
+                )
+            }
+        }
+    }
+
+    /**
+     * 指定された手紙IDの詳細データを読み込む。
+     */
+    fun loadLetterDetail(letterId: String) {
+        if (letterId.isBlank()) {
+            _uiState.value = _uiState.value.copy(
+                selectedLetter = null,
+                isDetailLoading = false,
+                errorMessage = "手紙IDが指定されていません"
+            )
+            return
+        }
+
+        // 一覧にある手紙なら先に state へ反映し、詳細画面の初期表示を早くする。
+        val cachedLetter = _uiState.value.carryingLetters.firstOrNull { letter ->
+            letter.letterId == letterId
+        }
+
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                selectedLetter = cachedLetter,
+                isDetailLoading = true,
+                errorMessage = null
+            )
+
+            try {
+                // 詳細画面は letterId を入口にするため、一覧未経由でも Repository から取得する。
+                val letter = letterRepository.getLetter(letterId)
+                _uiState.value = _uiState.value.copy(
+                    selectedLetter = letter,
+                    isDetailLoading = false,
+                    errorMessage = if (letter == null) "手紙が見つかりませんでした" else null
+                )
+            } catch (exception: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    selectedLetter = null,
+                    isDetailLoading = false,
+                    errorMessage = exception.message ?: "手紙の詳細を取得できませんでした"
                 )
             }
         }
