@@ -29,7 +29,12 @@ class MainActivity : ComponentActivity() {
         setContent {
             LetterBLETheme {
                 val navController = rememberNavController()
-                AppNavGraph(navController = navController)
+                // Application に用意した AppContainer を画面遷移グラフへ渡す。
+                val appContainer = (application as LetterBleApplication).appContainer
+                AppNavGraph(
+                    navController = navController,
+                    appContainer = appContainer
+                )
             }
         }
     }
