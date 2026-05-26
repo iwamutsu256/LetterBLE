@@ -39,6 +39,9 @@ interface AppContainer {
 
     // 経路 Tree データを上位層へ提供する Repository。
     val treeRepository: TreeRepository
+
+    // 手紙作成画面の ViewModel 生成に必要な依存関係を AppContainer 側でまとめる。
+    fun editLetterViewModelFactory(): ViewModelProvider.Factory
 }
 
 class DefaultAppContainer(
