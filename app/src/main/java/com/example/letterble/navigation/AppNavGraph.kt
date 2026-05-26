@@ -86,6 +86,7 @@ fun AppNavGraph(
 
         composable(Destinations.CARRY) {
             CarryScreen(
+                appContainer = appContainer,
                 onLetterClicked = { letterId ->
                     navController.navigate(Destinations.carryDetail(letterId))
                 },
