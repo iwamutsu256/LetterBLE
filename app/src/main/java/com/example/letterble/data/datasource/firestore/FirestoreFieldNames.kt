@@ -1,11 +1,16 @@
 /**
- * FirestoreFieldNames.kt
+ * Firestore の collection 名と field 名をまとめるファイル。
  *
- * 役割:
- * - Kotlinモデルのプロパティ名とFirestoreのフィールド名の対応を集約する
+ * DataSource で "letter_id" などの文字列を直接書くと、タイプミスや変更漏れが起きやすい。
+ * Firestore の名前を使うときは、このファイルの定数を参照する。
  */
 package com.example.letterble.data.datasource.firestore
 
+/**
+ * Firestore の collection 名。
+ *
+ * 例: firestore.collection(FirestoreCollections.LETTERS)
+ */
 internal object FirestoreCollections {
     const val USERS = "USERS"
     const val LETTERS = "LETTERS"
@@ -13,6 +18,12 @@ internal object FirestoreCollections {
     const val ENCOUNTERS = "ENCOUNTERS"
 }
 
+/**
+ * Firestore の field 名。
+ *
+ * Kotlin のプロパティ名は camelCase、Firestore の field 名は snake_case が多いため、
+ * モデルごとに分けて対応関係を見やすくしている。
+ */
 internal object FirestoreFields {
     object User {
         const val USER_NAME = "user_name"

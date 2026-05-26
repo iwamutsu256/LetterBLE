@@ -1,11 +1,54 @@
 /**
- * TreeRepository.kt
+ * 手紙の経路 Tree をアプリ側から扱いやすい形で提供する Repository。
  *
- * 役割:
- * - tree構造更新処理
+ * Firestore の LETTERS/{letterId}.tree フィールドへの読み書きは
+ * TreeFirestoreDataSource に任せる。
  */
+package com.example.letterble.data.repository
 
-// TODO: 各DataSourceを受け取る
-// TODO: DataSourceの関数を呼び出すラッパーを作る
-// TODO: 上位層に返すデータの整形を行う（必要なら）
-// TODO: ビジネスロジックを書かない
+import com.example.letterble.data.datasource.firestore.TreeFirestoreDataSource
+import com.example.letterble.domain.model.Location
+import com.example.letterble.domain.model.Tree
+
+/**
+ * tree フィールドを扱う Repository。
+ *
+ * 今の段階では DataSource の薄いラッパーとして、UseCase から使う関数名を提供する。
+ */
+class TreeRepository(
+    private val treeFirestoreDataSource: TreeFirestoreDataSource = TreeFirestoreDataSource()
+) {
+    /**
+     * 指定した手紙の Tree を取得する。
+     */
+    suspend fun getTree(letterId: String): Tree {
+        return treeFirestoreDataSource.getTree(letterId)
+    }
+
+    /**
+     * 指定した手紙の Tree 全体を更新する。
+     */
+    suspend fun updateTree(letterId: String, tree: Tree) {
+        treeFirestoreDataSource.updateTree(letterId, tree)
+    }
+
+    /**
+     * 指定した手紙の Tree に、新しい node と edge を追加する。
+     *
+     * 重複追加してよいかどうかの判断は UseCase 側に置き、
+     * Repository は DataSource へ処理を渡すだけにする。
+     */
+    suspend fun addNode(
+        letterId: String,
+        parentUser: String,
+        newUser: String,
+        location: Location
+    ) {
+        treeFirestoreDataSource.addNode(
+            letterId = letterId,
+            parentUser = parentUser,
+            newUser = newUser,
+            location = location
+        )
+    }
+}

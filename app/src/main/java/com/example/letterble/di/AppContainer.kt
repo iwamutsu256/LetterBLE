@@ -1,8 +1,16 @@
 package com.example.letterble.di
 
 import android.content.Context
+import com.example.letterble.data.datasource.firestore.EncounterFirestoreDataSource
+import com.example.letterble.data.datasource.firestore.LetterFirestoreDataSource
+import com.example.letterble.data.datasource.firestore.LocationFirestoreDataSource
+import com.example.letterble.data.datasource.firestore.TreeFirestoreDataSource
 import com.example.letterble.data.datasource.firestore.UserFirestoreDataSource
 import com.example.letterble.data.datasource.local.UserLocalDataSource
+import com.example.letterble.data.repository.EncounterRepository
+import com.example.letterble.data.repository.LetterRepository
+import com.example.letterble.data.repository.LocationRepository
+import com.example.letterble.data.repository.TreeRepository
 import com.example.letterble.data.repository.UserRepository
 
 /**
@@ -14,6 +22,18 @@ import com.example.letterble.data.repository.UserRepository
 interface AppContainer {
     // ユーザー登録と現在ユーザー名の参照で共通利用する Repository。
     val userRepository: UserRepository
+
+    // 手紙データを上位層へ提供する Repository。
+    val letterRepository: LetterRepository
+
+    // 位置履歴データを上位層へ提供する Repository。
+    val locationRepository: LocationRepository
+
+    // すれ違い履歴データを上位層へ提供する Repository。
+    val encounterRepository: EncounterRepository
+
+    // 経路 Tree データを上位層へ提供する Repository。
+    val treeRepository: TreeRepository
 }
 
 class DefaultAppContainer(
@@ -24,9 +44,18 @@ class DefaultAppContainer(
 
     // Firestore 用 DataSource も AppContainer 側でまとめて生成する。
     private val userFirestoreDataSource = UserFirestoreDataSource()
+    private val letterFirestoreDataSource = LetterFirestoreDataSource()
+    private val locationFirestoreDataSource = LocationFirestoreDataSource()
+    private val encounterFirestoreDataSource = EncounterFirestoreDataSource()
+    private val treeFirestoreDataSource = TreeFirestoreDataSource()
 
     override val userRepository: UserRepository = UserRepository(
         userLocalDataSource = userLocalDataSource,
         userFirestoreDataSource = userFirestoreDataSource
     )
+
+    override val letterRepository = LetterRepository(letterFirestoreDataSource)
+    override val locationRepository = LocationRepository(locationFirestoreDataSource)
+    override val encounterRepository = EncounterRepository(encounterFirestoreDataSource)
+    override val treeRepository = TreeRepository(treeFirestoreDataSource)
 }
