@@ -67,6 +67,7 @@ fun AppNavGraph(
 
         composable(Destinations.RECEIVED) {
             ReceivedScreen(
+                appContainer = appContainer,
                 onLetterClicked = { letterId ->
                     navController.navigate(Destinations.receivedDetail(letterId))
                 },
