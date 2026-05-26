@@ -52,14 +52,7 @@ fun ReceivedDetailScreen(
      * ReceivedScreenと同じFactoryを使うことで、
      * 一覧と詳細で「受信手紙に関する状態はReceivedViewModelが持つ」という形を揃えている。
      */
-    val viewModel: ReceivedViewModel = viewModel(
-        factory = ReceivedViewModelFactory(
-            userRepository = appContainer.userRepository,
-            letterRepository = appContainer.letterRepository,
-            locationRepository = appContainer.locationRepository,
-            buildRouteTreeUseCase = appContainer.buildRouteTreeUseCase
-        )
-    )
+    val viewModel: ReceivedViewModel = viewModel(factory = appContainer.receivedViewModelFactory)
 
     val uiState by viewModel.uiState.collectAsState()
     val detailState = uiState.detailState

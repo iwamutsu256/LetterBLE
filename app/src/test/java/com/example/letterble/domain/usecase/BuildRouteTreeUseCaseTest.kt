@@ -12,7 +12,7 @@ class BuildRouteTreeUseCaseTest {
     private val useCase = BuildRouteTreeUseCase()
 
     @Test
-    fun `Locationの時系列から直線経路のTreeを生成する`() {
+    fun `Locationの時系列からNodeを生成しEdgeは推測しない`() {
         val locations = listOf(
             location(id = "node-b", userName = "B", timestamp = 200L),
             location(id = "node-a", userName = "A", timestamp = 100L),
@@ -22,13 +22,7 @@ class BuildRouteTreeUseCaseTest {
         val tree = useCase.buildTree(locations)
 
         assertEquals(listOf("node-a", "node-b", "node-c"), tree.nodes.map { node -> node.id })
-        assertEquals(
-            listOf(
-                Edge(fromNodeId = "node-a", toNodeId = "node-b"),
-                Edge(fromNodeId = "node-b", toNodeId = "node-c")
-            ),
-            tree.edges
-        )
+        assertEquals(emptyList<Edge>(), tree.edges)
     }
 
     @Test
@@ -57,7 +51,7 @@ class BuildRouteTreeUseCaseTest {
     }
 
     @Test
-    fun `保存済みTreeが空ならLocationからTreeを生成する`() {
+    fun `保存済みTreeが空ならLocationからNodeだけを生成する`() {
         val locations = listOf(
             location(id = "node-a", userName = "A", timestamp = 100L),
             location(id = "node-b", userName = "B", timestamp = 200L)
@@ -66,7 +60,7 @@ class BuildRouteTreeUseCaseTest {
         val tree = useCase.buildTree(savedTree = Tree(), locations = locations)
 
         assertEquals(2, tree.nodes.size)
-        assertEquals(listOf(Edge(fromNodeId = "node-a", toNodeId = "node-b")), tree.edges)
+        assertEquals(emptyList<Edge>(), tree.edges)
     }
 
     private fun location(
