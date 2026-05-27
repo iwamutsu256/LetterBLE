@@ -8,6 +8,7 @@ package com.example.letterble.data.repository
 
 import com.example.letterble.data.datasource.firestore.EncounterFirestoreDataSource
 import com.example.letterble.domain.model.Encounter
+import com.example.letterble.domain.usecase.RelayEncounterRepository
 
 /**
  * ENCOUNTERS コレクションを扱う Repository。
@@ -17,11 +18,11 @@ import com.example.letterble.domain.model.Encounter
 class EncounterRepository(
     private val encounterFirestoreDataSource: EncounterFirestoreDataSource =
         EncounterFirestoreDataSource()
-) {
+) : RelayEncounterRepository {
     /**
      * すれ違い記録を Firestore に保存する。
      */
-    suspend fun saveEncounter(encounter: Encounter) {
+    override suspend fun saveEncounter(encounter: Encounter) {
         encounterFirestoreDataSource.saveEncounter(encounter)
     }
 
@@ -30,7 +31,7 @@ class EncounterRepository(
      *
      * 一定時間内の重複 Relay を避ける判断材料になる。
      */
-    suspend fun getLastEncounter(userA: String, userB: String): Encounter? {
+    override suspend fun getLastEncounter(userA: String, userB: String): Encounter? {
         return encounterFirestoreDataSource.getLastEncounter(userA, userB)
     }
 }

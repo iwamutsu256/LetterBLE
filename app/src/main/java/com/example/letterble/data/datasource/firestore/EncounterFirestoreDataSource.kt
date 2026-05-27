@@ -44,14 +44,12 @@ class EncounterFirestoreDataSource(
     /**
      * 指定した2人の最新すれ違い記録を 1 件取得する。
      *
-     * 検索時も保存時と同じ並び順にそろえることで、
-     * userA/userB の渡し順に関係なく同じペアを検索できる。
+     * Relay は片方向ずつ実行するため、userA から userB への向きも含めて検索する。
      */
     suspend fun getLastEncounter(userA: String, userB: String): Encounter? {
-        val pair = normalizedUserPair(userA, userB)
         val snapshot = encountersCollection
-            .whereEqualTo(FirestoreFields.Encounter.USER_A, pair.first)
-            .whereEqualTo(FirestoreFields.Encounter.USER_B, pair.second)
+            .whereEqualTo(FirestoreFields.Encounter.USER_A, userA)
+            .whereEqualTo(FirestoreFields.Encounter.USER_B, userB)
             .orderBy(FirestoreFields.Encounter.TIMESTAMP, Query.Direction.DESCENDING)
             .limit(1)
             .get()
@@ -62,14 +60,12 @@ class EncounterFirestoreDataSource(
 }
 
 // Encounter を Firestore 保存用の Map に変換する。
-// userA/userB は順番ゆれを避けるため、常に normalizedUserPair() の結果で保存する。
+// userA/userB は relay の向きを表すため、並べ替えずに保存する。
 private fun Encounter.toFirestoreMap(): Map<String, Any> {
-    val pair = normalizedUserPair(userA, userB)
-
     return mapOf(
         FirestoreFields.Encounter.ENCOUNTER_ID to encounterId,
-        FirestoreFields.Encounter.USER_A to pair.first,
-        FirestoreFields.Encounter.USER_B to pair.second,
+        FirestoreFields.Encounter.USER_A to userA,
+        FirestoreFields.Encounter.USER_B to userB,
         FirestoreFields.Encounter.TIMESTAMP to timestamp
     )
 }
@@ -87,16 +83,6 @@ private fun DocumentSnapshot.toEncounterOrNull(): Encounter? {
         userB = getString(FirestoreFields.Encounter.USER_B).orEmpty(),
         timestamp = getLong(FirestoreFields.Encounter.TIMESTAMP) ?: 0L
     )
-}
-
-// 2人のユーザー名を常に同じ順番にそろえる。
-// Firestore に保存する形と検索する形を一致させるための小さなルール。
-private fun normalizedUserPair(userA: String, userB: String): Pair<String, String> {
-    return if (userA <= userB) {
-        userA to userB
-    } else {
-        userB to userA
-    }
 }
 
 // Firebase の Task を suspend 関数として待てるようにする小さな変換処理。

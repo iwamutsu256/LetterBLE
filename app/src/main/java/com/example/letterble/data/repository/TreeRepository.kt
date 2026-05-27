@@ -9,6 +9,7 @@ package com.example.letterble.data.repository
 import com.example.letterble.data.datasource.firestore.TreeFirestoreDataSource
 import com.example.letterble.domain.model.Location
 import com.example.letterble.domain.model.Tree
+import com.example.letterble.domain.usecase.RelayTreeRepository
 
 /**
  * tree フィールドを扱う Repository。
@@ -17,7 +18,7 @@ import com.example.letterble.domain.model.Tree
  */
 class TreeRepository(
     private val treeFirestoreDataSource: TreeFirestoreDataSource = TreeFirestoreDataSource()
-) {
+) : RelayTreeRepository {
     /**
      * 指定した手紙の Tree を取得する。
      */
@@ -38,13 +39,13 @@ class TreeRepository(
      * 重複追加してよいかどうかの判断は UseCase 側に置き、
      * Repository は DataSource へ処理を渡すだけにする。
      */
-    suspend fun addNode(
+    override suspend fun addNode(
         letterId: String,
         parentUser: String,
         newUser: String,
         location: Location
-    ) {
-        treeFirestoreDataSource.addNode(
+    ): Boolean {
+        return treeFirestoreDataSource.addNode(
             letterId = letterId,
             parentUser = parentUser,
             newUser = newUser,

@@ -13,6 +13,7 @@ import com.example.letterble.domain.model.User
 // Firebase の非同期処理を表す型。
 import com.google.android.gms.tasks.Task
 // Firestore 本体を使うための型。
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 // Firebase の Task を Kotlin の suspend 関数として待つために使う。
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -95,6 +96,25 @@ class UserFirestoreDataSource(
                 ?.filterIsInstance<String>()
                 ?: emptyList()
         )
+    }
+
+    /**
+     * 指定したユーザーの運搬中手紙IDリストに、手紙IDを追加する。
+     *
+     * Firestore の arrayUnion を使うことで、同じIDを重複追加しない。
+     */
+    suspend fun addCarryingLetterIds(userName: String, letterIds: List<String>) {
+        if (letterIds.isEmpty()) {
+            return
+        }
+
+        usersCollection
+            .document(userName)
+            .update(
+                FirestoreFields.User.CARRYING_LETTER_IDS,
+                FieldValue.arrayUnion(*letterIds.toTypedArray())
+            )
+            .awaitResult()
     }
 }
 
