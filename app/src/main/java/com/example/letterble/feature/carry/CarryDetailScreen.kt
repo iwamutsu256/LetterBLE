@@ -123,7 +123,10 @@ private fun CarryLetterDetailContent(
         }
 
         else -> {
-            CarryLetterDetail(letter = uiState.selectedLetter)
+            CarryLetterDetail(
+                letter = uiState.selectedLetter,
+                currentUserName = uiState.currentUserName
+            )
         }
     }
 }
@@ -134,6 +137,7 @@ private fun CarryLetterDetailContent(
 @Composable
 private fun CarryLetterDetail(
     letter: CarryLetterDetailInfo,
+    currentUserName: String,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
@@ -152,6 +156,7 @@ private fun CarryLetterDetail(
         )
         CarryMapScreen(
             tree = letter.tree,
+            currentUserName = currentUserName,
             modifier = Modifier.padding(top = 16.dp)
         )
     }

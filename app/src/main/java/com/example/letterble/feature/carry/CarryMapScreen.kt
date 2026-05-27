@@ -21,13 +21,19 @@ import com.example.letterble.ui.components.LetterTreeMapView
 /**
  * 運搬詳細で使う経路地図。
  *
- * #75 時点では Tree 表示だけを担当し、現在ユーザーの強調は #76 で追加する。
+ * 現在ユーザー名と一致する node と、その node に接続する edge を強調表示する。
  */
 @Composable
 fun CarryMapScreen(
     tree: Tree,
+    currentUserName: String,
     modifier: Modifier = Modifier
 ) {
+    val currentUserNodeIds = tree.nodes
+        .filter { node -> node.userName == currentUserName }
+        .map { node -> node.id }
+        .toSet()
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -44,6 +50,8 @@ fun CarryMapScreen(
 
         LetterTreeMapView(
             tree = tree,
+            highlightedNodeIds = currentUserNodeIds,
+            highlightedEdgeNodeIds = currentUserNodeIds,
             modifier = Modifier.matchParentSize()
         )
     }
