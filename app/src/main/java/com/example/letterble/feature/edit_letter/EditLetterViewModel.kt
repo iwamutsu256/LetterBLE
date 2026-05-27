@@ -151,6 +151,13 @@ class EditLetterViewModel(
             return
         }
 
+        if (state.toUser.trim() == fromUser.trim()) {
+            _uiState.update {
+                it.copy(message = "自分宛てには投函できません")
+            }
+            return
+        }
+
         // ポスト選択画面から投函できるよう、入力内容を下書きとして保存してから遷移する。
         draftRepository.saveDraft(
             DraftLetter(
