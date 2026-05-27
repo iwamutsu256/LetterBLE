@@ -12,12 +12,16 @@ import com.example.letterble.data.repository.EncounterRepository
 import com.example.letterble.data.repository.LetterRepository
 import com.example.letterble.data.repository.LocationRepository
 import com.example.letterble.data.repository.TreeRepository
+import com.example.letterble.domain.model.Encounter
+import java.util.UUID
 
 class RelayLetterUseCase(
     private val encounterRepository: EncounterRepository,
     private val letterRepository: LetterRepository,
     private val locationRepository: LocationRepository,
-    private val treeRepository: TreeRepository
+    private val treeRepository: TreeRepository,
+    private val duplicateIntervalMillis: Long = DEFAULT_DUPLICATE_INTERVAL_MILLIS,
+    private val currentTimeMillis: () -> Long = { System.currentTimeMillis() }
 ) {
     /**
      * myUserName が targetUserName とすれ違ったときに呼ばれる入口。
@@ -34,6 +38,35 @@ class RelayLetterUseCase(
             return
         }
 
-        // #85 以降で Repository を使った relay 処理を追加する。
+        val now = currentTimeMillis()
+        if (isDuplicateEncounter(myUserName, targetUserName, now)) {
+            return
+        }
+
+        encounterRepository.saveEncounter(
+            Encounter(
+                encounterId = UUID.randomUUID().toString(),
+                userA = myUserName,
+                userB = targetUserName,
+                timestamp = now
+            )
+        )
+
+        // #86 以降で手紙取得から先の relay 処理を追加する。
+    }
+
+    private suspend fun isDuplicateEncounter(
+        myUserName: String,
+        targetUserName: String,
+        now: Long
+    ): Boolean {
+        val lastEncounter = encounterRepository.getLastEncounter(myUserName, targetUserName)
+            ?: return false
+
+        return now - lastEncounter.timestamp < duplicateIntervalMillis
+    }
+
+    companion object {
+        private const val DEFAULT_DUPLICATE_INTERVAL_MILLIS = 24L * 60L * 60L * 1000L
     }
 }
