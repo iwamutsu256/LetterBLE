@@ -19,6 +19,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.letterble.data.datasource.local.DraftLetter
 import com.example.letterble.data.repository.DraftRepository
+import com.example.letterble.data.repository.UserRepository
+import com.example.letterble.domain.usecase.SubmitLetterCommand
+import com.example.letterble.domain.usecase.SubmitLetterUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -35,7 +38,8 @@ data class EditLetterUiState(
     val toUser: String = "",
     val sentence: String = "",
     val message: String? = null,
-    val isDraftSaved: Boolean = false
+    val isDraftSaved: Boolean = false,
+    val isSubmitting: Boolean = false
 ) {
     /**
      * 戻る時に確認が必要かどうかをUIが判断するための値。
@@ -56,7 +60,9 @@ sealed interface EditLetterEvent {
  * 手紙作成の入力状態と下書き操作を管理するViewModel。
  */
 class EditLetterViewModel(
-    private val draftRepository: DraftRepository
+    private val draftRepository: DraftRepository,
+    private val userRepository: UserRepository,
+    private val submitLetterUseCase: SubmitLetterUseCase
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(EditLetterUiState())
     val uiState: StateFlow<EditLetterUiState> = _uiState.asStateFlow()
@@ -133,8 +139,47 @@ class EditLetterViewModel(
             return
         }
 
+        val fromUser = userRepository.getCurrentUserName()
+        if (fromUser.isNullOrBlank()) {
+            _uiState.update {
+                it.copy(message = "ユーザー登録後に投函できます")
+            }
+            return
+        }
+
         viewModelScope.launch {
-            _events.emit(EditLetterEvent.NavigateToPostSelect)
+            _uiState.update {
+                it.copy(
+                    message = null,
+                    isSubmitting = true
+                )
+            }
+
+            runCatching {
+                submitLetterUseCase.execute(
+                    SubmitLetterCommand(
+                        fromUser = fromUser,
+                        toUser = state.toUser,
+                        sentence = state.sentence,
+                        latitude = TEMPORARY_POST_LATITUDE,
+                        longitude = TEMPORARY_POST_LONGITUDE
+                    )
+                )
+            }.onSuccess {
+                _uiState.update {
+                    it.copy(
+                        message = "投函しました",
+                        isSubmitting = false
+                    )
+                }
+            }.onFailure {
+                _uiState.update {
+                    it.copy(
+                        message = "投函に失敗しました",
+                        isSubmitting = false
+                    )
+                }
+            }
         }
     }
 
@@ -148,5 +193,11 @@ class EditLetterViewModel(
             sentence = draft.sentence,
             isDraftSaved = draft.toUser.isNotBlank() || draft.sentence.isNotBlank()
         )
+    }
+
+    companion object {
+        // ポスト選択実装までの暫定値。東京駅付近を仮の投函位置として使う。
+        private const val TEMPORARY_POST_LATITUDE = 35.681236
+        private const val TEMPORARY_POST_LONGITUDE = 139.767125
     }
 }

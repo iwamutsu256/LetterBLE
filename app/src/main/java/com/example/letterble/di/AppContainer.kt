@@ -17,6 +17,7 @@ import com.example.letterble.data.repository.LocationRepository
 import com.example.letterble.data.repository.TreeRepository
 import com.example.letterble.data.repository.UserRepository
 import com.example.letterble.domain.usecase.BuildRouteTreeUseCase
+import com.example.letterble.domain.usecase.SubmitLetterUseCase
 import com.example.letterble.feature.edit_letter.EditLetterViewModel
 import com.example.letterble.feature.received.ReceivedViewModelFactory
 
@@ -79,20 +80,30 @@ class DefaultAppContainer(
 
     private val draftRepository = DraftRepository(draftLocalDataSource)
 
-    override fun editLetterViewModelFactory(): ViewModelProvider.Factory {
-        return object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return EditLetterViewModel(draftRepository) as T
-            }
-        }
-    }
-
     override val letterRepository = LetterRepository(letterFirestoreDataSource)
     override val locationRepository = LocationRepository(locationFirestoreDataSource)
     override val encounterRepository = EncounterRepository(encounterFirestoreDataSource)
     override val treeRepository = TreeRepository(treeFirestoreDataSource)
     override val buildRouteTreeUseCase = BuildRouteTreeUseCase()
+
+    private val submitLetterUseCase = SubmitLetterUseCase(
+        letterRepository = letterRepository,
+        locationRepository = locationRepository
+    )
+
+    override fun editLetterViewModelFactory(): ViewModelProvider.Factory {
+        return object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return EditLetterViewModel(
+                    draftRepository = draftRepository,
+                    userRepository = userRepository,
+                    submitLetterUseCase = submitLetterUseCase
+                ) as T
+            }
+        }
+    }
+
     override val receivedViewModelFactory = ReceivedViewModelFactory(
         userRepository = userRepository,
         letterRepository = letterRepository,
