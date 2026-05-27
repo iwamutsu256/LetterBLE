@@ -56,6 +56,13 @@ class UserRepository(
     }
 
     /**
+     * 指定したユーザーの運搬中手紙IDリストに、手紙IDを追加する。
+     */
+    suspend fun addCarryingLetterIds(userName: String, letterIds: List<String>) {
+        userFirestoreDataSource.addCarryingLetterIds(userName, letterIds)
+    }
+
+    /**
      * この端末で現在使うユーザー名を保存する。
      *
      * 次回起動時に登録画面をスキップするために使う。
