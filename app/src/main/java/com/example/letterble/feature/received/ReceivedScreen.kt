@@ -56,13 +56,7 @@ fun ReceivedScreen(
      * ReceivedViewModel()を直接呼ぶ書き方もできるが、Composeのライフサイクルに乗らない。
      * viewModel(factory = ...)にすると、画面回転や再描画でも同じViewModelを再利用しやすい。
      */
-    val viewModel: ReceivedViewModel = viewModel(
-        factory = ReceivedViewModelFactory(
-            userRepository = appContainer.userRepository,
-            letterRepository = appContainer.letterRepository,
-            locationRepository = appContainer.locationRepository
-        )
-    )
+    val viewModel: ReceivedViewModel = viewModel(factory = appContainer.receivedViewModelFactory)
 
     /**
      * StateFlowをComposeで読めるStateに変換する。

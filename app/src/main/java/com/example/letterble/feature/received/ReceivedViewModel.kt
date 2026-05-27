@@ -22,6 +22,7 @@ import com.example.letterble.data.repository.UserRepository
 import com.example.letterble.domain.model.Letter
 import com.example.letterble.domain.model.Location
 import com.example.letterble.domain.model.Tree
+import com.example.letterble.domain.usecase.BuildRouteTreeUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -122,7 +123,11 @@ class ReceivedViewModel(
      * LocationRepository.getLocationsByLetter(letterId)も含まれている。
      * そのため、詳細読み込み時に位置履歴も一緒に取り、経路概要に使える状態にしておく。
      */
-    private val locationRepository: LocationRepository
+    private val locationRepository: LocationRepository,
+    /**
+     * 保存済みTreeを優先し、必要な場合だけLocation履歴から復元するUseCase。
+     */
+    private val buildRouteTreeUseCase: BuildRouteTreeUseCase
 ) : ViewModel() {
     /**
      * ViewModelの中だけで更新する可変のStateFlow。
@@ -209,9 +214,7 @@ class ReceivedViewModel(
      * 3. LocationRepository.getLocationsByLetter(letterId)で移動履歴を取得する
      * 4. 詳細画面用のReceivedLetterDetailにまとめてstateへ入れる
      *
-     * BuildRouteTreeUseCase.buildTree(locations)を使う書き方もあるが、
-     * 現時点ではBuildRouteTreeUseCaseがまだ未実装。
-     * そのため、#57ではFirestore上のLetter.treeを正とし、locationsは経路概要の補助情報として保持する。
+     * Firestore上のLetter.treeを正とし、treeが空の古いデータだけLocation履歴から復元する。
      */
     fun loadLetterDetail(letterId: String) {
         val trimmedLetterId = letterId.trim()
@@ -253,11 +256,15 @@ class ReceivedViewModel(
                 }
 
                 val locations = locationRepository.getLocationsByLetter(trimmedLetterId)
+                val routeTree = buildRouteTreeUseCase.buildTree(
+                    savedTree = letter.tree,
+                    locations = locations
+                )
                 val detail = ReceivedLetterDetail(
                     letter = letter,
-                    tree = letter.tree,
+                    tree = routeTree,
                     locations = locations,
-                    routeSummary = letter.tree.toRouteSummary(locations)
+                    routeSummary = routeTree.toRouteSummary(locations)
                 )
 
                 _uiState.value = _uiState.value.copy(
@@ -292,7 +299,8 @@ class ReceivedViewModel(
 class ReceivedViewModelFactory(
     private val userRepository: UserRepository,
     private val letterRepository: LetterRepository,
-    private val locationRepository: LocationRepository
+    private val locationRepository: LocationRepository,
+    private val buildRouteTreeUseCase: BuildRouteTreeUseCase
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -300,7 +308,8 @@ class ReceivedViewModelFactory(
             return ReceivedViewModel(
                 userRepository = userRepository,
                 letterRepository = letterRepository,
-                locationRepository = locationRepository
+                locationRepository = locationRepository,
+                buildRouteTreeUseCase = buildRouteTreeUseCase
             ) as T
         }
 

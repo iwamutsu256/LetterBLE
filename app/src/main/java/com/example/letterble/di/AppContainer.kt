@@ -16,7 +16,9 @@ import com.example.letterble.data.repository.LetterRepository
 import com.example.letterble.data.repository.LocationRepository
 import com.example.letterble.data.repository.TreeRepository
 import com.example.letterble.data.repository.UserRepository
+import com.example.letterble.domain.usecase.BuildRouteTreeUseCase
 import com.example.letterble.feature.edit_letter.EditLetterViewModel
+import com.example.letterble.feature.received.ReceivedViewModelFactory
 
 /**
  * App-wide dependency entry point.
@@ -39,6 +41,12 @@ interface AppContainer {
 
     // 経路 Tree データを上位層へ提供する Repository。
     val treeRepository: TreeRepository
+
+    // 保存済み Tree と Location 履歴から表示用 Tree を決める UseCase。
+    val buildRouteTreeUseCase: BuildRouteTreeUseCase
+
+    // 受信画面系の ViewModel 生成に必要な依存関係を AppContainer 側でまとめる。
+    val receivedViewModelFactory: ReceivedViewModelFactory
 
     // 手紙作成画面の ViewModel 生成に必要な依存関係を AppContainer 側でまとめる。
     fun editLetterViewModelFactory(): ViewModelProvider.Factory
@@ -85,4 +93,11 @@ class DefaultAppContainer(
     override val locationRepository = LocationRepository(locationFirestoreDataSource)
     override val encounterRepository = EncounterRepository(encounterFirestoreDataSource)
     override val treeRepository = TreeRepository(treeFirestoreDataSource)
+    override val buildRouteTreeUseCase = BuildRouteTreeUseCase()
+    override val receivedViewModelFactory = ReceivedViewModelFactory(
+        userRepository = userRepository,
+        letterRepository = letterRepository,
+        locationRepository = locationRepository,
+        buildRouteTreeUseCase = buildRouteTreeUseCase
+    )
 }
