@@ -11,6 +11,7 @@ import com.example.letterble.domain.model.Post
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
@@ -44,8 +45,17 @@ class OverpassPostDataSource(
                 outputStream.write(body.toByteArray(Charsets.UTF_8))
             }
 
-            if (connection.responseCode !in 200..299) {
-                return@withContext emptyList()
+            val responseCode = connection.responseCode
+            if (responseCode !in 200..299) {
+                val errorText = connection.errorStream
+                    ?.bufferedReader()
+                    ?.use { it.readText() }
+                    .orEmpty()
+
+                // API障害やrate limitを「0件」と誤表示しないよう、失敗としてViewModelへ伝える。
+                throw IOException(
+                    "Overpass API request failed: HTTP $responseCode ${errorText.take(MAX_ERROR_BODY_LENGTH)}"
+                )
             }
 
             val responseText = connection.inputStream.bufferedReader().use { it.readText() }
@@ -91,5 +101,9 @@ class OverpassPostDataSource(
                 )
             }
         }
+    }
+
+    private companion object {
+        const val MAX_ERROR_BODY_LENGTH = 200
     }
 }
