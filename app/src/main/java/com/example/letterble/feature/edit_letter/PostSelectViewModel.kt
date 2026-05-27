@@ -33,6 +33,8 @@ import kotlinx.coroutines.launch
 data class PostSelectUiState(
     val posts: List<Post> = emptyList(),
     val selectedPost: Post? = null,
+    val currentLatitude: Double? = null,
+    val currentLongitude: Double? = null,
     val showConfirmDialog: Boolean = false,
     val isSubmitting: Boolean = false,
     val isLoading: Boolean = false,
@@ -83,6 +85,10 @@ class PostSelectViewModel(
             if (currentLocation == null) {
                 _uiState.update {
                     it.copy(
+                        posts = emptyList(),
+                        selectedPost = null,
+                        currentLatitude = null,
+                        currentLongitude = null,
                         isLoading = false,
                         message = "現在地を取得できませんでした"
                     )
@@ -100,6 +106,8 @@ class PostSelectViewModel(
                     it.copy(
                         posts = posts,
                         selectedPost = posts.firstOrNull(),
+                        currentLatitude = currentLocation.latitude,
+                        currentLongitude = currentLocation.longitude,
                         isLoading = false,
                         message = if (posts.isEmpty()) "1km以内にポストが見つかりませんでした" else null
                     )
