@@ -20,6 +20,8 @@ jobs:
     name: Build and test
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
 
     steps:
       - name: Checkout

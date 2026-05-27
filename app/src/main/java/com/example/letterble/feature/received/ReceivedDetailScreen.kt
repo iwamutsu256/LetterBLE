@@ -175,6 +175,7 @@ private fun ReceivedDetailContent(
         DetailCard(title = "宛先", value = letter.toUser.ifBlank { "不明" })
         DetailCard(title = "本文", value = letter.sentence.ifBlank { "本文なし" })
         DetailCard(title = "経路概要", value = detail.routeSummary)
+        RouteMapScreen(tree = detail.tree)
         ReceivedRouteContent(detail = detail)
     }
 }

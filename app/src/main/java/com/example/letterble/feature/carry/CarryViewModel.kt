@@ -12,6 +12,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.letterble.data.repository.LetterRepository
 import com.example.letterble.data.repository.UserRepository
 import com.example.letterble.domain.model.Letter
+import com.example.letterble.domain.model.Tree
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -57,7 +58,8 @@ data class CarryLetterDetailInfo(
     val fromUser: String,
     val isSurvival: Boolean,
     val routeNodeCount: Int,
-    val routeEdgeCount: Int
+    val routeEdgeCount: Int,
+    val tree: Tree
 )
 
 /**
@@ -129,6 +131,9 @@ class CarryViewModel(
             return
         }
 
+        // 詳細画面は一覧とは別の ViewModel インスタンスになるため、ここでも現在ユーザー名を読み込む。
+        val currentUserName = userRepository.getCurrentUserName().orEmpty()
+
         // 一覧にある手紙なら先に state へ反映し、詳細画面の初期表示を早くする。
         val cachedLetter = _uiState.value.carryingLetters.firstOrNull { letter ->
             letter.letterId == letterId
@@ -136,6 +141,7 @@ class CarryViewModel(
 
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(
+                currentUserName = currentUserName,
                 selectedLetter = cachedLetter,
                 isDetailLoading = true,
                 errorMessage = null
@@ -177,7 +183,8 @@ private fun Letter.toCarryDetailInfo(): CarryLetterDetailInfo {
         fromUser = fromUser,
         isSurvival = isSurvival,
         routeNodeCount = tree.nodes.size,
-        routeEdgeCount = tree.edges.size
+        routeEdgeCount = tree.edges.size,
+        tree = tree
     )
 }
 
@@ -189,7 +196,8 @@ private fun CarryLetterListItem.toCarryDetailInfo(): CarryLetterDetailInfo {
         fromUser = fromUser,
         isSurvival = true,
         routeNodeCount = 0,
-        routeEdgeCount = 0
+        routeEdgeCount = 0,
+        tree = Tree()
     )
 }
 

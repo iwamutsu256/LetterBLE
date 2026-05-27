@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -123,7 +125,11 @@ private fun CarryLetterDetailContent(
         }
 
         else -> {
-            CarryLetterDetail(letter = uiState.selectedLetter)
+            CarryLetterDetail(
+                letter = uiState.selectedLetter,
+                currentUserName = uiState.currentUserName,
+                modifier = modifier
+            )
         }
     }
 }
@@ -134,9 +140,14 @@ private fun CarryLetterDetailContent(
 @Composable
 private fun CarryLetterDetail(
     letter: CarryLetterDetailInfo,
+    currentUserName: String,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier = modifier.fillMaxWidth()) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
+    ) {
         Text("差出人: ${letter.fromUser}")
         Text(
             modifier = Modifier.padding(top = 8.dp),
@@ -149,6 +160,11 @@ private fun CarryLetterDetail(
         Text(
             modifier = Modifier.padding(top = 8.dp),
             text = "経路概要: ${letter.routeNodeCount}地点 / ${letter.routeEdgeCount}区間"
+        )
+        CarryMapScreen(
+            tree = letter.tree,
+            currentUserName = currentUserName,
+            modifier = Modifier.padding(top = 16.dp)
         )
     }
 }
