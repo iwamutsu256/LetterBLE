@@ -161,8 +161,8 @@ class EditLetterViewModel(
                         fromUser = fromUser,
                         toUser = state.toUser,
                         sentence = state.sentence,
-                        latitude = TEMPORARY_POST_LATITUDE,
-                        longitude = TEMPORARY_POST_LONGITUDE
+                        latitude = TemporaryPostCoordinates.LATITUDE,
+                        longitude = TemporaryPostCoordinates.LONGITUDE
                     )
                 )
             }.onSuccess {
@@ -200,9 +200,4 @@ class EditLetterViewModel(
         )
     }
 
-    companion object {
-        // ポスト選択実装までの暫定値。東京駅付近を仮の投函位置として使う。
-        private const val TEMPORARY_POST_LATITUDE = 35.681236
-        private const val TEMPORARY_POST_LONGITUDE = 139.767125
-    }
 }
