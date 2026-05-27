@@ -63,10 +63,6 @@ class PostSelectViewModel(
     private val _events = MutableSharedFlow<PostSelectEvent>()
     val events: SharedFlow<PostSelectEvent> = _events.asSharedFlow()
 
-    init {
-        loadNearbyPosts()
-    }
-
     /**
      * 現在地から1km以内のポストを読み込む。
      */
@@ -129,6 +125,18 @@ class PostSelectViewModel(
             it.copy(
                 selectedPost = post,
                 showConfirmDialog = true
+            )
+        }
+    }
+
+    /**
+     * 位置情報権限が許可されなかったことを画面状態へ反映する。
+     */
+    fun onLocationPermissionDenied() {
+        _uiState.update {
+            it.copy(
+                isLoading = false,
+                message = "近くのポスト検索には位置情報の許可が必要です"
             )
         }
     }

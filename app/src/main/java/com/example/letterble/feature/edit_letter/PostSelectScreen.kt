@@ -7,6 +7,11 @@
  */
 package com.example.letterble.feature.edit_letter
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -26,9 +31,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.letterble.di.AppContainer
 import com.example.letterble.domain.model.Post
@@ -47,13 +57,31 @@ fun PostSelectScreen(
         factory = appContainer.postSelectViewModelFactory()
     )
 ) {
+    val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
+    var hasLocationPermission by remember {
+        mutableStateOf(context.hasLocationPermission())
+    }
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        hasLocationPermission = permissions.values.any { it }
+        if (!hasLocationPermission) {
+            viewModel.onLocationPermissionDenied()
+        }
+    }
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
                 PostSelectEvent.NavigateHome -> onSubmitted()
             }
+        }
+    }
+
+    LaunchedEffect(hasLocationPermission) {
+        if (hasLocationPermission) {
+            viewModel.loadNearbyPosts()
         }
     }
 
@@ -107,6 +135,15 @@ fun PostSelectScreen(
                 CircularProgressIndicator(modifier = Modifier.padding(top = 24.dp))
             }
 
+            !hasLocationPermission -> {
+                Text(
+                    text = "近くのポストを探すには位置情報の許可が必要です",
+                    modifier = Modifier.padding(top = 24.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
             uiState.posts.isNotEmpty() -> {
                 LazyColumn(
                     modifier = Modifier
@@ -136,10 +173,21 @@ fun PostSelectScreen(
         }
 
         CommonButton(
-            text = "再取得",
+            text = if (hasLocationPermission) "再取得" else "位置情報を許可して検索",
             modifier = Modifier.padding(top = 16.dp),
             enabled = !uiState.isLoading,
-            onClick = viewModel::loadNearbyPosts
+            onClick = {
+                if (hasLocationPermission) {
+                    viewModel.loadNearbyPosts()
+                } else {
+                    locationPermissionLauncher.launch(
+                        arrayOf(
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION
+                        )
+                    )
+                }
+            }
         )
         CommonButton(
             text = "戻る",
@@ -147,6 +195,22 @@ fun PostSelectScreen(
             onClick = onBackClicked
         )
     }
+}
+
+/**
+ * 画面表示時点で位置情報権限があるかを確認する。
+ */
+private fun Context.hasLocationPermission(): Boolean {
+    val fineLocationGranted = ContextCompat.checkSelfPermission(
+        this,
+        Manifest.permission.ACCESS_FINE_LOCATION
+    ) == PackageManager.PERMISSION_GRANTED
+    val coarseLocationGranted = ContextCompat.checkSelfPermission(
+        this,
+        Manifest.permission.ACCESS_COARSE_LOCATION
+    ) == PackageManager.PERMISSION_GRANTED
+
+    return fineLocationGranted || coarseLocationGranted
 }
 
 @Composable
