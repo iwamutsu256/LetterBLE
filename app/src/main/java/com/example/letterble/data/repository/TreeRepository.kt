@@ -44,8 +44,8 @@ class TreeRepository(
         parentUser: String,
         newUser: String,
         location: Location
-    ) {
-        treeFirestoreDataSource.addNode(
+    ): Boolean {
+        return treeFirestoreDataSource.addNode(
             letterId = letterId,
             parentUser = parentUser,
             newUser = newUser,

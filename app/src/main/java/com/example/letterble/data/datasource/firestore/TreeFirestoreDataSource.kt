@@ -66,12 +66,16 @@ class TreeFirestoreDataSource(
         parentUser: String,
         newUser: String,
         location: Location
-    ) {
+    ): Boolean {
         val letterDocument = lettersCollection.document(letterId)
 
-        firestore.runTransaction { transaction ->
+        return firestore.runTransaction { transaction ->
             val document = transaction.get(letterDocument)
             val currentTree = document.get(FirestoreFields.Letter.TREE).toTree()
+
+            if (currentTree.nodes.any { node -> node.userName == newUser }) {
+                return@runTransaction false
+            }
 
             val parentNode = currentTree.nodes.firstOrNull { node ->
                 node.userName == parentUser
@@ -100,7 +104,7 @@ class TreeFirestoreDataSource(
                 updatedTree.toFirestoreMap()
             )
 
-            null
+            true
         }.awaitResult()
     }
 }

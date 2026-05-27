@@ -32,6 +32,7 @@ class RelayLetterUseCaseTest {
         assertEquals(emptyList<Pair<String, List<String>>>(), repositories.addedCarryingLetterIds)
         assertEquals(emptyList<Location>(), repositories.savedLocations)
         assertEquals(emptyList<TreeAddNodeCall>(), repositories.addNodeCalls)
+        assertEquals(emptyList<String>(), repositories.operations)
         assertEquals(emptyList<Pair<String, Boolean>>(), repositories.updatedSurvivals)
     }
 
@@ -76,24 +77,24 @@ class RelayLetterUseCaseTest {
         assertEquals(emptyList<Pair<String, List<String>>>(), repositories.addedCarryingLetterIds)
         assertEquals(emptyList<Location>(), repositories.savedLocations)
         assertEquals(emptyList<TreeAddNodeCall>(), repositories.addNodeCalls)
+        assertEquals(emptyList<String>(), repositories.operations)
     }
 
     @Test
-    fun `missing current coordinates does not save fake zero location`() = runBlocking {
+    fun `tree transaction duplicate does not save location carrying or encounter`() = runBlocking {
         val repositories = FakeRelayRepositories(
-            carriedLetters = listOf(letter(id = "letter-1"))
+            carriedLetters = listOf(letter(id = "letter-1")),
+            addNodeResults = mutableListOf(false)
         )
-        val useCase = repositories.useCase(
-            now = 1_000L,
-            coordinates = null
-        )
+        val useCase = repositories.useCase(now = 1_000L)
 
         useCase.execute(myUserName = "me", targetUserName = "target")
 
         assertEquals(emptyList<Encounter>(), repositories.savedEncounters)
         assertEquals(emptyList<Pair<String, List<String>>>(), repositories.addedCarryingLetterIds)
         assertEquals(emptyList<Location>(), repositories.savedLocations)
-        assertEquals(emptyList<TreeAddNodeCall>(), repositories.addNodeCalls)
+        assertEquals(1, repositories.addNodeCalls.size)
+        assertEquals(listOf("addNode:letter-1"), repositories.operations)
     }
 
     @Test
@@ -124,11 +125,21 @@ class RelayLetterUseCaseTest {
         )
         assertEquals(listOf("letter-1" to false), repositories.updatedSurvivals)
         assertEquals(1, repositories.savedEncounters.size)
+        assertEquals(
+            listOf(
+                "addNode:letter-1",
+                "saveLocation:letter-1",
+                "updateSurvival:letter-1",
+                "addCarryingLetterIds:letter-1",
+                "saveEncounter"
+            ),
+            repositories.operations
+        )
     }
 
     private fun FakeRelayRepositories.useCase(
         now: Long,
-        coordinates: RelayCoordinates? = RelayCoordinates(latitude = 35.0, longitude = 139.0)
+        coordinates: RelayCoordinates = RelayCoordinates(latitude = 35.0, longitude = 139.0)
     ): RelayLetterUseCase {
         return RelayLetterUseCase(
             encounterRepository = this,
@@ -166,7 +177,8 @@ private data class TreeAddNodeCall(
 
 private class FakeRelayRepositories(
     private val lastEncounters: Map<Pair<String, String>, Encounter> = emptyMap(),
-    private val carriedLetters: List<Letter> = emptyList()
+    private val carriedLetters: List<Letter> = emptyList(),
+    private val addNodeResults: MutableList<Boolean> = mutableListOf(true)
 ) : RelayEncounterRepository,
     RelayLetterRepository,
     RelayLocationRepository,
@@ -178,8 +190,10 @@ private class FakeRelayRepositories(
     val savedLocations = mutableListOf<Location>()
     val addNodeCalls = mutableListOf<TreeAddNodeCall>()
     val updatedSurvivals = mutableListOf<Pair<String, Boolean>>()
+    val operations = mutableListOf<String>()
 
     override suspend fun saveEncounter(encounter: Encounter) {
+        operations += "saveEncounter"
         savedEncounters += encounter
     }
 
@@ -192,10 +206,12 @@ private class FakeRelayRepositories(
     }
 
     override suspend fun updateSurvival(letterId: String, isSurvival: Boolean) {
+        operations += "updateSurvival:$letterId"
         updatedSurvivals += letterId to isSurvival
     }
 
     override suspend fun saveLocation(location: Location) {
+        operations += "saveLocation:${location.letterId}"
         savedLocations += location
     }
 
@@ -204,16 +220,23 @@ private class FakeRelayRepositories(
         parentUser: String,
         newUser: String,
         location: Location
-    ) {
+    ): Boolean {
+        operations += "addNode:$letterId"
         addNodeCalls += TreeAddNodeCall(
             letterId = letterId,
             parentUser = parentUser,
             newUser = newUser,
             location = location
         )
+        return if (addNodeResults.isNotEmpty()) {
+            addNodeResults.removeAt(0)
+        } else {
+            true
+        }
     }
 
     override suspend fun addCarryingLetterIds(userName: String, letterIds: List<String>) {
+        operations += "addCarryingLetterIds:${letterIds.joinToString(",")}"
         addedCarryingLetterIds += userName to letterIds
     }
 }

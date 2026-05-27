@@ -21,7 +21,7 @@ class RelayLetterUseCase(
     private val userRepository: RelayUserRepository,
     private val duplicateIntervalMillis: Long = DEFAULT_DUPLICATE_INTERVAL_MILLIS,
     private val currentTimeMillis: () -> Long = { System.currentTimeMillis() },
-    private val currentCoordinates: () -> RelayCoordinates? = { null }
+    private val currentCoordinates: () -> RelayCoordinates
 ) {
     /**
      * myUserName が targetUserName とすれ違ったときに呼ばれる入口。
@@ -55,12 +55,7 @@ class RelayLetterUseCase(
             return
         }
 
-        val coordinates = currentCoordinates() ?: return
-
-        userRepository.addCarryingLetterIds(
-            userName = myUserName,
-            letterIds = relayTargetLetters.map { letter -> letter.letterId }
-        )
+        val coordinates = currentCoordinates()
 
         val relayLocations = relayTargetLetters.map { letter ->
             Location(
@@ -73,21 +68,26 @@ class RelayLetterUseCase(
             )
         }
 
-        relayLocations.forEach { location ->
-            locationRepository.saveLocation(location)
-        }
-
-        // zipを使うと2つのリストを同じ順番でペアにできる。そのペアをforEachで一つずつ処理する。
+        val relayedLetters = mutableListOf<Pair<Letter, Location>>()
         relayTargetLetters.zip(relayLocations).forEach { (letter, location) ->
-            treeRepository.addNode(
+            val nodeAdded = treeRepository.addNode(
                 letterId = letter.letterId,
                 parentUser = targetUserName,
                 newUser = myUserName,
                 location = location
             )
+
+            if (nodeAdded) {
+                locationRepository.saveLocation(location)
+                relayedLetters += letter to location
+            }
         }
 
-        relayTargetLetters
+        if (relayedLetters.isEmpty()) {
+            return
+        }
+
+        relayedLetters.map { (letter, _) -> letter }
             .filter { letter -> letter.toUser == myUserName }
             .forEach { letter ->
                 letterRepository.updateSurvival(
@@ -95,6 +95,11 @@ class RelayLetterUseCase(
                     isSurvival = false
                 )
             }
+
+        userRepository.addCarryingLetterIds(
+            userName = myUserName,
+            letterIds = relayedLetters.map { (letter, _) -> letter.letterId }
+        )
 
         encounterRepository.saveEncounter(
             Encounter(
@@ -147,7 +152,7 @@ interface RelayTreeRepository {
         parentUser: String,
         newUser: String,
         location: Location
-    )
+    ): Boolean
 }
 
 interface RelayUserRepository {
