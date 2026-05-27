@@ -72,7 +72,13 @@ fun AppNavGraph(
         composable(Destinations.POST_SELECT) {
             PostSelectScreen(
                 appContainer = appContainer,
-                onBackClicked = navController::popBackStack
+                onBackClicked = navController::popBackStack,
+                onSubmitted = {
+                    navController.navigate(Destinations.HOME) {
+                        popUpTo(Destinations.HOME) { inclusive = false }
+                        launchSingleTop = true
+                    }
+                }
             )
         }
 

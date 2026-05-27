@@ -23,6 +23,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -40,12 +41,21 @@ import com.example.letterble.ui.components.CommonButton
 fun PostSelectScreen(
     appContainer: AppContainer,
     onBackClicked: () -> Unit,
+    onSubmitted: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: PostSelectViewModel = viewModel(
         factory = appContainer.postSelectViewModelFactory()
     )
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(viewModel) {
+        viewModel.events.collect { event ->
+            when (event) {
+                PostSelectEvent.NavigateHome -> onSubmitted()
+            }
+        }
+    }
 
     if (uiState.showConfirmDialog) {
         val selectedPost = uiState.selectedPost
@@ -62,12 +72,18 @@ fun PostSelectScreen(
                 )
             },
             confirmButton = {
-                TextButton(onClick = viewModel::onConfirmDialogDismissed) {
-                    Text("確認")
+                TextButton(
+                    enabled = !uiState.isSubmitting && selectedPost != null,
+                    onClick = viewModel::onSubmitConfirmed
+                ) {
+                    Text(if (uiState.isSubmitting) "投函中" else "投函")
                 }
             },
             dismissButton = {
-                TextButton(onClick = viewModel::onConfirmDialogDismissed) {
+                TextButton(
+                    enabled = !uiState.isSubmitting,
+                    onClick = viewModel::onConfirmDialogDismissed
+                ) {
                     Text("戻る")
                 }
             }

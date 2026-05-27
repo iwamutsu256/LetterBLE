@@ -126,7 +126,10 @@ class DefaultAppContainer(
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 return PostSelectViewModel(
                     currentLocationDataSource = currentLocationDataSource,
-                    postRepository = postRepository
+                    postRepository = postRepository,
+                    draftRepository = draftRepository,
+                    userRepository = userRepository,
+                    submitLetterUseCase = submitLetterUseCase
                 ) as T
             }
         }
