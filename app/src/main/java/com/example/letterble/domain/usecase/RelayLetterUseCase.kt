@@ -99,7 +99,16 @@ class RelayLetterUseCase(
             )
         }
 
-        // #91 以降で宛先到達判定から先の relay 処理を追加する。
+        relayTargetLetters
+            .filter { letter -> letter.toUser == myUserName }
+            .forEach { letter ->
+                letterRepository.updateSurvival(
+                    letterId = letter.letterId,
+                    isSurvival = false
+                )
+            }
+
+        // #92 で重複、再配布防止、宛先到達の Unit Test を追加する。
     }
 
     private suspend fun isDuplicateEncounter(
