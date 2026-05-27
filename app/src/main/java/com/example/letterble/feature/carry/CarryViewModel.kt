@@ -131,6 +131,9 @@ class CarryViewModel(
             return
         }
 
+        // 詳細画面は一覧とは別の ViewModel インスタンスになるため、ここでも現在ユーザー名を読み込む。
+        val currentUserName = userRepository.getCurrentUserName().orEmpty()
+
         // 一覧にある手紙なら先に state へ反映し、詳細画面の初期表示を早くする。
         val cachedLetter = _uiState.value.carryingLetters.firstOrNull { letter ->
             letter.letterId == letterId
@@ -138,6 +141,7 @@ class CarryViewModel(
 
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(
+                currentUserName = currentUserName,
                 selectedLetter = cachedLetter,
                 isDetailLoading = true,
                 errorMessage = null
