@@ -60,7 +60,10 @@ fun HomeScreen(
 ) {
     // AppContainer の Repository を渡して HomeViewModel を作る。
     val viewModel: HomeViewModel = viewModel(
-        factory = HomeViewModelFactory(appContainer.userRepository)
+        factory = HomeViewModelFactory(
+            userRepository = appContainer.userRepository,
+            letterRepository = appContainer.letterRepository
+        )
     )
 
     // ViewModel の uiState を Compose 画面で読める形に変換する。
@@ -121,12 +124,27 @@ fun HomeScreen(
                 style = MaterialTheme.typography.headlineMedium
             )
 
+            Text(
+                text = when {
+                    uiState.isReceivedStatusLoading -> "受信状況を確認中"
+                    uiState.receivedStatusErrorMessage != null -> "受信状況を確認できません"
+                    uiState.hasReceivedLetters -> "〒 受信した手紙 ${uiState.receivedLetterCount}件"
+                    else -> "受信した手紙はありません"
+                },
+                modifier = Modifier.padding(top = 16.dp),
+                style = MaterialTheme.typography.bodyMedium
+            )
+
             // 受信した手紙一覧へ進むボタン。
             CommonButton(
                 // ボタンに表示する文字。
-                text = "受信した手紙",
+                text = if (uiState.hasReceivedLetters) {
+                    "受信した手紙を見る"
+                } else {
+                    "受信した手紙"
+                },
                 // タイトルとの間に余白をつける。
-                modifier = Modifier.padding(top = 24.dp),
+                modifier = Modifier.padding(top = 16.dp),
                 // 押されたら ViewModel にイベントを渡す。
                 onClick = viewModel::onReceivedClicked
             )

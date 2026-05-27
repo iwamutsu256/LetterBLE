@@ -1,19 +1,25 @@
 package com.example.letterble.di
 
 import android.content.Context
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import com.example.letterble.data.datasource.firestore.EncounterFirestoreDataSource
 import com.example.letterble.data.datasource.firestore.LetterFirestoreDataSource
 import com.example.letterble.data.datasource.firestore.LocationFirestoreDataSource
 import com.example.letterble.data.datasource.firestore.TreeFirestoreDataSource
 import com.example.letterble.data.datasource.firestore.UserFirestoreDataSource
+import com.example.letterble.data.datasource.local.DraftLocalDataSource
 import com.example.letterble.data.datasource.local.UserLocalDataSource
+import com.example.letterble.data.repository.DraftRepository
 import com.example.letterble.data.repository.EncounterRepository
 import com.example.letterble.data.repository.LetterRepository
 import com.example.letterble.data.repository.LocationRepository
 import com.example.letterble.data.repository.TreeRepository
 import com.example.letterble.data.repository.UserRepository
-import com.example.letterble.data.datasource.local.DraftLocalDataSource
-import com.example.letterble.data.repository.DraftRepository
+import com.example.letterble.domain.usecase.BuildRouteTreeUseCase
+import com.example.letterble.feature.edit_letter.EditLetterViewModel
+import com.example.letterble.feature.received.ReceivedViewModelFactory
+
 /**
  * App-wide dependency entry point.
  *
@@ -36,15 +42,21 @@ interface AppContainer {
     // 経路 Tree データを上位層へ提供する Repository。
     val treeRepository: TreeRepository
 
-    // 下書き保存用 Repository を追加する。
-    val draftRepository: DraftRepository
+    // 保存済み Tree と Location 履歴から表示用 Tree を決める UseCase。
+    val buildRouteTreeUseCase: BuildRouteTreeUseCase
+
+    // 受信画面系の ViewModel 生成に必要な依存関係を AppContainer 側でまとめる。
+    val receivedViewModelFactory: ReceivedViewModelFactory
+
+    // 手紙作成画面の ViewModel 生成に必要な依存関係を AppContainer 側でまとめる。
+    fun editLetterViewModelFactory(): ViewModelProvider.Factory
 }
 
 class DefaultAppContainer(
     context: Context
 ) : AppContainer {
     // SharedPreferences 用 DataSource は ApplicationContext から一度だけ作る。
-    private val userLocalDataSource = UserLocalDataSource(context.applicationContext)
+    private val applicationContext = context.applicationContext
 
     // 下書き保存用 DataSource も同様に ApplicationContext から生成する。
     private val draftLocalDataSource = DraftLocalDataSource(context.applicationContext)
@@ -56,16 +68,39 @@ class DefaultAppContainer(
     private val encounterFirestoreDataSource = EncounterFirestoreDataSource()
     private val treeFirestoreDataSource = TreeFirestoreDataSource()
 
+    // 現在ユーザー名用のローカル DataSource を AppContainer で管理する。
+    private val userLocalDataSource = UserLocalDataSource(applicationContext)
+
+    // 下書き用のローカル DataSource も同じ AppContainer で管理する。
+    private val draftLocalDataSource = DraftLocalDataSource(applicationContext)
+
     override val userRepository: UserRepository = UserRepository(
         userLocalDataSource = userLocalDataSource,
         userFirestoreDataSource = userFirestoreDataSource
     )
 
+    private val draftRepository = DraftRepository(draftLocalDataSource)
+
+    /**
+     * 手紙作成画面に必要な依存関係を渡して ViewModel を生成する。
+     */
+    override fun editLetterViewModelFactory(): ViewModelProvider.Factory {
+        return object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return EditLetterViewModel(draftRepository) as T
+            }
+        }
+    }
     override val letterRepository = LetterRepository(letterFirestoreDataSource)
     override val locationRepository = LocationRepository(locationFirestoreDataSource)
     override val encounterRepository = EncounterRepository(encounterFirestoreDataSource)
     override val treeRepository = TreeRepository(treeFirestoreDataSource)
-
-    // DraftLocalDataSource を DraftRepository に渡す。
-    override val draftRepository = DraftRepository(draftLocalDataSource)
+    override val buildRouteTreeUseCase = BuildRouteTreeUseCase()
+    override val receivedViewModelFactory = ReceivedViewModelFactory(
+        userRepository = userRepository,
+        letterRepository = letterRepository,
+        locationRepository = locationRepository,
+        buildRouteTreeUseCase = buildRouteTreeUseCase
+    )
 }

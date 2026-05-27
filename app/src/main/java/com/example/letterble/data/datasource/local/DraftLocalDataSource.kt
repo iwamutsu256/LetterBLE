@@ -4,46 +4,59 @@
  * 役割:
  * - 端末内データ保存（下書き等）
  */
-
 package com.example.letterble.data.datasource.local
 
 import android.content.Context
+import android.content.SharedPreferences
 
+/**
+ * 1通だけ保持する手紙下書き。
+ */
+data class DraftLetter(
+    val toUser: String = "",
+    val sentence: String = ""
+)
+
+/**
+ * SharedPreferencesで下書きを1件だけ保存するDataSource。
+ */
 class DraftLocalDataSource(context: Context) {
+    private val preferences: SharedPreferences =
+        context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
 
-    private val sharedPreferences = context.getSharedPreferences(
-        "letter_ble_draft_preferences",
-        Context.MODE_PRIVATE
-    )
-
-    // 宛先と本文をまとめて保存する。
-    fun saveDraft(toName: String, sentence: String) {
-        sharedPreferences.edit()
-            .putString("draft_to_name", toName)
-            .putString("draft_sentence", sentence)
+    /**
+     * 宛先と本文を端末内に保存する。
+     */
+    fun saveDraft(draft: DraftLetter) {
+        preferences.edit()
+            .putString(KEY_TO_USER, draft.toUser)
+            .putString(KEY_SENTENCE, draft.sentence)
             .apply()
     }
 
-    // 保存されている宛先を読み込む。なければ空文字を返す。
-    fun loadDraftToName(): String {
-        return sharedPreferences.getString("draft_to_name", "") ?: ""
+    /**
+     * 保存済み下書きを読み込む。未保存の場合は空の下書きを返す。
+     */
+    fun loadDraft(): DraftLetter {
+        return DraftLetter(
+            toUser = preferences.getString(KEY_TO_USER, "").orEmpty(),
+            sentence = preferences.getString(KEY_SENTENCE, "").orEmpty()
+        )
     }
 
-    // 保存されている本文を読み込む。なければ空文字を返す。
-    fun loadDraftSentence(): String {
-        return sharedPreferences.getString("draft_sentence", "") ?: ""
-    }
-
-    // 宛先と本文を両方削除する。投函完了後に呼ぶ。
+    /**
+     * 端末内の下書きを削除する。
+     */
     fun clearDraft() {
-        sharedPreferences.edit()
-            .remove("draft_to_name")
-            .remove("draft_sentence")
+        preferences.edit()
+            .remove(KEY_TO_USER)
+            .remove(KEY_SENTENCE)
             .apply()
+    }
+
+    private companion object {
+        const val PREFERENCES_NAME = "draft_preferences"
+        const val KEY_TO_USER = "draft_to_user"
+        const val KEY_SENTENCE = "draft_sentence"
     }
 }
-
-// TODO: SharedPreferencesのインスタンスを取得する
-// TODO: saveDraftで文字列保存
-// TODO: loadDraftで文字列読み込み
-// TODO: clearDraftで削除

@@ -17,136 +17,136 @@ package com.example.letterble.feature.edit_letter
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.letterble.data.datasource.local.DraftLetter
 import com.example.letterble.data.repository.DraftRepository
-import com.example.letterble.data.repository.LetterRepository
-import com.example.letterble.data.repository.LocationRepository
-import com.example.letterble.data.repository.UserRepository
-import com.example.letterble.domain.model.Edge
-import com.example.letterble.domain.model.Letter
-import com.example.letterble.domain.model.Location
-import com.example.letterble.domain.model.Node
-import com.example.letterble.domain.model.Tree
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.UUID
 
-// 画面に表示する状態をまとめたデータクラス。
+/**
+ * 手紙作成画面の表示状態。
+ */
 data class EditLetterUiState(
-    val toName: String = "",
+    val toUser: String = "",
     val sentence: String = "",
-    val isSubmitting: Boolean = false,
-    val isSubmitted: Boolean = false,
-    val isDraftSaved: Boolean = false,
-    // 戻る確認ダイアログの表示フラグ。
-    val showBackConfirmDialog: Boolean = false
-)
+    val message: String? = null,
+    val isDraftSaved: Boolean = false
+) {
+    /**
+     * 戻る時に確認が必要かどうかをUIが判断するための値。
+     */
+    val hasInput: Boolean
+        get() = toUser.isNotBlank() || sentence.isNotBlank()
+}
 
+/**
+ * 手紙作成画面から発生する一度きりのイベント。
+ */
+sealed interface EditLetterEvent {
+    /** 投函先選択へ進む。 */
+    data object NavigateToPostSelect : EditLetterEvent
+}
+
+/**
+ * 手紙作成の入力状態と下書き操作を管理するViewModel。
+ */
 class EditLetterViewModel(
-    private val letterRepository: LetterRepository,
-    private val locationRepository: LocationRepository,
-    private val draftRepository: DraftRepository,
-    private val userRepository: UserRepository
+    private val draftRepository: DraftRepository
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(EditLetterUiState())
     val uiState: StateFlow<EditLetterUiState> = _uiState.asStateFlow()
 
+    private val _events = MutableSharedFlow<EditLetterEvent>()
+    val events: SharedFlow<EditLetterEvent> = _events.asSharedFlow()
+
     init {
-        // 画面を開いたとき、保存済みの宛先と本文を読み込んで state に反映する。
-        _uiState.value = _uiState.value.copy(
-            toName = draftRepository.loadDraftToName(),
-            sentence = draftRepository.loadDraftSentence()
-        )
+        loadDraft()
     }
 
-    // 宛先入力欄が変わったときに state を更新する。
-    fun onToChanged(value: String) {
-        _uiState.value = _uiState.value.copy(toName = value)
+    /**
+     * 宛先入力を画面状態へ反映する。
+     */
+    fun onToUserChanged(toUser: String) {
+        _uiState.update {
+            it.copy(
+                toUser = toUser,
+                message = null,
+                isDraftSaved = false
+            )
+        }
     }
 
-    // 本文入力欄が変わったときに state を更新する。
-    fun onSentenceChanged(value: String) {
-        _uiState.value = _uiState.value.copy(sentence = value)
+    /**
+     * 本文入力を画面状態へ反映する。
+     */
+    fun onSentenceChanged(sentence: String) {
+        _uiState.update {
+            it.copy(
+                sentence = sentence,
+                message = null,
+                isDraftSaved = false
+            )
+        }
     }
 
-    // 下書き保存ボタンが押されたとき、宛先と本文を SharedPreferences に保存する。
+    /**
+     * 現在の入力内容を下書きとして保存する。
+     */
     fun onSaveDraftClicked() {
-        draftRepository.saveDraft(
-            toName = _uiState.value.toName,
-            sentence = _uiState.value.sentence
-        )
-        _uiState.value = _uiState.value.copy(isDraftSaved = true)
-    }
-
-    fun onDiscardAndBack() {
-        draftRepository.clearDraft()
-        _uiState.value = _uiState.value.copy(showBackConfirmDialog = false)
-    }
-
-    // 戻るボタンが押されたとき、確認ダイアログを表示する。
-    fun onBackButtonClicked() {
-        _uiState.value = _uiState.value.copy(showBackConfirmDialog = true)
-    }
-
-    // ダイアログを閉じる。
-    fun onBackDialogDismissed() {
-        _uiState.value = _uiState.value.copy(showBackConfirmDialog = false)
-    }
-
-    // 投函ボタンが押されたときのメイン処理。
-    fun onSubmitClicked() {
-        val fromUser = userRepository.getCurrentUserName() ?: return
         val state = _uiState.value
-
-        // #54: ポスト選択が未実装のため、東京駅付近の仮座標を使う。
-        val dummyLat = 35.681236
-        val dummyLng = 139.767125
-
-        val letterId = UUID.randomUUID().toString()
-
-        // #52: 差出人を root node とした初期 tree を組み立てる。
-        val rootNode = Node(
-            id = fromUser,
-            userName = fromUser,
-            latitude = dummyLat,
-            longitude = dummyLng
+        draftRepository.saveDraft(
+            DraftLetter(
+                toUser = state.toUser,
+                sentence = state.sentence
+            )
         )
-        val initialTree = Tree(nodes = listOf(rootNode), edges = emptyList<Edge>())
+        _uiState.update {
+            it.copy(
+                message = "下書きを保存しました",
+                isDraftSaved = true
+            )
+        }
+    }
 
-        val letter = Letter(
-            letterId = letterId,
-            toUser = state.toName,
-            fromUser = fromUser,
-            sentence = state.sentence,
-            isSurvival = true,
-            tree = initialTree
-        )
+    /**
+     * 保存済み下書きを削除し、入力欄も空に戻す。
+     */
+    fun onClearDraftClicked() {
+        draftRepository.clearDraft()
+        _uiState.value = EditLetterUiState(message = "下書きを削除しました")
+    }
 
-        val location = Location(
-            locationId = UUID.randomUUID().toString(),
-            letterId = letterId,
-            userName = fromUser,
-            latitude = dummyLat,
-            longitude = dummyLng,
-            timestamp = System.currentTimeMillis()
-        )
+    /**
+     * 投函へ進める最低限の入力があるか確認し、次画面へのイベントを発行する。
+     */
+    fun onSubmitClicked() {
+        val state = _uiState.value
+        if (state.toUser.isBlank() || state.sentence.isBlank()) {
+            _uiState.update {
+                it.copy(message = "宛先と本文を入力してください")
+            }
+            return
+        }
 
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isSubmitting = true)
-            try {
-                letterRepository.sendLetter(letter)
-                locationRepository.saveLocation(location)
-                draftRepository.clearDraft()
-                _uiState.value = _uiState.value.copy(
-                    isSubmitting = false,
-                    isSubmitted = true,
-                    sentence = ""
-                )
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(isSubmitting = false)
-            }
+            _events.emit(EditLetterEvent.NavigateToPostSelect)
         }
+    }
+
+    /**
+     * 起動時に1件だけ保存された下書きを読み込む。
+     */
+    private fun loadDraft() {
+        val draft = draftRepository.loadDraft()
+        _uiState.value = EditLetterUiState(
+            toUser = draft.toUser,
+            sentence = draft.sentence,
+            isDraftSaved = draft.toUser.isNotBlank() || draft.sentence.isNotBlank()
+        )
     }
 }

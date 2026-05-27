@@ -49,11 +49,12 @@ class LocationFirestoreDataSource(
     suspend fun getLocationsByLetter(letterId: String): List<Location> {
         val snapshot = locationsCollection
             .whereEqualTo(FirestoreFields.Location.LETTER_ID, letterId)
-            .orderBy(FirestoreFields.Location.TIMESTAMP)
             .get()
             .awaitResult()
 
-        return snapshot.toLocations()
+        // Firestoreで whereEqualTo + orderBy を同時に使うと複合インデックスが必要になることがある。
+        // 詳細画面を開くだけでインデックス未作成エラーにならないよう、取得後にアプリ側で並べ替える。
+        return snapshot.toLocations().sortedBy { location -> location.timestamp }
     }
 
     /**
@@ -65,11 +66,11 @@ class LocationFirestoreDataSource(
     suspend fun getLocationsByUser(userName: String): List<Location> {
         val snapshot = locationsCollection
             .whereEqualTo(FirestoreFields.Location.USER_NAME, userName)
-            .orderBy(FirestoreFields.Location.TIMESTAMP)
             .get()
             .awaitResult()
 
-        return snapshot.toLocations()
+        // getLocationsByLetter() と同じ理由で、並び替えはアプリ側で行う。
+        return snapshot.toLocations().sortedBy { location -> location.timestamp }
     }
 }
 

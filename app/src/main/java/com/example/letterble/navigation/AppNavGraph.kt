@@ -63,22 +63,15 @@ fun AppNavGraph(
         }
 
         composable(Destinations.EDIT_LETTER) {
-            val viewModel = remember {
-                EditLetterViewModel(
-                    letterRepository = appContainer.letterRepository,
-                    locationRepository = appContainer.locationRepository,
-                    draftRepository = appContainer.draftRepository,
-                    userRepository = appContainer.userRepository
-                )
-            }
             EditLetterScreen(
-                viewModel = viewModel,
+                appContainer = appContainer,
                 onBackClicked = navController::popBackStack
             )
         }
 
         composable(Destinations.RECEIVED) {
             ReceivedScreen(
+                appContainer = appContainer,
                 onLetterClicked = { letterId ->
                     navController.navigate(Destinations.receivedDetail(letterId))
                 },
@@ -91,6 +84,7 @@ fun AppNavGraph(
             arguments = listOf(navArgument(Destinations.LETTER_ID_ARG) { type = NavType.StringType })
         ) { backStackEntry ->
             ReceivedDetailScreen(
+                appContainer = appContainer,
                 letterId = backStackEntry.arguments?.getString(Destinations.LETTER_ID_ARG).orEmpty(),
                 onBackClicked = navController::popBackStack
             )
@@ -98,6 +92,7 @@ fun AppNavGraph(
 
         composable(Destinations.CARRY) {
             CarryScreen(
+                appContainer = appContainer,
                 onLetterClicked = { letterId ->
                     navController.navigate(Destinations.carryDetail(letterId))
                 },
@@ -110,6 +105,7 @@ fun AppNavGraph(
             arguments = listOf(navArgument(Destinations.LETTER_ID_ARG) { type = NavType.StringType })
         ) { backStackEntry ->
             CarryDetailScreen(
+                appContainer = appContainer,
                 letterId = backStackEntry.arguments?.getString(Destinations.LETTER_ID_ARG).orEmpty(),
                 onBackClicked = navController::popBackStack
             )
