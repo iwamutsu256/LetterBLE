@@ -166,9 +166,14 @@ class EditLetterViewModel(
                     )
                 )
             }.onSuccess {
+                // 投函後は差出人端末に本文を残さないため、保存済み下書きと入力状態を消す。
+                draftRepository.clearDraft()
                 _uiState.update {
                     it.copy(
+                        toUser = "",
+                        sentence = "",
                         message = "投函しました",
+                        isDraftSaved = false,
                         isSubmitting = false
                     )
                 }
