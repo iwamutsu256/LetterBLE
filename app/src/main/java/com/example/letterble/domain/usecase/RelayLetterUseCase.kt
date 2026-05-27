@@ -14,6 +14,7 @@ import com.example.letterble.data.repository.LocationRepository
 import com.example.letterble.data.repository.TreeRepository
 import com.example.letterble.data.repository.UserRepository
 import com.example.letterble.domain.model.Encounter
+import com.example.letterble.domain.model.Location
 import java.util.UUID
 
 class RelayLetterUseCase(
@@ -23,7 +24,8 @@ class RelayLetterUseCase(
     private val treeRepository: TreeRepository,
     private val userRepository: UserRepository,
     private val duplicateIntervalMillis: Long = DEFAULT_DUPLICATE_INTERVAL_MILLIS,
-    private val currentTimeMillis: () -> Long = { System.currentTimeMillis() }
+    private val currentTimeMillis: () -> Long = { System.currentTimeMillis() },
+    private val currentCoordinates: () -> RelayCoordinates = { RelayCoordinates() }
 ) {
     /**
      * myUserName が targetUserName とすれ違ったときに呼ばれる入口。
@@ -71,7 +73,23 @@ class RelayLetterUseCase(
             letterIds = relayTargetLetters.map { letter -> letter.letterId }
         )
 
-        // #89 以降で位置情報保存から先の relay 処理を追加する。
+        val coordinates = currentCoordinates()
+        val relayLocations = relayTargetLetters.map { letter ->
+            Location(
+                locationId = UUID.randomUUID().toString(),
+                letterId = letter.letterId,
+                userName = myUserName,
+                latitude = coordinates.latitude,
+                longitude = coordinates.longitude,
+                timestamp = now
+            )
+        }
+
+        relayLocations.forEach { location ->
+            locationRepository.saveLocation(location)
+        }
+
+        // #90 以降で保存した位置情報を使って tree 更新から先の relay 処理を追加する。
     }
 
     private suspend fun isDuplicateEncounter(
@@ -89,3 +107,8 @@ class RelayLetterUseCase(
         private const val DEFAULT_DUPLICATE_INTERVAL_MILLIS = 24L * 60L * 60L * 1000L
     }
 }
+
+data class RelayCoordinates(
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0
+)
