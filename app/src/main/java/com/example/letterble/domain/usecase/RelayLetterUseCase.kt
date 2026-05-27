@@ -89,7 +89,17 @@ class RelayLetterUseCase(
             locationRepository.saveLocation(location)
         }
 
-        // #90 以降で保存した位置情報を使って tree 更新から先の relay 処理を追加する。
+        // zipを使うと2つのリストを同じ順番でペアにできる。そのペアをforEachで一つずつ処理する。
+        relayTargetLetters.zip(relayLocations).forEach { (letter, location) ->
+            treeRepository.addNode(
+                letterId = letter.letterId,
+                parentUser = targetUserName,
+                newUser = myUserName,
+                location = location
+            )
+        }
+
+        // #91 以降で宛先到達判定から先の relay 処理を追加する。
     }
 
     private suspend fun isDuplicateEncounter(
