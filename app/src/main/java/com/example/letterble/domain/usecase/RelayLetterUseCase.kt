@@ -52,7 +52,12 @@ class RelayLetterUseCase(
             )
         )
 
-        // #86 以降で手紙取得から先の relay 処理を追加する。
+        val targetCarriedLetters = letterRepository.getCarriedLetters(targetUserName)
+        if (targetCarriedLetters.isEmpty()) {
+            return
+        }
+
+        // #87 以降で対象外の手紙を除外してから relay 処理を追加する。
     }
 
     private suspend fun isDuplicateEncounter(
