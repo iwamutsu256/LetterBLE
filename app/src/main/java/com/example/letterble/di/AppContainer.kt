@@ -10,6 +10,7 @@ import com.example.letterble.data.datasource.firestore.TreeFirestoreDataSource
 import com.example.letterble.data.datasource.firestore.UserFirestoreDataSource
 import com.example.letterble.data.datasource.local.DraftLocalDataSource
 import com.example.letterble.data.datasource.local.UserLocalDataSource
+import com.example.letterble.data.datasource.location.CurrentLocationDataSource
 import com.example.letterble.data.repository.DraftRepository
 import com.example.letterble.data.repository.EncounterRepository
 import com.example.letterble.data.repository.LetterRepository
@@ -46,6 +47,9 @@ interface AppContainer {
     // 保存済み Tree と Location 履歴から表示用 Tree を決める UseCase。
     val buildRouteTreeUseCase: BuildRouteTreeUseCase
 
+    // 現在地取得を担当する DataSource。ポスト検索の起点座標として使う。
+    val currentLocationDataSource: CurrentLocationDataSource
+
     // 受信画面系の ViewModel 生成に必要な依存関係を AppContainer 側でまとめる。
     val receivedViewModelFactory: ReceivedViewModelFactory
 
@@ -72,6 +76,8 @@ class DefaultAppContainer(
 
     // 下書き用ローカル DataSource。1回だけ宣言し、applicationContext を使う。
     private val draftLocalDataSource = DraftLocalDataSource(applicationContext)
+
+    override val currentLocationDataSource = CurrentLocationDataSource(applicationContext)
 
     override val userRepository: UserRepository = UserRepository(
         userLocalDataSource = userLocalDataSource,
