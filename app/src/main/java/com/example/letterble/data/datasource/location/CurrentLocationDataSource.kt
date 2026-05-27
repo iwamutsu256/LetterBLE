@@ -8,6 +8,7 @@
  */
 package com.example.letterble.data.datasource.location
 
+import android.annotation.SuppressLint
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
@@ -30,6 +31,7 @@ class CurrentLocationDataSource(
     /**
      * 現在地を取得する。権限未許可や端末側の取得失敗は呼び出し側で扱いやすいよう null にする。
      */
+    @SuppressLint("MissingPermission")
     suspend fun getCurrentLocation(): Location? {
         if (!hasLocationPermission()) {
             return null
@@ -39,23 +41,30 @@ class CurrentLocationDataSource(
             val cancellationTokenSource =
                 com.google.android.gms.tasks.CancellationTokenSource()
 
-            fusedLocationClient
-                .getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, cancellationTokenSource.token)
-                .addOnSuccessListener { location ->
-                    if (continuation.isActive) {
-                        continuation.resume(location)
+            try {
+                // 呼び出し直前に権限確認済みだが、設定変更などで取り消された場合も null として扱う。
+                fusedLocationClient
+                    .getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, cancellationTokenSource.token)
+                    .addOnSuccessListener { location ->
+                        if (continuation.isActive) {
+                            continuation.resume(location)
+                        }
                     }
-                }
-                .addOnFailureListener {
-                    if (continuation.isActive) {
-                        continuation.resume(null)
+                    .addOnFailureListener {
+                        if (continuation.isActive) {
+                            continuation.resume(null)
+                        }
                     }
-                }
-                .addOnCanceledListener {
-                    if (continuation.isActive) {
-                        continuation.resume(null)
+                    .addOnCanceledListener {
+                        if (continuation.isActive) {
+                            continuation.resume(null)
+                        }
                     }
+            } catch (_: SecurityException) {
+                if (continuation.isActive) {
+                    continuation.resume(null)
                 }
+            }
 
             continuation.invokeOnCancellation {
                 cancellationTokenSource.cancel()
