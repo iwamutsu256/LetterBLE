@@ -57,7 +57,14 @@ class RelayLetterUseCase(
             return
         }
 
-        // #87 以降で対象外の手紙を除外してから relay 処理を追加する。
+        val relayTargetLetters = targetCarriedLetters.filter { letter ->
+            letter.tree.nodes.none { node -> node.userName == myUserName }
+        }
+        if (relayTargetLetters.isEmpty()) {
+            return
+        }
+
+        // #88 以降で自分の運搬リスト追加から先の relay 処理を追加する。
     }
 
     private suspend fun isDuplicateEncounter(
