@@ -12,7 +12,8 @@ import com.example.letterble.data.repository.LetterRepository
 import com.example.letterble.data.repository.LocationRepository
 import com.example.letterble.data.repository.TreeRepository
 import com.example.letterble.data.repository.UserRepository
-
+import com.example.letterble.data.datasource.local.DraftLocalDataSource
+import com.example.letterble.data.repository.DraftRepository
 /**
  * App-wide dependency entry point.
  *
@@ -34,6 +35,9 @@ interface AppContainer {
 
     // 経路 Tree データを上位層へ提供する Repository。
     val treeRepository: TreeRepository
+
+    // 下書き保存用 Repository を追加する。
+    val draftRepository: DraftRepository
 }
 
 class DefaultAppContainer(
@@ -41,6 +45,9 @@ class DefaultAppContainer(
 ) : AppContainer {
     // SharedPreferences 用 DataSource は ApplicationContext から一度だけ作る。
     private val userLocalDataSource = UserLocalDataSource(context.applicationContext)
+
+    // 下書き保存用 DataSource も同様に ApplicationContext から生成する。
+    private val draftLocalDataSource = DraftLocalDataSource(context.applicationContext)
 
     // Firestore 用 DataSource も AppContainer 側でまとめて生成する。
     private val userFirestoreDataSource = UserFirestoreDataSource()
@@ -58,4 +65,7 @@ class DefaultAppContainer(
     override val locationRepository = LocationRepository(locationFirestoreDataSource)
     override val encounterRepository = EncounterRepository(encounterFirestoreDataSource)
     override val treeRepository = TreeRepository(treeFirestoreDataSource)
+
+    // DraftLocalDataSource を DraftRepository に渡す。
+    override val draftRepository = DraftRepository(draftLocalDataSource)
 }

@@ -26,7 +26,8 @@ import com.example.letterble.feature.home.HomeScreen
 import com.example.letterble.feature.received.ReceivedDetailScreen
 import com.example.letterble.feature.received.ReceivedScreen
 import com.example.letterble.feature.register.RegisterScreen
-
+import androidx.compose.runtime.remember
+import com.example.letterble.feature.edit_letter.EditLetterViewModel
 /**
  * アプリ全体の画面遷移を定義する。
  *
@@ -62,7 +63,18 @@ fun AppNavGraph(
         }
 
         composable(Destinations.EDIT_LETTER) {
-            EditLetterScreen(onBackClicked = navController::popBackStack)
+            val viewModel = remember {
+                EditLetterViewModel(
+                    letterRepository = appContainer.letterRepository,
+                    locationRepository = appContainer.locationRepository,
+                    draftRepository = appContainer.draftRepository,
+                    userRepository = appContainer.userRepository
+                )
+            }
+            EditLetterScreen(
+                viewModel = viewModel,
+                onBackClicked = navController::popBackStack
+            )
         }
 
         composable(Destinations.RECEIVED) {
