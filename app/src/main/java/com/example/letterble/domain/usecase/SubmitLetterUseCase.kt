@@ -31,7 +31,6 @@ data class SubmitLetterResult(
  */
 class SubmitLetterUseCase(
     private val letterRepository: SubmitLetterRepository,
-    private val locationRepository: SubmitLocationRepository,
     private val buildInitialLetterTreeUseCase: BuildInitialLetterTreeUseCase = BuildInitialLetterTreeUseCase(),
     private val currentTimeMillis: () -> Long = { System.currentTimeMillis() },
     private val letterIdFactory: () -> String = { UUID.randomUUID().toString() }
@@ -73,8 +72,7 @@ class SubmitLetterUseCase(
             timestamp = timestamp
         )
 
-        letterRepository.sendLetter(letter)
-        locationRepository.saveLocation(location)
+        letterRepository.submitLetter(letter, location)
 
         return SubmitLetterResult(
             letterId = letterId,

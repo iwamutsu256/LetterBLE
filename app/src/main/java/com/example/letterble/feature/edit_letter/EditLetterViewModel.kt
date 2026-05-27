@@ -132,6 +132,10 @@ class EditLetterViewModel(
      */
     fun onSubmitClicked() {
         val state = _uiState.value
+        if (state.isSubmitting) {
+            return
+        }
+
         if (state.toUser.isBlank() || state.sentence.isBlank()) {
             _uiState.update {
                 it.copy(message = "宛先と本文を入力してください")
@@ -147,14 +151,15 @@ class EditLetterViewModel(
             return
         }
 
-        viewModelScope.launch {
-            _uiState.update {
-                it.copy(
-                    message = null,
-                    isSubmitting = true
-                )
-            }
+        // 連打や外部呼び出しでも二重投函にならないよう、coroutine 起動前に送信中へ切り替える。
+        _uiState.update {
+            it.copy(
+                message = null,
+                isSubmitting = true
+            )
+        }
 
+        viewModelScope.launch {
             runCatching {
                 submitLetterUseCase.execute(
                     SubmitLetterCommand(

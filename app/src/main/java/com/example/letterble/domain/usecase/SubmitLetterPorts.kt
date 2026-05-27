@@ -9,10 +9,10 @@ import com.example.letterble.domain.model.Letter
 import com.example.letterble.domain.model.Location
 
 /**
- * 手紙本体を保存するためのポート。
+ * 投函一式を保存するためのポート。
  */
 interface SubmitLetterRepository {
-    suspend fun sendLetter(letter: Letter)
+    suspend fun submitLetter(letter: Letter, initialLocation: Location)
 }
 
 /**

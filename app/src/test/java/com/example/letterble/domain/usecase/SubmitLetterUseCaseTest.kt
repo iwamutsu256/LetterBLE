@@ -11,10 +11,8 @@ class SubmitLetterUseCaseTest {
     @Test
     fun `saves letter with sender root tree and posting location`() = runBlocking {
         val letterRepository = FakeSubmitLetterRepository()
-        val locationRepository = FakeSubmitLocationRepository()
         val useCase = SubmitLetterUseCase(
             letterRepository = letterRepository,
-            locationRepository = locationRepository,
             currentTimeMillis = { 1000L },
             letterIdFactory = { "letter-1" }
         )
@@ -35,23 +33,17 @@ class SubmitLetterUseCaseTest {
         assertEquals("sender", letterRepository.savedLetter?.fromUser)
         assertEquals("hello", letterRepository.savedLetter?.sentence)
         assertEquals("sender", letterRepository.savedLetter?.tree?.nodes?.single()?.userName)
-        assertEquals("letter-1", locationRepository.savedLocation?.letterId)
-        assertEquals("sender", locationRepository.savedLocation?.userName)
+        assertEquals("letter-1", letterRepository.savedLocation?.letterId)
+        assertEquals("sender", letterRepository.savedLocation?.userName)
     }
 }
 
 private class FakeSubmitLetterRepository : SubmitLetterRepository {
     var savedLetter: Letter? = null
-
-    override suspend fun sendLetter(letter: Letter) {
-        savedLetter = letter
-    }
-}
-
-private class FakeSubmitLocationRepository : SubmitLocationRepository {
     var savedLocation: Location? = null
 
-    override suspend fun saveLocation(location: Location) {
-        savedLocation = location
+    override suspend fun submitLetter(letter: Letter, initialLocation: Location) {
+        savedLetter = letter
+        savedLocation = initialLocation
     }
 }

@@ -87,8 +87,7 @@ class DefaultAppContainer(
     override val buildRouteTreeUseCase = BuildRouteTreeUseCase()
 
     private val submitLetterUseCase = SubmitLetterUseCase(
-        letterRepository = letterRepository,
-        locationRepository = locationRepository
+        letterRepository = letterRepository
     )
 
     override fun editLetterViewModelFactory(): ViewModelProvider.Factory {

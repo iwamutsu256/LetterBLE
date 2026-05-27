@@ -8,12 +8,15 @@ package com.example.letterble.data.datasource.firestore
 
 import com.example.letterble.domain.model.Edge
 import com.example.letterble.domain.model.Letter
+import com.example.letterble.domain.model.Location
 import com.example.letterble.domain.model.Node
 import com.example.letterble.domain.model.Tree
 import com.google.android.gms.tasks.Task
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.QuerySnapshot
+import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -31,6 +34,9 @@ class LetterFirestoreDataSource(
     // 運搬中の手紙ID一覧は USERS 側にあるため、この DataSource でも参照する。
     private val usersCollection = firestore.collection(FirestoreCollections.USERS)
 
+    // 投函時は初期位置も同時保存するため、LOCATIONS も同じ transaction 内で参照する。
+    private val locationsCollection = firestore.collection(FirestoreCollections.LOCATIONS)
+
     /**
      * Letter を Firestore の LETTERS/{letterId} に保存する。
      *
@@ -42,6 +48,30 @@ class LetterFirestoreDataSource(
             .document(letter.letterId)
             .set(letter.toFirestoreMap())
             .awaitResult()
+    }
+
+    /**
+     * 投函時に必要な3つの書き込みを同じ transaction で保存する。
+     *
+     * LETTERS だけ保存されて LOCATIONS や carrying_letter_ids が欠ける状態を防ぐ。
+     */
+    suspend fun submitLetter(letter: Letter, initialLocation: Location) {
+        val letterDocument = lettersCollection.document(letter.letterId)
+        val locationDocument = locationsCollection.document(initialLocation.locationId)
+        val userDocument = usersCollection.document(letter.fromUser)
+
+        firestore.runTransaction { transaction ->
+            transaction.set(letterDocument, letter.toFirestoreMap())
+            transaction.set(locationDocument, initialLocation.toFirestoreMap())
+            transaction.set(
+                userDocument,
+                mapOf(
+                    FirestoreFields.User.USER_NAME to letter.fromUser,
+                    FirestoreFields.User.CARRYING_LETTER_IDS to FieldValue.arrayUnion(letter.letterId)
+                ),
+                SetOptions.merge()
+            )
+        }.awaitResult()
     }
 
     /**
@@ -119,6 +149,18 @@ private fun Letter.toFirestoreMap(): Map<String, Any> {
         FirestoreFields.Letter.SENTENCE to sentence,
         FirestoreFields.Letter.IS_SURVIVAL to isSurvival,
         FirestoreFields.Letter.TREE to tree.toFirestoreMap()
+    )
+}
+
+// 投函地点を Firestore 保存用の Map に変換する。
+private fun Location.toFirestoreMap(): Map<String, Any> {
+    return mapOf(
+        FirestoreFields.Location.LOCATION_ID to locationId,
+        FirestoreFields.Location.LETTER_ID to letterId,
+        FirestoreFields.Location.USER_NAME to userName,
+        FirestoreFields.Location.LATITUDE to latitude,
+        FirestoreFields.Location.LONGITUDE to longitude,
+        FirestoreFields.Location.TIMESTAMP to timestamp
     )
 }
 
