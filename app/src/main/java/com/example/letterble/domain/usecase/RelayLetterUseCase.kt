@@ -9,6 +9,7 @@
 package com.example.letterble.domain.usecase
 
 import com.example.letterble.domain.model.Encounter
+import com.example.letterble.domain.model.Letter
 import com.example.letterble.domain.model.Location
 import java.util.UUID
 
@@ -132,7 +133,7 @@ interface RelayEncounterRepository {
 }
 
 interface RelayLetterRepository {
-    suspend fun getCarriedLetters(userName: String): List<com.example.letterble.domain.model.Letter>
+    suspend fun getCarriedLetters(userName: String): List<Letter>
     suspend fun updateSurvival(letterId: String, isSurvival: Boolean)
 }
 
