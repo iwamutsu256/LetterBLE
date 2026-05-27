@@ -14,6 +14,7 @@ import com.example.letterble.data.datasource.firestore.UserFirestoreDataSource
 import com.example.letterble.data.datasource.local.UserLocalDataSource
 // アプリ内で使うユーザーデータの型。
 import com.example.letterble.domain.model.User
+import com.example.letterble.domain.usecase.RelayUserRepository
 
 /**
  * ユーザー情報を扱う Repository。
@@ -25,7 +26,7 @@ class UserRepository(
     private val userLocalDataSource: UserLocalDataSource,
     // ユーザー情報を Firestore に保存・取得するための DataSource。
     private val userFirestoreDataSource: UserFirestoreDataSource = UserFirestoreDataSource()
-) {
+) : RelayUserRepository {
     /**
      * 新しいユーザーを Firestore に保存する。
      *
@@ -58,7 +59,7 @@ class UserRepository(
     /**
      * 指定したユーザーの運搬中手紙IDリストに、手紙IDを追加する。
      */
-    suspend fun addCarryingLetterIds(userName: String, letterIds: List<String>) {
+    override suspend fun addCarryingLetterIds(userName: String, letterIds: List<String>) {
         userFirestoreDataSource.addCarryingLetterIds(userName, letterIds)
     }
 

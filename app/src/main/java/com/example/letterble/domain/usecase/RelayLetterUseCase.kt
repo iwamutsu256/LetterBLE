@@ -8,21 +8,16 @@
  */
 package com.example.letterble.domain.usecase
 
-import com.example.letterble.data.repository.EncounterRepository
-import com.example.letterble.data.repository.LetterRepository
-import com.example.letterble.data.repository.LocationRepository
-import com.example.letterble.data.repository.TreeRepository
-import com.example.letterble.data.repository.UserRepository
 import com.example.letterble.domain.model.Encounter
 import com.example.letterble.domain.model.Location
 import java.util.UUID
 
 class RelayLetterUseCase(
-    private val encounterRepository: EncounterRepository,
-    private val letterRepository: LetterRepository,
-    private val locationRepository: LocationRepository,
-    private val treeRepository: TreeRepository,
-    private val userRepository: UserRepository,
+    private val encounterRepository: RelayEncounterRepository,
+    private val letterRepository: RelayLetterRepository,
+    private val locationRepository: RelayLocationRepository,
+    private val treeRepository: RelayTreeRepository,
+    private val userRepository: RelayUserRepository,
     private val duplicateIntervalMillis: Long = DEFAULT_DUPLICATE_INTERVAL_MILLIS,
     private val currentTimeMillis: () -> Long = { System.currentTimeMillis() },
     private val currentCoordinates: () -> RelayCoordinates = { RelayCoordinates() }
@@ -108,7 +103,6 @@ class RelayLetterUseCase(
                 )
             }
 
-        // #92 で重複、再配布防止、宛先到達の Unit Test を追加する。
     }
 
     private suspend fun isDuplicateEncounter(
@@ -131,3 +125,30 @@ data class RelayCoordinates(
     val latitude: Double = 0.0,
     val longitude: Double = 0.0
 )
+
+interface RelayEncounterRepository {
+    suspend fun saveEncounter(encounter: Encounter)
+    suspend fun getLastEncounter(userA: String, userB: String): Encounter?
+}
+
+interface RelayLetterRepository {
+    suspend fun getCarriedLetters(userName: String): List<com.example.letterble.domain.model.Letter>
+    suspend fun updateSurvival(letterId: String, isSurvival: Boolean)
+}
+
+interface RelayLocationRepository {
+    suspend fun saveLocation(location: Location)
+}
+
+interface RelayTreeRepository {
+    suspend fun addNode(
+        letterId: String,
+        parentUser: String,
+        newUser: String,
+        location: Location
+    )
+}
+
+interface RelayUserRepository {
+    suspend fun addCarryingLetterIds(userName: String, letterIds: List<String>)
+}
