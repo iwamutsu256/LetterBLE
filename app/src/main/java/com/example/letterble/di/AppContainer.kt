@@ -56,6 +56,9 @@ class DefaultAppContainer(
     context: Context
 ) : AppContainer {
 
+    // applicationContext を一度だけプロパティとして持ち、以降はこれを使い回す。
+    private val applicationContext = context.applicationContext
+
     // Firestore 用 DataSource をまとめて生成する。
     private val userFirestoreDataSource = UserFirestoreDataSource()
     private val letterFirestoreDataSource = LetterFirestoreDataSource()
@@ -63,11 +66,11 @@ class DefaultAppContainer(
     private val encounterFirestoreDataSource = EncounterFirestoreDataSource()
     private val treeFirestoreDataSource = TreeFirestoreDataSource()
 
-    // ユーザー名用のローカル DataSource。context.applicationContext を正しく使う。
-    private val userLocalDataSource = UserLocalDataSource(context.applicationContext)
+    // ユーザー名用ローカル DataSource。applicationContext を使う。
+    private val userLocalDataSource = UserLocalDataSource(applicationContext)
 
-    // 下書き用のローカル DataSource。1回だけ宣言する。
-    private val draftLocalDataSource = DraftLocalDataSource(context.applicationContext)
+    // 下書き用ローカル DataSource。1回だけ宣言し、applicationContext を使う。
+    private val draftLocalDataSource = DraftLocalDataSource(applicationContext)
 
     override val userRepository: UserRepository = UserRepository(
         userLocalDataSource = userLocalDataSource,
