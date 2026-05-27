@@ -150,5 +150,9 @@ private fun CarryLetterDetail(
             modifier = Modifier.padding(top = 8.dp),
             text = "経路概要: ${letter.routeNodeCount}地点 / ${letter.routeEdgeCount}区間"
         )
+        CarryMapScreen(
+            tree = letter.tree,
+            modifier = Modifier.padding(top = 16.dp)
+        )
     }
 }

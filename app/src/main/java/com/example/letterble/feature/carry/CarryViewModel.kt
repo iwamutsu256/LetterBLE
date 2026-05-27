@@ -12,6 +12,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.letterble.data.repository.LetterRepository
 import com.example.letterble.data.repository.UserRepository
 import com.example.letterble.domain.model.Letter
+import com.example.letterble.domain.model.Tree
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -57,7 +58,8 @@ data class CarryLetterDetailInfo(
     val fromUser: String,
     val isSurvival: Boolean,
     val routeNodeCount: Int,
-    val routeEdgeCount: Int
+    val routeEdgeCount: Int,
+    val tree: Tree
 )
 
 /**
@@ -177,7 +179,8 @@ private fun Letter.toCarryDetailInfo(): CarryLetterDetailInfo {
         fromUser = fromUser,
         isSurvival = isSurvival,
         routeNodeCount = tree.nodes.size,
-        routeEdgeCount = tree.edges.size
+        routeEdgeCount = tree.edges.size,
+        tree = tree
     )
 }
 
@@ -189,7 +192,8 @@ private fun CarryLetterListItem.toCarryDetailInfo(): CarryLetterDetailInfo {
         fromUser = fromUser,
         isSurvival = true,
         routeNodeCount = 0,
-        routeEdgeCount = 0
+        routeEdgeCount = 0,
+        tree = Tree()
     )
 }
 
