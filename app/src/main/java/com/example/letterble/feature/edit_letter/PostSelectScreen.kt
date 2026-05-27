@@ -10,6 +10,7 @@ package com.example.letterble.feature.edit_letter
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -93,10 +94,18 @@ fun PostSelectScreen(
         }
     }
 
+    BackHandler(enabled = uiState.isSubmitting) {
+        // 投函中は coroutine の成功処理で下書き削除と画面遷移を完了させるため、戻る操作を無視する。
+    }
+
     if (uiState.showConfirmDialog) {
         val selectedPost = uiState.selectedPost
         AlertDialog(
-            onDismissRequest = viewModel::onConfirmDialogDismissed,
+            onDismissRequest = {
+                if (!uiState.isSubmitting) {
+                    viewModel.onConfirmDialogDismissed()
+                }
+            },
             title = { Text("投函先の確認") },
             text = {
                 Text(
@@ -196,6 +205,7 @@ fun PostSelectScreen(
         CommonButton(
             text = "戻る",
             modifier = Modifier.padding(top = 8.dp),
+            enabled = !uiState.isSubmitting,
             onClick = onBackClicked
         )
     }
