@@ -71,7 +71,7 @@ fun LetterTreeMapView(
     tree: Tree,
     modifier: Modifier = Modifier,
     highlightedNodeIds: Set<String> = emptySet(),
-    highlightedEdgeNodeIds: Set<String> = emptySet(),
+    highlightedEdgeFromNodeIds: Set<String> = emptySet(),
     routeLineColor: androidx.compose.ui.graphics.Color = androidx.compose.ui.graphics.Color(0xFF4F46E5),
     highlightedRouteLineColor: androidx.compose.ui.graphics.Color = androidx.compose.ui.graphics.Color(0xFFDC2626),
     markerHue: Float = BitmapDescriptorFactory.HUE_AZURE,
@@ -86,7 +86,7 @@ fun LetterTreeMapView(
     ) {
         TreeEdges(
             tree = tree,
-            highlightedEdgeNodeIds = highlightedEdgeNodeIds,
+            highlightedEdgeFromNodeIds = highlightedEdgeFromNodeIds,
             routeLineColor = routeLineColor,
             highlightedRouteLineColor = highlightedRouteLineColor
         )
@@ -130,7 +130,7 @@ private fun TreeMarkers(
 @Composable
 private fun TreeEdges(
     tree: Tree,
-    highlightedEdgeNodeIds: Set<String>,
+    highlightedEdgeFromNodeIds: Set<String>,
     routeLineColor: androidx.compose.ui.graphics.Color,
     highlightedRouteLineColor: androidx.compose.ui.graphics.Color
 ) {
@@ -139,8 +139,8 @@ private fun TreeEdges(
     tree.edges.forEach { edge ->
         val fromNode = nodesById[edge.fromNodeId] ?: return@forEach
         val toNode = nodesById[edge.toNodeId] ?: return@forEach
-        val isHighlighted = edge.fromNodeId in highlightedEdgeNodeIds ||
-            edge.toNodeId in highlightedEdgeNodeIds
+        // 運搬画面の仕様では「自分から伸びる edge」だけを強調する。
+        val isHighlighted = edge.fromNodeId in highlightedEdgeFromNodeIds
 
         Polyline(
             points = listOf(fromNode.toLatLng(), toNode.toLatLng()),

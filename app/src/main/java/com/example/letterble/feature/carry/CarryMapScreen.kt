@@ -21,7 +21,7 @@ import com.example.letterble.ui.components.LetterTreeMapView
 /**
  * 運搬詳細で使う経路地図。
  *
- * 現在ユーザー名と一致する node と、その node に接続する edge を強調表示する。
+ * 現在ユーザー名と一致する node と、その node から伸びる edge を強調表示する。
  */
 @Composable
 fun CarryMapScreen(
@@ -51,7 +51,7 @@ fun CarryMapScreen(
         LetterTreeMapView(
             tree = tree,
             highlightedNodeIds = currentUserNodeIds,
-            highlightedEdgeNodeIds = currentUserNodeIds,
+            highlightedEdgeFromNodeIds = currentUserNodeIds,
             modifier = Modifier.matchParentSize()
         )
     }
