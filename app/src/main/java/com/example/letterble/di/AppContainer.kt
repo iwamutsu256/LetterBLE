@@ -55,23 +55,19 @@ interface AppContainer {
 class DefaultAppContainer(
     context: Context
 ) : AppContainer {
-    // SharedPreferences 用 DataSource は ApplicationContext から一度だけ作る。
 
-    // 下書き保存用 DataSource も同様に ApplicationContext から生成する。
-    private val draftLocalDataSource = DraftLocalDataSource(context.applicationContext)
-
-    // Firestore 用 DataSource も AppContainer 側でまとめて生成する。
+    // Firestore 用 DataSource をまとめて生成する。
     private val userFirestoreDataSource = UserFirestoreDataSource()
     private val letterFirestoreDataSource = LetterFirestoreDataSource()
     private val locationFirestoreDataSource = LocationFirestoreDataSource()
     private val encounterFirestoreDataSource = EncounterFirestoreDataSource()
     private val treeFirestoreDataSource = TreeFirestoreDataSource()
 
-    // 現在ユーザー名用のローカル DataSource を AppContainer で管理する。
-    private val userLocalDataSource = UserLocalDataSource(applicationContext)
+    // ユーザー名用のローカル DataSource。context.applicationContext を正しく使う。
+    private val userLocalDataSource = UserLocalDataSource(context.applicationContext)
 
-    // 下書き用のローカル DataSource も同じ AppContainer で管理する。
-    private val draftLocalDataSource = DraftLocalDataSource(applicationContext)
+    // 下書き用のローカル DataSource。1回だけ宣言する。
+    private val draftLocalDataSource = DraftLocalDataSource(context.applicationContext)
 
     override val userRepository: UserRepository = UserRepository(
         userLocalDataSource = userLocalDataSource,
@@ -80,9 +76,6 @@ class DefaultAppContainer(
 
     private val draftRepository = DraftRepository(draftLocalDataSource)
 
-    /**
-     * 手紙作成画面に必要な依存関係を渡して ViewModel を生成する。
-     */
     override fun editLetterViewModelFactory(): ViewModelProvider.Factory {
         return object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
@@ -91,6 +84,7 @@ class DefaultAppContainer(
             }
         }
     }
+
     override val letterRepository = LetterRepository(letterFirestoreDataSource)
     override val locationRepository = LocationRepository(locationFirestoreDataSource)
     override val encounterRepository = EncounterRepository(encounterFirestoreDataSource)
