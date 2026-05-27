@@ -22,6 +22,7 @@ import com.example.letterble.data.repository.UserRepository
 import com.example.letterble.domain.usecase.BuildRouteTreeUseCase
 import com.example.letterble.domain.usecase.SubmitLetterUseCase
 import com.example.letterble.feature.edit_letter.EditLetterViewModel
+import com.example.letterble.feature.edit_letter.PostSelectViewModel
 import com.example.letterble.feature.received.ReceivedViewModelFactory
 
 /**
@@ -60,6 +61,9 @@ interface AppContainer {
 
     // 手紙作成画面の ViewModel 生成に必要な依存関係を AppContainer 側でまとめる。
     fun editLetterViewModelFactory(): ViewModelProvider.Factory
+
+    // ポスト選択画面の ViewModel 生成に必要な依存関係を AppContainer 側でまとめる。
+    fun postSelectViewModelFactory(): ViewModelProvider.Factory
 }
 
 class DefaultAppContainer(
@@ -111,6 +115,18 @@ class DefaultAppContainer(
                     draftRepository = draftRepository,
                     userRepository = userRepository,
                     submitLetterUseCase = submitLetterUseCase
+                ) as T
+            }
+        }
+    }
+
+    override fun postSelectViewModelFactory(): ViewModelProvider.Factory {
+        return object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return PostSelectViewModel(
+                    currentLocationDataSource = currentLocationDataSource,
+                    postRepository = postRepository
                 ) as T
             }
         }
