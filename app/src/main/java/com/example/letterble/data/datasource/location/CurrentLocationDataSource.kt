@@ -4,7 +4,7 @@
  *
  * 役割:
  * - 端末の現在地を取得する
- * - 位置情報権限がない場合は null を返して上位層で扱えるようにする
+ * - 正確な位置情報権限がない場合は null を返して上位層で扱えるようにする
  */
 package com.example.letterble.data.datasource.location
 
@@ -29,11 +29,11 @@ class CurrentLocationDataSource(
     private val fusedLocationClient = LocationServices.getFusedLocationProviderClient(applicationContext)
 
     /**
-     * 現在地を取得する。権限未許可や端末側の取得失敗は呼び出し側で扱いやすいよう null にする。
+     * 現在地を取得する。正確な位置情報権限未許可や端末側の取得失敗は呼び出し側で扱いやすいよう null にする。
      */
     @SuppressLint("MissingPermission")
     suspend fun getCurrentLocation(): Location? {
-        if (!hasLocationPermission()) {
+        if (!hasFineLocationPermission()) {
             return null
         }
 
@@ -42,7 +42,7 @@ class CurrentLocationDataSource(
                 com.google.android.gms.tasks.CancellationTokenSource()
 
             try {
-                // 呼び出し直前に権限確認済みだが、設定変更などで取り消された場合も null として扱う。
+                // 1km検索の精度を保つため、呼び出し直前に正確な位置情報権限を確認している。
                 fusedLocationClient
                     .getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, cancellationTokenSource.token)
                     .addOnSuccessListener { location ->
@@ -72,16 +72,10 @@ class CurrentLocationDataSource(
         }
     }
 
-    private fun hasLocationPermission(): Boolean {
-        val fineLocationGranted = ContextCompat.checkSelfPermission(
+    private fun hasFineLocationPermission(): Boolean {
+        return ContextCompat.checkSelfPermission(
             applicationContext,
             Manifest.permission.ACCESS_FINE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
-        val coarseLocationGranted = ContextCompat.checkSelfPermission(
-            applicationContext,
-            Manifest.permission.ACCESS_COARSE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
-
-        return fineLocationGranted || coarseLocationGranted
     }
 }

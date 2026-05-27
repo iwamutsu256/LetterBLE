@@ -38,6 +38,7 @@ data class EditLetterUiState(
     val sentence: String = "",
     val message: String? = null,
     val isDraftSaved: Boolean = false,
+    val isNavigatingToPostSelect: Boolean = false,
     val isSubmitting: Boolean = false
 ) {
     /**
@@ -131,6 +132,10 @@ class EditLetterViewModel(
      */
     fun onSubmitClicked() {
         val state = _uiState.value
+        if (state.isNavigatingToPostSelect) {
+            return
+        }
+
         if (state.toUser.isBlank() || state.sentence.isBlank()) {
             _uiState.update {
                 it.copy(message = "宛先と本文を入力してください")
@@ -154,8 +159,25 @@ class EditLetterViewModel(
             )
         )
 
+        // 遷移イベント処理前の連打で post_select が複数積まれないよう、遷移中として扱う。
+        _uiState.update {
+            it.copy(
+                message = null,
+                isNavigatingToPostSelect = true
+            )
+        }
+
         viewModelScope.launch {
             _events.emit(EditLetterEvent.NavigateToPostSelect)
+        }
+    }
+
+    /**
+     * UIが投函先選択への遷移イベントを処理した後、再度操作できる状態へ戻す。
+     */
+    fun onPostSelectNavigationHandled() {
+        _uiState.update {
+            it.copy(isNavigatingToPostSelect = false)
         }
     }
 

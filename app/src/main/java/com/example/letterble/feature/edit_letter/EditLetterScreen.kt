@@ -69,7 +69,10 @@ fun EditLetterScreen(
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
-                EditLetterEvent.NavigateToPostSelect -> onSubmitClicked()
+                EditLetterEvent.NavigateToPostSelect -> {
+                    onSubmitClicked()
+                    viewModel.onPostSelectNavigationHandled()
+                }
             }
         }
     }
@@ -161,9 +164,9 @@ fun EditLetterScreen(
             onClick = viewModel::onClearDraftClicked
         )
         CommonButton(
-            text = "ポストを選ぶ",
+            text = if (uiState.isNavigatingToPostSelect) "移動中" else "ポストを選ぶ",
             modifier = Modifier.padding(top = 8.dp),
-            enabled = !uiState.isSubmitting,
+            enabled = !uiState.isSubmitting && !uiState.isNavigatingToPostSelect,
             onClick = viewModel::onSubmitClicked
         )
         CommonButton(

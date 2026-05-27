@@ -65,7 +65,11 @@ fun AppNavGraph(
             EditLetterScreen(
                 appContainer = appContainer,
                 onBackClicked = navController::popBackStack,
-                onSubmitClicked = { navController.navigate(Destinations.POST_SELECT) }
+                onSubmitClicked = {
+                    navController.navigate(Destinations.POST_SELECT) {
+                        launchSingleTop = true
+                    }
+                }
             )
         }
 

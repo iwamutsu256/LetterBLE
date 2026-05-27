@@ -144,7 +144,7 @@ class PostSelectViewModel(
         _uiState.update {
             it.copy(
                 isLoading = false,
-                message = "近くのポスト検索には位置情報の許可が必要です"
+                message = "1km以内のポスト検索には正確な位置情報の許可が必要です"
             )
         }
     }

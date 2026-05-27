@@ -66,14 +66,15 @@ fun PostSelectScreen(
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
-    var hasLocationPermission by remember {
-        mutableStateOf(context.hasLocationPermission())
+    var hasFineLocationPermission by remember {
+        mutableStateOf(context.hasFineLocationPermission())
     }
     val locationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
-        hasLocationPermission = permissions.values.any { it }
-        if (!hasLocationPermission) {
+        hasFineLocationPermission =
+            permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true || context.hasFineLocationPermission()
+        if (!hasFineLocationPermission) {
             viewModel.onLocationPermissionDenied()
         }
     }
@@ -86,8 +87,8 @@ fun PostSelectScreen(
         }
     }
 
-    LaunchedEffect(hasLocationPermission) {
-        if (hasLocationPermission) {
+    LaunchedEffect(hasFineLocationPermission) {
+        if (hasFineLocationPermission) {
             viewModel.loadNearbyPosts()
         }
     }
@@ -142,9 +143,9 @@ fun PostSelectScreen(
                 CircularProgressIndicator(modifier = Modifier.padding(top = 24.dp))
             }
 
-            !hasLocationPermission -> {
+            !hasFineLocationPermission -> {
                 Text(
-                    text = "近くのポストを探すには位置情報の許可が必要です",
+                    text = "1km以内のポスト検索には正確な位置情報の許可が必要です",
                     modifier = Modifier.padding(top = 24.dp),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -156,7 +157,7 @@ fun PostSelectScreen(
                     posts = uiState.posts,
                     currentPosition = uiState.currentLatLng(),
                     selectedPost = uiState.selectedPost,
-                    hasLocationPermission = hasLocationPermission,
+                    hasFineLocationPermission = hasFineLocationPermission,
                     onPostClicked = viewModel::onPostSelected,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -176,11 +177,11 @@ fun PostSelectScreen(
         }
 
         CommonButton(
-            text = if (hasLocationPermission) "再取得" else "位置情報を許可して検索",
+            text = if (hasFineLocationPermission) "再取得" else "正確な位置情報を許可して検索",
             modifier = Modifier.padding(top = 16.dp),
             enabled = !uiState.isLoading,
             onClick = {
-                if (hasLocationPermission) {
+                if (hasFineLocationPermission) {
                     viewModel.loadNearbyPosts()
                 } else {
                     locationPermissionLauncher.launch(
@@ -201,19 +202,13 @@ fun PostSelectScreen(
 }
 
 /**
- * 画面表示時点で位置情報権限があるかを確認する。
+ * 1km検索に必要な正確な位置情報権限があるかを確認する。
  */
-private fun Context.hasLocationPermission(): Boolean {
-    val fineLocationGranted = ContextCompat.checkSelfPermission(
+private fun Context.hasFineLocationPermission(): Boolean {
+    return ContextCompat.checkSelfPermission(
         this,
         Manifest.permission.ACCESS_FINE_LOCATION
     ) == PackageManager.PERMISSION_GRANTED
-    val coarseLocationGranted = ContextCompat.checkSelfPermission(
-        this,
-        Manifest.permission.ACCESS_COARSE_LOCATION
-    ) == PackageManager.PERMISSION_GRANTED
-
-    return fineLocationGranted || coarseLocationGranted
 }
 
 @Composable
@@ -221,7 +216,7 @@ private fun PostSelectMap(
     posts: List<Post>,
     currentPosition: LatLng?,
     selectedPost: Post?,
-    hasLocationPermission: Boolean,
+    hasFineLocationPermission: Boolean,
     onPostClicked: (Post) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -229,8 +224,13 @@ private fun PostSelectMap(
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(initialCenter, 15f)
     }
+    var isMapLoaded by remember { mutableStateOf(false) }
 
-    LaunchedEffect(posts, currentPosition) {
+    LaunchedEffect(isMapLoaded, posts, currentPosition) {
+        if (!isMapLoaded) {
+            return@LaunchedEffect
+        }
+
         val positions = buildList {
             currentPosition?.let(::add)
             posts.forEach { post -> add(post.toLatLng()) }
@@ -257,7 +257,8 @@ private fun PostSelectMap(
             initialCenter = initialCenter,
             initialZoom = 15f,
             cameraPositionState = cameraPositionState,
-            properties = MapProperties(isMyLocationEnabled = hasLocationPermission)
+            properties = MapProperties(isMyLocationEnabled = hasFineLocationPermission),
+            onMapLoaded = { isMapLoaded = true }
         ) {
             posts.forEach { post ->
                 val isSelected = post.id == selectedPost?.id
