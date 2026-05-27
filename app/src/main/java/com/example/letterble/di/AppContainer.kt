@@ -55,20 +55,21 @@ interface AppContainer {
 class DefaultAppContainer(
     context: Context
 ) : AppContainer {
-    // SharedPreferences 用 DataSource は ApplicationContext から一度だけ作る。
+
+    // applicationContext を一度だけプロパティとして持ち、以降はこれを使い回す。
     private val applicationContext = context.applicationContext
 
-    // Firestore 用 DataSource も AppContainer 側でまとめて生成する。
+    // Firestore 用 DataSource をまとめて生成する。
     private val userFirestoreDataSource = UserFirestoreDataSource()
     private val letterFirestoreDataSource = LetterFirestoreDataSource()
     private val locationFirestoreDataSource = LocationFirestoreDataSource()
     private val encounterFirestoreDataSource = EncounterFirestoreDataSource()
     private val treeFirestoreDataSource = TreeFirestoreDataSource()
 
-    // 現在ユーザー名用のローカル DataSource を AppContainer で管理する。
+    // ユーザー名用ローカル DataSource。applicationContext を使う。
     private val userLocalDataSource = UserLocalDataSource(applicationContext)
 
-    // 下書き用のローカル DataSource も同じ AppContainer で管理する。
+    // 下書き用ローカル DataSource。1回だけ宣言し、applicationContext を使う。
     private val draftLocalDataSource = DraftLocalDataSource(applicationContext)
 
     override val userRepository: UserRepository = UserRepository(
@@ -78,9 +79,6 @@ class DefaultAppContainer(
 
     private val draftRepository = DraftRepository(draftLocalDataSource)
 
-    /**
-     * 手紙作成画面に必要な依存関係を渡して ViewModel を生成する。
-     */
     override fun editLetterViewModelFactory(): ViewModelProvider.Factory {
         return object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
@@ -89,6 +87,7 @@ class DefaultAppContainer(
             }
         }
     }
+
     override val letterRepository = LetterRepository(letterFirestoreDataSource)
     override val locationRepository = LocationRepository(locationFirestoreDataSource)
     override val encounterRepository = EncounterRepository(encounterFirestoreDataSource)

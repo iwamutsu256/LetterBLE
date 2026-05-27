@@ -26,7 +26,8 @@ import com.example.letterble.feature.home.HomeScreen
 import com.example.letterble.feature.received.ReceivedDetailScreen
 import com.example.letterble.feature.received.ReceivedScreen
 import com.example.letterble.feature.register.RegisterScreen
-
+import androidx.compose.runtime.remember
+import com.example.letterble.feature.edit_letter.EditLetterViewModel
 /**
  * アプリ全体の画面遷移を定義する。
  *
