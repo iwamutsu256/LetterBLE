@@ -21,7 +21,7 @@ class RelayLetterUseCase(
     private val userRepository: RelayUserRepository,
     private val duplicateIntervalMillis: Long = DEFAULT_DUPLICATE_INTERVAL_MILLIS,
     private val currentTimeMillis: () -> Long = { System.currentTimeMillis() },
-    private val currentCoordinates: () -> RelayCoordinates = { RelayCoordinates() }
+    private val currentCoordinates: () -> RelayCoordinates? = { null }
 ) {
     /**
      * myUserName が targetUserName とすれ違ったときに呼ばれる入口。
@@ -43,15 +43,6 @@ class RelayLetterUseCase(
             return
         }
 
-        encounterRepository.saveEncounter(
-            Encounter(
-                encounterId = UUID.randomUUID().toString(),
-                userA = myUserName,
-                userB = targetUserName,
-                timestamp = now
-            )
-        )
-
         val targetCarriedLetters = letterRepository.getCarriedLetters(targetUserName)
         if (targetCarriedLetters.isEmpty()) {
             return
@@ -64,12 +55,13 @@ class RelayLetterUseCase(
             return
         }
 
+        val coordinates = currentCoordinates() ?: return
+
         userRepository.addCarryingLetterIds(
             userName = myUserName,
             letterIds = relayTargetLetters.map { letter -> letter.letterId }
         )
 
-        val coordinates = currentCoordinates()
         val relayLocations = relayTargetLetters.map { letter ->
             Location(
                 locationId = UUID.randomUUID().toString(),
@@ -104,6 +96,14 @@ class RelayLetterUseCase(
                 )
             }
 
+        encounterRepository.saveEncounter(
+            Encounter(
+                encounterId = UUID.randomUUID().toString(),
+                userA = myUserName,
+                userB = targetUserName,
+                timestamp = now
+            )
+        )
     }
 
     private suspend fun isDuplicateEncounter(
@@ -123,8 +123,8 @@ class RelayLetterUseCase(
 }
 
 data class RelayCoordinates(
-    val latitude: Double = 0.0,
-    val longitude: Double = 0.0
+    val latitude: Double,
+    val longitude: Double
 )
 
 interface RelayEncounterRepository {
