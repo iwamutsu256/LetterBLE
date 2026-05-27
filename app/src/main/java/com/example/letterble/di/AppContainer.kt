@@ -56,7 +56,6 @@ class DefaultAppContainer(
     context: Context
 ) : AppContainer {
     // SharedPreferences 用 DataSource は ApplicationContext から一度だけ作る。
-    private val applicationContext = context.applicationContext
 
     // 下書き保存用 DataSource も同様に ApplicationContext から生成する。
     private val draftLocalDataSource = DraftLocalDataSource(context.applicationContext)
