@@ -150,6 +150,15 @@ fun EditLetterScreen(
             )
         }
 
+        Text(
+            text = "仮投函位置: ${TemporaryPostCoordinates.LATITUDE}, ${TemporaryPostCoordinates.LONGITUDE}",
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 12.dp),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
         CommonButton(
             text = "下書き保存",
             modifier = Modifier.padding(top = 24.dp),
@@ -161,8 +170,9 @@ fun EditLetterScreen(
             onClick = viewModel::onClearDraftClicked
         )
         CommonButton(
-            text = "投函へ進む",
+            text = if (uiState.isSubmitting) "投函中" else "仮座標で投函",
             modifier = Modifier.padding(top = 8.dp),
+            enabled = !uiState.isSubmitting,
             onClick = viewModel::onSubmitClicked
         )
         CommonButton(

@@ -8,7 +8,9 @@ package com.example.letterble.data.repository
 
 import com.example.letterble.data.datasource.firestore.LetterFirestoreDataSource
 import com.example.letterble.domain.model.Letter
+import com.example.letterble.domain.model.Location
 import com.example.letterble.domain.usecase.RelayLetterRepository
+import com.example.letterble.domain.usecase.SubmitLetterRepository
 
 /**
  * LETTERS コレクションを扱う Repository。
@@ -17,7 +19,7 @@ import com.example.letterble.domain.usecase.RelayLetterRepository
  */
 class LetterRepository(
     private val letterFirestoreDataSource: LetterFirestoreDataSource = LetterFirestoreDataSource()
-) : RelayLetterRepository {
+) : RelayLetterRepository, SubmitLetterRepository {
     /**
      * 新しい手紙を Firestore に保存する。
      *
@@ -25,6 +27,16 @@ class LetterRepository(
      */
     suspend fun sendLetter(letter: Letter) {
         letterFirestoreDataSource.saveLetter(letter)
+    }
+
+    /**
+     * 投函に必要な手紙本体・初期位置・差出人の運搬リスト更新をまとめて保存する。
+     */
+    override suspend fun submitLetter(
+        letter: Letter,
+        initialLocation: Location
+    ) {
+        letterFirestoreDataSource.submitLetter(letter, initialLocation)
     }
 
     /**

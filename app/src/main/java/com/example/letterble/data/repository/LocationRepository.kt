@@ -9,6 +9,7 @@ package com.example.letterble.data.repository
 import com.example.letterble.data.datasource.firestore.LocationFirestoreDataSource
 import com.example.letterble.domain.model.Location
 import com.example.letterble.domain.usecase.RelayLocationRepository
+import com.example.letterble.domain.usecase.SubmitLocationRepository
 
 /**
  * LOCATIONS コレクションを扱う Repository。
@@ -17,7 +18,7 @@ import com.example.letterble.domain.usecase.RelayLocationRepository
  */
 class LocationRepository(
     private val locationFirestoreDataSource: LocationFirestoreDataSource = LocationFirestoreDataSource()
-) : RelayLocationRepository {
+) : RelayLocationRepository, SubmitLocationRepository {
     /**
      * 投函地点や中継地点の位置履歴を保存する。
      */

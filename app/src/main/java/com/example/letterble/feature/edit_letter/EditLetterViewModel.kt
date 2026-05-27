@@ -19,6 +19,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.letterble.data.datasource.local.DraftLetter
 import com.example.letterble.data.repository.DraftRepository
+import com.example.letterble.data.repository.UserRepository
+import com.example.letterble.domain.usecase.SubmitLetterCommand
+import com.example.letterble.domain.usecase.SubmitLetterUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -35,7 +38,8 @@ data class EditLetterUiState(
     val toUser: String = "",
     val sentence: String = "",
     val message: String? = null,
-    val isDraftSaved: Boolean = false
+    val isDraftSaved: Boolean = false,
+    val isSubmitting: Boolean = false
 ) {
     /**
      * 戻る時に確認が必要かどうかをUIが判断するための値。
@@ -56,7 +60,9 @@ sealed interface EditLetterEvent {
  * 手紙作成の入力状態と下書き操作を管理するViewModel。
  */
 class EditLetterViewModel(
-    private val draftRepository: DraftRepository
+    private val draftRepository: DraftRepository,
+    private val userRepository: UserRepository,
+    private val submitLetterUseCase: SubmitLetterUseCase
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(EditLetterUiState())
     val uiState: StateFlow<EditLetterUiState> = _uiState.asStateFlow()
@@ -126,6 +132,10 @@ class EditLetterViewModel(
      */
     fun onSubmitClicked() {
         val state = _uiState.value
+        if (state.isSubmitting) {
+            return
+        }
+
         if (state.toUser.isBlank() || state.sentence.isBlank()) {
             _uiState.update {
                 it.copy(message = "宛先と本文を入力してください")
@@ -133,8 +143,53 @@ class EditLetterViewModel(
             return
         }
 
+        val fromUser = userRepository.getCurrentUserName()
+        if (fromUser.isNullOrBlank()) {
+            _uiState.update {
+                it.copy(message = "ユーザー登録後に投函できます")
+            }
+            return
+        }
+
+        // 連打や外部呼び出しでも二重投函にならないよう、coroutine 起動前に送信中へ切り替える。
+        _uiState.update {
+            it.copy(
+                message = null,
+                isSubmitting = true
+            )
+        }
+
         viewModelScope.launch {
-            _events.emit(EditLetterEvent.NavigateToPostSelect)
+            runCatching {
+                submitLetterUseCase.execute(
+                    SubmitLetterCommand(
+                        fromUser = fromUser,
+                        toUser = state.toUser,
+                        sentence = state.sentence,
+                        latitude = TemporaryPostCoordinates.LATITUDE,
+                        longitude = TemporaryPostCoordinates.LONGITUDE
+                    )
+                )
+            }.onSuccess {
+                // 投函後は差出人端末に本文を残さないため、保存済み下書きと入力状態を消す。
+                draftRepository.clearDraft()
+                _uiState.update {
+                    it.copy(
+                        toUser = "",
+                        sentence = "",
+                        message = "投函しました",
+                        isDraftSaved = false,
+                        isSubmitting = false
+                    )
+                }
+            }.onFailure {
+                _uiState.update {
+                    it.copy(
+                        message = "投函に失敗しました",
+                        isSubmitting = false
+                    )
+                }
+            }
         }
     }
 
@@ -149,4 +204,5 @@ class EditLetterViewModel(
             isDraftSaved = draft.toUser.isNotBlank() || draft.sentence.isNotBlank()
         )
     }
+
 }
