@@ -25,6 +25,7 @@ import kotlinx.coroutines.launch
 data class PostSelectUiState(
     val posts: List<Post> = emptyList(),
     val selectedPost: Post? = null,
+    val showConfirmDialog: Boolean = false,
     val isLoading: Boolean = false,
     val message: String? = null
 )
@@ -102,7 +103,19 @@ class PostSelectViewModel(
      */
     fun onPostSelected(post: Post) {
         _uiState.update {
-            it.copy(selectedPost = post)
+            it.copy(
+                selectedPost = post,
+                showConfirmDialog = true
+            )
+        }
+    }
+
+    /**
+     * 確認ダイアログを閉じる。
+     */
+    fun onConfirmDialogDismissed() {
+        _uiState.update {
+            it.copy(showConfirmDialog = false)
         }
     }
 }

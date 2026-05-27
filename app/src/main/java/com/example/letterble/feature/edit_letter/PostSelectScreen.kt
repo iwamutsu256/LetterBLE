@@ -16,10 +16,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -44,6 +46,33 @@ fun PostSelectScreen(
     )
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    if (uiState.showConfirmDialog) {
+        val selectedPost = uiState.selectedPost
+        AlertDialog(
+            onDismissRequest = viewModel::onConfirmDialogDismissed,
+            title = { Text("投函先の確認") },
+            text = {
+                Text(
+                    text = if (selectedPost == null) {
+                        "投函先を選択してください"
+                    } else {
+                        "${selectedPost.name}\n${selectedPost.latitude}, ${selectedPost.longitude}"
+                    }
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = viewModel::onConfirmDialogDismissed) {
+                    Text("確認")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::onConfirmDialogDismissed) {
+                    Text("戻る")
+                }
+            }
+        )
+    }
 
     Column(
         modifier = modifier
