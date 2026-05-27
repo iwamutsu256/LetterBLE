@@ -9,12 +9,20 @@ package com.example.letterble.ui.components
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.example.letterble.domain.model.Node
 import com.example.letterble.domain.model.Tree
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.LatLngBounds
+import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
@@ -26,6 +34,7 @@ import com.google.maps.android.compose.rememberCameraPositionState
 private val DefaultMapCenter = LatLng(35.681236, 139.767125)
 private const val DefaultMapZoom = 12f
 private const val DefaultRouteLineWidth = 8f
+private const val RouteBoundsPadding = 96
 
 /**
  * Google Maps SDK を Compose から扱うための共通 Map コンポーネント。
@@ -46,17 +55,18 @@ fun LetterMapView(
             zoomControlsEnabled = false
         )
     },
+    cameraPositionState: CameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(initialCenter, initialZoom)
+    },
+    onMapLoaded: () -> Unit = {},
     content: @Composable () -> Unit = {}
 ) {
-    val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(initialCenter, initialZoom)
-    }
-
     GoogleMap(
         modifier = modifier.fillMaxSize(),
         cameraPositionState = cameraPositionState,
         properties = properties,
         uiSettings = uiSettings,
+        onMapLoaded = onMapLoaded,
         content = content
     )
 }
@@ -77,12 +87,36 @@ fun LetterTreeMapView(
     markerHue: Float = BitmapDescriptorFactory.HUE_AZURE,
     highlightedMarkerHue: Float = BitmapDescriptorFactory.HUE_RED
 ) {
-    val firstNodePosition = tree.nodes.firstOrNull()?.toLatLng()
+    val nodePositions = remember(tree.nodes) { tree.nodes.map { node -> node.toLatLng() } }
+    val firstNodePosition = nodePositions.firstOrNull()
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(
+            firstNodePosition ?: DefaultMapCenter,
+            if (firstNodePosition == null) DefaultMapZoom else 14f
+        )
+    }
+    var isMapLoaded by remember { mutableStateOf(false) }
+
+    LaunchedEffect(isMapLoaded, nodePositions) {
+        if (!isMapLoaded || nodePositions.isEmpty()) {
+            return@LaunchedEffect
+        }
+
+        // 経路概要として全 marker / line が初期表示に入るよう、地図読み込み後に bounds へ合わせる。
+        val cameraUpdate = if (nodePositions.size == 1 || nodePositions.allSamePosition()) {
+            CameraUpdateFactory.newLatLngZoom(nodePositions.first(), 14f)
+        } else {
+            CameraUpdateFactory.newLatLngBounds(nodePositions.toBounds(), RouteBoundsPadding)
+        }
+        cameraPositionState.move(cameraUpdate)
+    }
 
     LetterMapView(
         modifier = modifier,
         initialCenter = firstNodePosition ?: DefaultMapCenter,
-        initialZoom = if (firstNodePosition == null) DefaultMapZoom else 14f
+        initialZoom = if (firstNodePosition == null) DefaultMapZoom else 14f,
+        cameraPositionState = cameraPositionState,
+        onMapLoaded = { isMapLoaded = true }
     ) {
         TreeEdges(
             tree = tree,
@@ -150,6 +184,19 @@ private fun TreeEdges(
     }
 }
 
-private fun com.example.letterble.domain.model.Node.toLatLng(): LatLng {
+private fun Node.toLatLng(): LatLng {
     return LatLng(latitude, longitude)
+}
+
+private fun List<LatLng>.toBounds(): LatLngBounds {
+    val builder = LatLngBounds.Builder()
+    forEach { position -> builder.include(position) }
+    return builder.build()
+}
+
+private fun List<LatLng>.allSamePosition(): Boolean {
+    val first = first()
+    return all { position ->
+        position.latitude == first.latitude && position.longitude == first.longitude
+    }
 }

@@ -13,6 +13,16 @@ val localProperties = Properties().apply {
     }
 }
 
+val mapsApiKey = (
+    providers.gradleProperty("MAPS_API_KEY").orNull
+        ?: providers.environmentVariable("MAPS_API_KEY").orNull
+        ?: localProperties.getProperty("MAPS_API_KEY")
+).orEmpty().trim()
+
+check(mapsApiKey.isNotBlank()) {
+    "MAPS_API_KEY is missing. Set it in local.properties, pass -PMAPS_API_KEY=..., or define the MAPS_API_KEY environment variable."
+}
+
 android {
     namespace = "com.example.letterble"
     compileSdk {
@@ -29,7 +39,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        manifestPlaceholders["MAPS_API_KEY"] = localProperties.getProperty("MAPS_API_KEY", "")
+        manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
     }
 
     buildTypes {
