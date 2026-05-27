@@ -11,10 +11,12 @@ import com.example.letterble.data.datasource.firestore.UserFirestoreDataSource
 import com.example.letterble.data.datasource.local.DraftLocalDataSource
 import com.example.letterble.data.datasource.local.UserLocalDataSource
 import com.example.letterble.data.datasource.location.CurrentLocationDataSource
+import com.example.letterble.data.datasource.remote.OverpassPostDataSource
 import com.example.letterble.data.repository.DraftRepository
 import com.example.letterble.data.repository.EncounterRepository
 import com.example.letterble.data.repository.LetterRepository
 import com.example.letterble.data.repository.LocationRepository
+import com.example.letterble.data.repository.PostRepository
 import com.example.letterble.data.repository.TreeRepository
 import com.example.letterble.data.repository.UserRepository
 import com.example.letterble.domain.usecase.BuildRouteTreeUseCase
@@ -40,6 +42,9 @@ interface AppContainer {
 
     // すれ違い履歴データを上位層へ提供する Repository。
     val encounterRepository: EncounterRepository
+
+    // 近隣ポスト候補を上位層へ提供する Repository。
+    val postRepository: PostRepository
 
     // 経路 Tree データを上位層へ提供する Repository。
     val treeRepository: TreeRepository
@@ -70,6 +75,7 @@ class DefaultAppContainer(
     private val locationFirestoreDataSource = LocationFirestoreDataSource()
     private val encounterFirestoreDataSource = EncounterFirestoreDataSource()
     private val treeFirestoreDataSource = TreeFirestoreDataSource()
+    private val overpassPostDataSource = OverpassPostDataSource()
 
     // ユーザー名用ローカル DataSource。applicationContext を使う。
     private val userLocalDataSource = UserLocalDataSource(applicationContext)
@@ -89,6 +95,7 @@ class DefaultAppContainer(
     override val letterRepository = LetterRepository(letterFirestoreDataSource)
     override val locationRepository = LocationRepository(locationFirestoreDataSource)
     override val encounterRepository = EncounterRepository(encounterFirestoreDataSource)
+    override val postRepository = PostRepository(overpassPostDataSource)
     override val treeRepository = TreeRepository(treeFirestoreDataSource)
     override val buildRouteTreeUseCase = BuildRouteTreeUseCase()
 
