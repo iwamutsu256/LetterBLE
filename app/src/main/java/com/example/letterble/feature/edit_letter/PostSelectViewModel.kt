@@ -105,7 +105,7 @@ class PostSelectViewModel(
                 _uiState.update {
                     it.copy(
                         posts = posts,
-                        selectedPost = posts.firstOrNull(),
+                        selectedPost = null,
                         currentLatitude = currentLocation.latitude,
                         currentLongitude = currentLocation.longitude,
                         isLoading = false,
