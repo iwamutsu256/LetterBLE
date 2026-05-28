@@ -46,18 +46,14 @@ class BleManager(
 
         val advertisingStarted = advertiser.startAdvertising(userName) { errorCode ->
             onStartFailure("Advertiser failed with code $errorCode")
-            scanner.stopScanning()
-        }
-        if (!advertisingStarted) {
-            return false
         }
 
         val scanningStarted = scanner.startScanning(onUserFound) { errorCode ->
             onStartFailure("Scanner failed with code $errorCode")
-            advertiser.stopAdvertising()
         }
-        if (!scanningStarted) {
-            advertiser.stopAdvertising()
+
+        if (!advertisingStarted && !scanningStarted) {
+            onStartFailure("Both advertiser and scanner could not start")
             return false
         }
 
