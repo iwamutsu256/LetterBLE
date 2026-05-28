@@ -10,10 +10,10 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 /**
- * Repository boundary for BLE start/stop and encounter callbacks.
+ * BLE の開始・停止と、すれ違い検知後の中継処理をつなぐリポジトリ。
  *
- * Android BLE APIs stay in the BLE data sources. This class only connects the
- * detected userName to the relay use case.
+ * Android BLE API の直接操作はデータソース側に置き、このクラスでは検知した
+ * ユーザー名を手紙中継の UseCase へ渡す。
  */
 class BleRepository(
     private val bleController: BleController,

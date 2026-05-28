@@ -27,10 +27,9 @@ import com.example.letterble.feature.received.ReceivedViewModelFactory
 import com.example.letterble.notification.BleNotificationHelper
 
 /**
- * App-wide dependency entry point.
+ * アプリ全体の依存関係をまとめて生成する入口。
  *
- * Keep dependencies wired here with manual constructor injection until the
- * object graph becomes large enough to justify Hilt.
+ * 依存関係が大きくなるまでは Hilt を使わず、手動の constructor injection でつなぐ。
  */
 interface AppContainer {
     // ユーザー登録と現在ユーザー名の参照で共通利用する Repository。

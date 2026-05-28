@@ -12,7 +12,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 
 /**
- * Reads the device's current position for relay route records.
+ * 手紙中継の経路記録に使う現在位置を端末から取得するデータソース。
  */
 class CurrentLocationDataSource(
     private val context: Context

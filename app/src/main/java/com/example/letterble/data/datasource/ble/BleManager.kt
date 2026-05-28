@@ -11,7 +11,7 @@ interface BleController {
 }
 
 /**
- * Coordinates BLE scan and advertise lifecycles as one data-source-level unit.
+ * BLE のスキャンとアドバタイズをまとめて開始・停止するデータソース。
  */
 class BleManager(
     context: Context,
@@ -31,8 +31,17 @@ class BleManager(
         }
 
         val advertisingStarted = advertiser.startAdvertising(userName)
+        if (!advertisingStarted) {
+            return false
+        }
+
         val scanningStarted = scanner.startScanning(onUserFound)
-        return advertisingStarted || scanningStarted
+        if (!scanningStarted) {
+            advertiser.stopAdvertising()
+            return false
+        }
+
+        return true
     }
 
     override fun stop() {

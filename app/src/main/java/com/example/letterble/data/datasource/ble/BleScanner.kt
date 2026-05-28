@@ -14,7 +14,7 @@ import androidx.core.content.ContextCompat
 import java.nio.charset.StandardCharsets
 
 /**
- * Detects nearby LetterBLE advertisements and extracts the advertised userName.
+ * 周囲の LetterBLE 広告をスキャンし、広告に含まれるユーザー名を取り出すデータソース。
  */
 class BleScanner(
     private val context: Context,

@@ -14,10 +14,10 @@ import androidx.core.content.ContextCompat
 import java.nio.charset.StandardCharsets
 
 /**
- * Publishes the current user's name through BLE service data.
+ * 自分のユーザー名を BLE のサービスデータとして周囲に発信するデータソース。
  *
- * BLE advertisement packets are small, so the userName is truncated to the
- * bytes that fit after the shared service UUID is included.
+ * BLE 広告に入るデータ量は小さいため、送れない長さのユーザー名は途中で切らず、
+ * 開始失敗として扱う。途中で切ると Firestore のユーザー名と一致しなくなるため。
  */
 class BleAdvertiser(
     private val context: Context,
@@ -53,10 +53,12 @@ class BleAdvertiser(
             .setConnectable(false)
             .build()
 
+        val payload = userName.toBlePayloadOrNull() ?: return false
+
         val data = AdvertiseData.Builder()
             .setIncludeDeviceName(false)
             .addServiceUuid(LETTER_BLE_SERVICE_UUID)
-            .addServiceData(LETTER_BLE_SERVICE_UUID, userName.toBlePayload())
+            .addServiceData(LETTER_BLE_SERVICE_UUID, payload)
             .build()
 
         advertiseCallback = callback
@@ -85,19 +87,9 @@ class BleAdvertiser(
             ) == PackageManager.PERMISSION_GRANTED
     }
 
-    private fun String.toBlePayload(): ByteArray {
-        var payloadEnd = 0
-
-        while (payloadEnd < length) {
-            val nextEnd = offsetByCodePoints(payloadEnd, 1)
-            val nextPayload = substring(0, nextEnd).toByteArray(StandardCharsets.UTF_8)
-            if (nextPayload.size > MAX_USER_NAME_BYTES) {
-                break
-            }
-            payloadEnd = nextEnd
-        }
-
-        return substring(0, payloadEnd).toByteArray(StandardCharsets.UTF_8)
+    private fun String.toBlePayloadOrNull(): ByteArray? {
+        val payload = toByteArray(StandardCharsets.UTF_8)
+        return payload.takeIf { it.size <= MAX_USER_NAME_BYTES }
     }
 
     companion object {

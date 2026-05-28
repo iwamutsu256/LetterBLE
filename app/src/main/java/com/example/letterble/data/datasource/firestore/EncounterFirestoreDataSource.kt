@@ -10,7 +10,6 @@ import com.example.letterble.domain.model.Encounter
 import com.google.android.gms.tasks.Task
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -31,8 +30,7 @@ class EncounterFirestoreDataSource(
     /**
      * Encounter を Firestore の ENCOUNTERS/{encounterId} に保存する。
      *
-     * userA/userB の順番ゆれを避けるため、保存時にユーザー名を並べ替える。
-     * これにより taro-hana と hana-taro を同じペアとして扱える。
+     * userA/userB は relay の向きを表すため、並べ替えずに保存する。
      */
     suspend fun saveEncounter(encounter: Encounter) {
         encountersCollection
@@ -50,12 +48,12 @@ class EncounterFirestoreDataSource(
         val snapshot = encountersCollection
             .whereEqualTo(FirestoreFields.Encounter.USER_A, userA)
             .whereEqualTo(FirestoreFields.Encounter.USER_B, userB)
-            .orderBy(FirestoreFields.Encounter.TIMESTAMP, Query.Direction.DESCENDING)
-            .limit(1)
             .get()
             .awaitResult()
 
-        return snapshot.documents.firstOrNull()?.toEncounterOrNull()
+        return snapshot.documents
+            .mapNotNull { document -> document.toEncounterOrNull() }
+            .maxByOrNull { encounter -> encounter.timestamp }
     }
 }
 
