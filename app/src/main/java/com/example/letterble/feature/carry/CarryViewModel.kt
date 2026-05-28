@@ -105,7 +105,10 @@ class CarryViewModel(
                 // USERS の carrying_letter_ids を基点に運搬中の手紙だけを取得する。
                 val letters = letterRepository.getCarryingLetters(currentUserName)
                 _uiState.value = _uiState.value.copy(
-                    carryingLetters = letters.map { letter -> letter.toCarryListItem() },
+                    carryingLetters = letters
+                        // 投函直後の差出人は内部的には運搬者だが、運搬一覧には表示しない。
+                        .filter { letter -> letter.fromUser != currentUserName }
+                        .map { letter -> letter.toCarryListItem() },
                     isLoading = false
                 )
             } catch (exception: Exception) {

@@ -43,6 +43,7 @@ class SubmitLetterUseCase(
         require(fromUser.isNotBlank()) { "fromUser is required" }
         require(toUser.isNotBlank()) { "toUser is required" }
         require(sentence.isNotBlank()) { "sentence is required" }
+        require(fromUser != toUser) { "cannot submit a letter to yourself" }
 
         val timestamp = currentTimeMillis()
         val letterId = letterIdFactory()

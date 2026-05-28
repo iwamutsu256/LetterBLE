@@ -4,6 +4,7 @@ import com.example.letterble.domain.model.Letter
 import com.example.letterble.domain.model.Location
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.fail
 import org.junit.Test
 
 class SubmitLetterUseCaseTest {
@@ -35,6 +36,34 @@ class SubmitLetterUseCaseTest {
         assertEquals("sender", letterRepository.savedLetter?.tree?.nodes?.single()?.userName)
         assertEquals("letter-1", letterRepository.savedLocation?.letterId)
         assertEquals("sender", letterRepository.savedLocation?.userName)
+    }
+
+    @Test
+    fun `rejects letter addressed to sender`() = runBlocking {
+        val letterRepository = FakeSubmitLetterRepository()
+        val useCase = SubmitLetterUseCase(
+            letterRepository = letterRepository,
+            currentTimeMillis = { 1000L },
+            letterIdFactory = { "letter-1" }
+        )
+
+        try {
+            useCase.execute(
+                SubmitLetterCommand(
+                    fromUser = "me",
+                    toUser = " me ",
+                    sentence = "hello",
+                    latitude = 35.0,
+                    longitude = 139.0
+                )
+            )
+            fail("自分宛て投函は失敗する必要があります")
+        } catch (exception: IllegalArgumentException) {
+            assertEquals("cannot submit a letter to yourself", exception.message)
+        }
+
+        assertEquals(null, letterRepository.savedLetter)
+        assertEquals(null, letterRepository.savedLocation)
     }
 }
 
