@@ -217,7 +217,9 @@ private fun NewRegistrationContent(
             text = "Name?",
             fontSize = 50.sp,
             color = Color(0xFF0F0F6D),
-            modifier = Modifier.offset(x = 190.dp, y = 120.dp)
+            modifier = Modifier
+                .offset(x = 190.dp, y = 120.dp)
+                .padding(bottom = 90.dp)
         )
 
         Column(
@@ -230,7 +232,9 @@ private fun NewRegistrationContent(
             Image(
                 painter = painterResource(id = R.drawable.icon),
                 contentDescription = null,
-                modifier = Modifier.size(250.dp)
+                modifier = Modifier
+                    .size(270.dp)
+                    .padding(top = 20.dp, bottom = 20.dp)
             )
             OutlinedTextField(
                 value = userName,
