@@ -4,161 +4,306 @@
  * ユーザー登録画面の見た目を作るファイル。
  * 保存処理そのものは RegisterViewModel に任せる。
  */
-
-// このファイルが登録画面 feature の置き場所にあることを示す。
 package com.example.letterble.feature.register
 
-// Column の中身を中央寄せするために使う。
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-// 縦方向に UI を並べるために使う。
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-// 画面全体に広げるために使う。
 import androidx.compose.foundation.layout.fillMaxSize
-// 余白をつけるために使う。
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-// キーボードの完了ボタンなどを設定するために使う。
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
-// 保存中のぐるぐる表示に使う。
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-// アプリの文字サイズや色などのテーマを使う。
 import androidx.compose.material3.MaterialTheme
-// 枠付きの入力欄を表示するために使う。
 import androidx.compose.material3.OutlinedTextField
-// 文字を表示するために使う。
 import androidx.compose.material3.Text
-// Composable 関数を作るために使う。
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-// 状態変化に反応して一度だけ処理を動かすために使う。
 import androidx.compose.runtime.LaunchedEffect
-// StateFlow を Compose の State として受け取るために使う。
 import androidx.compose.runtime.collectAsState
-// by uiState の形で State を読みやすくするために使う。
 import androidx.compose.runtime.getValue
-// UI の配置位置を指定するために使う。
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-// UI に余白やサイズなどを指定するために使う。
 import androidx.compose.ui.Modifier
-// キーボードの IME アクションを指定するために使う。
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
-// dp 単位の余白を指定するために使う。
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-// Compose で ViewModel を取得するために使う。
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.letterble.R
 import com.example.letterble.di.AppContainer
-// アプリ共通のボタン。
-import com.example.letterble.ui.components.CommonButton
+import com.example.letterble.ui.theme.LetterBLETheme
+
+private enum class RegisterSubScreen {
+    Start,
+    NewRegistration
+}
 
 /**
  * ユーザー登録画面を表示する Composable。
  */
 @Composable
 fun RegisterScreen(
-    // AppContainer から ViewModel に必要な依存を受け取る。
     appContainer: AppContainer,
-    // 登録完了後に Home へ進むため、AppNavGraph から渡される処理。
     onRegistered: () -> Unit,
-    // 外側から画面全体の Modifier を渡せるようにする。
     modifier: Modifier = Modifier
 ) {
-    // AppContainer の Repository を渡して RegisterViewModel を作る。
     val viewModel: RegisterViewModel = viewModel(
         factory = RegisterViewModelFactory(appContainer.userRepository)
     )
-
-    // ViewModel の uiState を Compose 画面で読める形に変換する。
     val uiState by viewModel.uiState.collectAsState()
+    var currentScreen by rememberSaveable { mutableStateOf(RegisterSubScreen.Start) }
 
-    // isRegistered が変わったときに実行される処理。
     LaunchedEffect(uiState.isRegistered) {
-        // 登録済みになったら Home へ進む処理を呼ぶ。
         if (uiState.isRegistered) {
-            // AppNavGraph 側で Home への navigate が実行される。
             onRegistered()
         }
     }
 
-    // 画面全体を縦方向のレイアウトで作る。
-    Column(
-        // 外から受け取った modifier にサイズと余白を追加する。
+    RegisterScreenContent(
+        currentScreen = currentScreen,
+        userName = uiState.userName,
+        errorMessage = uiState.errorMessage,
+        isLoading = uiState.isLoading,
+        onStartClicked = { currentScreen = RegisterSubScreen.NewRegistration },
+        onNameChanged = viewModel::onNameChanged,
+        onNameSubmitClicked = viewModel::onNameSubmitClicked,
         modifier = modifier
-            // 画面いっぱいに広げる。
+    )
+}
+
+@Composable
+private fun RegisterScreenContent(
+    currentScreen: RegisterSubScreen,
+    userName: String,
+    errorMessage: String?,
+    isLoading: Boolean,
+    onStartClicked: () -> Unit,
+    onNameChanged: (String) -> Unit,
+    onNameSubmitClicked: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    when (currentScreen) {
+        RegisterSubScreen.Start -> RegisterStartContent(
+            onStartClicked = onStartClicked,
+            modifier = modifier
+        )
+
+        RegisterSubScreen.NewRegistration -> NewRegistrationContent(
+            userName = userName,
+            errorMessage = errorMessage,
+            isLoading = isLoading,
+            onNameChanged = onNameChanged,
+            onNameSubmitClicked = onNameSubmitClicked,
+            modifier = modifier
+        )
+    }
+}
+
+@Composable
+private fun RegisterStartContent(
+    onStartClicked: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
             .fillMaxSize()
-            // 画面端から 24dp の余白をつける。
-            .padding(24.dp),
-        // 中身を縦方向の中央に置く。
-        verticalArrangement = Arrangement.Center,
-        // 中身を横方向の中央に置く。
-        horizontalAlignment = Alignment.CenterHorizontally
+            .background(Color(0xFFFFFFFA))
     ) {
-        // 画面タイトルを表示する。
-        Text(
-            // タイトル文字。
-            text = "ユーザー登録",
-            // 大きめの見出しスタイルを使う。
-            style = MaterialTheme.typography.headlineMedium
+        Image(
+            painter = painterResource(id = R.drawable.img01),
+            contentDescription = null,
+            modifier = Modifier
+                .size(320.dp)
+                .offset(x = (-100).dp, y = (-100).dp)
+        )
+        Image(
+            painter = painterResource(id = R.drawable.img02),
+            contentDescription = null,
+            modifier = Modifier
+                .size(120.dp)
+                .offset(x = 140.dp, y = 80.dp)
+        )
+        Image(
+            painter = painterResource(id = R.drawable.img03),
+            contentDescription = null,
+            modifier = Modifier
+                .size(350.dp)
+                .offset(x = 100.dp, y = 650.dp)
+        )
+        Image(
+            painter = painterResource(id = R.drawable.img04),
+            contentDescription = null,
+            modifier = Modifier
+                .size(100.dp)
+                .offset(x = 100.dp, y = 650.dp)
         )
 
-        // ユーザー名入力欄を表示する。
-        OutlinedTextField(
-            // 入力欄に表示する文字は uiState.userName。
-            value = uiState.userName,
-            // 入力が変わったら ViewModel に伝える。
-            onValueChange = viewModel::onNameChanged,
-            // タイトルとの間に余白をつける。
-            modifier = Modifier.padding(top = 24.dp),
-            // 入力欄のラベルを表示する。
-            label = {
-                // ラベル文字。
-                Text("ユーザー名")
-            },
-            // ユーザー名は1行入力にする。
-            singleLine = true,
-            // 保存中は入力できないようにする。
-            enabled = !uiState.isLoading,
-            // キーボードの完了ボタンを Done にする。
-            keyboardOptions = KeyboardOptions(
-                // キーボード右下のボタンを「完了」にする。
-                imeAction = ImeAction.Done
-            )
-        )
-
-        // nullable な errorMessage を安全に扱うため、一度ローカル変数に入れる。
-        val errorMessage = uiState.errorMessage
-
-        // エラーメッセージがあるときだけ表示する。
-        if (errorMessage != null) {
-            // エラー文を表示する。
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Text(
-                // 表示するエラー文。
-                text = errorMessage,
-                // 入力欄との間に余白をつける。
-                modifier = Modifier.padding(top = 8.dp),
-                // エラー色で表示する。
-                color = MaterialTheme.colorScheme.error,
-                // 小さめの本文スタイルを使う。
-                style = MaterialTheme.typography.bodySmall
+                text = "Sheep relay",
+                fontSize = 40.sp,
+                style = MaterialTheme.typography.headlineMedium
             )
+            Button(
+                modifier = Modifier
+                    .padding(top = 40.dp)
+                    .width(150.dp)
+                    .height(50.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF55433F),
+                    contentColor = Color(0xFFFFFFFA)
+                ),
+                onClick = onStartClicked
+            ) {
+                Text(
+                    text = "Log In",
+                    fontSize = 20.sp
+                )
+            }
         }
+    }
+}
 
-        // 登録開始ボタンを表示する。
-        CommonButton(
-            // ボタンに表示する文字。
-            text = "開始",
-            // 入力欄との間に余白をつける。
-            modifier = Modifier.padding(top = 24.dp),
-            // 保存中は連打できないように無効化する。
-            enabled = !uiState.isLoading,
-            // 押されたら ViewModel の登録処理を呼ぶ。
-            onClick = viewModel::onNameSubmitClicked
+@Composable
+private fun NewRegistrationContent(
+    userName: String,
+    errorMessage: String?,
+    isLoading: Boolean,
+    onNameChanged: (String) -> Unit,
+    onNameSubmitClicked: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(Color(0xFFFF6242))
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.img06),
+            contentDescription = null,
+            contentScale = ContentScale.Fit,
+            modifier = Modifier
+                .size(850.dp)
+                .offset(x = 5.dp, y = (-350).dp)
+                .graphicsLayer(rotationZ = -35f)
+        )
+        Text(
+            text = "What's Your",
+            fontSize = 50.sp,
+            color = Color(0xFF0F0F6D),
+            modifier = Modifier.offset(x = 50.dp, y = 60.dp)
+        )
+        Text(
+            text = "Name?",
+            fontSize = 50.sp,
+            color = Color(0xFF0F0F6D),
+            modifier = Modifier.offset(x = 190.dp, y = 120.dp)
         )
 
-        // 保存中だけローディング表示を出す。
-        if (uiState.isLoading) {
-            // Firestore 保存中であることを示すぐるぐる表示。
-            CircularProgressIndicator(
-                // ボタンとの間に余白をつける。
-                modifier = Modifier.padding(top = 16.dp)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.icon),
+                contentDescription = null,
+                modifier = Modifier.size(250.dp)
             )
+            OutlinedTextField(
+                value = userName,
+                onValueChange = onNameChanged,
+                placeholder = { Text("名前を入力") },
+                singleLine = true,
+                enabled = !isLoading,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                colors = TextFieldDefaults.colors(
+                    focusedIndicatorColor = Color(0xFF0F0F6D),
+                    unfocusedIndicatorColor = Color(0xFF0F0F6D),
+                    cursorColor = Color(0xFF04041F)
+                ),
+                modifier = Modifier
+                    .width(265.dp)
+                    .height(80.dp)
+                    .padding(top = 24.dp)
+            )
+
+            if (errorMessage != null) {
+                Text(
+                    text = errorMessage,
+                    modifier = Modifier.padding(top = 8.dp),
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
+            Button(
+                modifier = Modifier
+                    .padding(top = 40.dp)
+                    .width(265.dp)
+                    .height(50.dp),
+                enabled = !isLoading,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF0F0F6D),
+                    contentColor = Color(0xFFFFF01D)
+                ),
+                onClick = onNameSubmitClicked
+            ) {
+                Text(
+                    text = "次へ",
+                    fontSize = 20.sp
+                )
+            }
+
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.padding(top = 16.dp)
+                )
+            }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun RegisterStartContentPreview() {
+    LetterBLETheme {
+        RegisterStartContent(onStartClicked = {})
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun NewRegistrationContentPreview() {
+    LetterBLETheme {
+        NewRegistrationContent(
+            userName = "sample-user",
+            errorMessage = null,
+            isLoading = false,
+            onNameChanged = {},
+            onNameSubmitClicked = {}
+        )
     }
 }
