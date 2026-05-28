@@ -11,13 +11,24 @@
  */
 package com.example.letterble.feature.register
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,9 +36,16 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.letterble.R
 import com.example.letterble.ui.theme.LetterBLETheme
+
 
 // TODO: TextFieldでユーザー名入力を受け付ける
 // TODO: RegisterViewModelのstateをcollectしてUIに反映する
@@ -56,6 +74,7 @@ private enum class RegisterSubScreen {
  * @param modifier 画面全体に適用するModifier
  */
 @Composable
+/*切り替わった画面を管理する*/
 fun RegisterScreen(
     onRegistered: () -> Unit,
     modifier: Modifier = Modifier
@@ -73,6 +92,7 @@ fun RegisterScreen(
 }
 
 @Composable
+/*表示分岐画面二つに切り替える*/
 private fun RegisterScreenContent(
     currentScreen: RegisterSubScreen,
     onStartClicked: () -> Unit,
@@ -97,22 +117,72 @@ private fun RegisterStartContent(
     onStartClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier
+    Box(
+        modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+            .background(Color(0xFFFFFFFA))
     ) {
-        Text(
-            text = "ユーザー登録",
-            style = MaterialTheme.typography.headlineMedium
+
+        Image(
+            painter = painterResource(id = R.drawable.img01),
+            contentDescription = null,
+            modifier = Modifier
+                .size(320.dp)
+                .offset(x = (-100).dp, y = (-100).dp)
         )
-        Button(
-            modifier = Modifier.padding(top = 24.dp),
-            onClick = onStartClicked
+
+        Image(
+            painter = painterResource(id = R.drawable.img02),
+            contentDescription = null,
+            modifier = Modifier
+                .size(120.dp)
+                .offset(x = (140).dp, y = (80).dp)
+        )
+        Image(
+            painter = painterResource(id = R.drawable.img03),
+            contentDescription = null,
+            modifier = Modifier
+                .size(350.dp)
+                .offset(x = (100).dp, y = (650).dp)
+        )
+        Image(
+            painter = painterResource(id = R.drawable.img04),
+            contentDescription = null,
+            modifier = Modifier
+                .size(100.dp)
+                .offset(x = (100).dp, y = (650).dp)
+        )
+
+        // Column（題名やボタン）
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("登録して開始")
+            Text(
+                text = "Sheep relay",
+                fontSize = 40.sp,
+                style = MaterialTheme.typography.headlineMedium
+            )
+
+            Button(
+                modifier = Modifier
+                    .padding(top = 40.dp)
+                    .width(150.dp)
+                    .height(50.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF55433F),
+                    contentColor = Color(0xFFFFFFFA)
+                ),
+                onClick = onStartClicked
+            ) {
+                Text(
+                    text = "Log In",
+                    fontSize = 20.sp
+                )
+            }
         }
     }
 }
@@ -122,26 +192,80 @@ private fun NewRegistrationContent(
     onRegistered: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier
+    var name by rememberSaveable { mutableStateOf("") }
+    Box(
+        modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "新規登録",
-            style = MaterialTheme.typography.headlineMedium
+            .background(Color(0xFFFF6242))
+    ){
+        Image(
+            painter = painterResource(id = R.drawable.img06),
+            contentDescription = null,
+            contentScale = ContentScale.Fit,
+            modifier = Modifier
+                .size(850.dp)
+                .offset(x = (5).dp, y = (-350).dp)
+                .graphicsLayer(
+                    rotationZ = -35f
+                )
         )
         Text(
-            modifier = Modifier.padding(top = 12.dp),
-            text = "ユーザー情報を登録します"
+            text = "What's Your",
+            fontSize = 50.sp,
+            color = Color(0xFF0F0F6D),
+            modifier = Modifier.offset(x = 50.dp, y = 60.dp)
         )
-        Button(
-            modifier = Modifier.padding(top = 24.dp),
-            onClick = onRegistered
+        Text(
+            text = "Name?",
+            fontSize = 50.sp,
+            color = Color(0xFF0F0F6D),
+            modifier = Modifier.offset(x = 190.dp, y = 120.dp)
+        )
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("登録完了")
+            Image(
+                painter = painterResource(id = R.drawable.icon),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(250.dp)
+            )
+            // 入力欄
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                placeholder = { Text("名前を入力") },
+                singleLine = true,
+                colors = TextFieldDefaults.colors(
+                    focusedIndicatorColor = Color(0xFF0F0F6D), //カーソル時の枠線の色
+                    unfocusedIndicatorColor = Color(0xFF0F0F6D), //カーソルされてないときの線の色
+                    cursorColor = Color(0xFF04041F) //入力時の|の色
+                ),
+                modifier = Modifier
+                    .width(265.dp)
+                    .height(80.dp)
+                    .padding(top = 24.dp)
+            )
+            Button(
+                modifier = Modifier
+                    .padding(top = 40.dp)
+                    .width(265.dp)
+                    .height(50.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF0F0F6D),   // 背景色
+                    contentColor = Color(0xFFFFF01D)    // 文字色
+                ),
+                onClick = onRegistered
+            ) {
+                Text(
+                    text = "次へ",
+                    fontSize = 20.sp
+                )
+            }
         }
     }
 }
