@@ -24,6 +24,7 @@ import com.example.letterble.domain.usecase.RelayLetterUseCase
 import com.example.letterble.domain.usecase.SubmitLetterUseCase
 import com.example.letterble.feature.edit_letter.EditLetterViewModel
 import com.example.letterble.feature.received.ReceivedViewModelFactory
+import com.example.letterble.notification.BleNotificationHelper
 
 /**
  * App-wide dependency entry point.
@@ -74,6 +75,7 @@ class DefaultAppContainer(
     private val treeFirestoreDataSource = TreeFirestoreDataSource()
     private val currentLocationDataSource = CurrentLocationDataSource(applicationContext)
     private val bleManager = BleManager(applicationContext)
+    private val bleNotificationHelper = BleNotificationHelper(applicationContext)
 
     // ユーザー名用ローカル DataSource。applicationContext を使う。
     private val userLocalDataSource = UserLocalDataSource(applicationContext)
@@ -106,7 +108,8 @@ class DefaultAppContainer(
     override val bleRepository = BleRepository(
         bleController = bleManager,
         userRepository = userRepository,
-        relayLetterUseCase = relayLetterUseCase
+        relayLetterUseCase = relayLetterUseCase,
+        notificationHelper = bleNotificationHelper
     )
 
     private val submitLetterUseCase = SubmitLetterUseCase(

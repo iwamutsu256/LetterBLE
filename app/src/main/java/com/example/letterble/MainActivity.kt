@@ -31,7 +31,7 @@ class MainActivity : ComponentActivity() {
     private val blePermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { results ->
-        if (results.values.all { it }) {
+        if (hasBleRuntimePermissions(results)) {
             appContainer().bleRepository.startBle()
         }
     }
@@ -59,16 +59,22 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun requestBlePermissionsIfNeeded() {
-        val missingPermissions = requiredBlePermissions().filter { permission ->
+        val missingPermissions = startupPermissions().filter { permission ->
             ContextCompat.checkSelfPermission(this, permission) !=
                 PackageManager.PERMISSION_GRANTED
         }
 
-        if (missingPermissions.isEmpty()) {
+        if (hasBleRuntimePermissions()) {
             appContainer().bleRepository.startBle()
-        } else {
+        }
+
+        if (missingPermissions.isNotEmpty()) {
             blePermissionLauncher.launch(missingPermissions.toTypedArray())
         }
+    }
+
+    private fun startupPermissions(): List<String> {
+        return requiredBlePermissions() + requiredNotificationPermissions()
     }
 
     private fun requiredBlePermissions(): List<String> {
@@ -76,7 +82,9 @@ class MainActivity : ComponentActivity() {
             listOf(
                 Manifest.permission.BLUETOOTH_SCAN,
                 Manifest.permission.BLUETOOTH_ADVERTISE,
-                Manifest.permission.BLUETOOTH_CONNECT
+                Manifest.permission.BLUETOOTH_CONNECT,
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.ACCESS_FINE_LOCATION
             )
         } else {
             listOf(
@@ -84,6 +92,46 @@ class MainActivity : ComponentActivity() {
                 Manifest.permission.ACCESS_FINE_LOCATION
             )
         }
+    }
+
+    private fun requiredNotificationPermissions(): List<String> {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            listOf(Manifest.permission.POST_NOTIFICATIONS)
+        } else {
+            emptyList()
+        }
+    }
+
+    private fun hasBleRuntimePermissions(
+        permissionResults: Map<String, Boolean>? = null
+    ): Boolean {
+        val nonLocationPermissions = requiredBlePermissions().filterNot { permission ->
+            permission == Manifest.permission.ACCESS_COARSE_LOCATION ||
+                permission == Manifest.permission.ACCESS_FINE_LOCATION
+        }
+        val hasNonLocationPermissions = nonLocationPermissions.all { permission ->
+            permissionResults?.get(permission)
+                ?: (ContextCompat.checkSelfPermission(this, permission) ==
+                    PackageManager.PERMISSION_GRANTED)
+        }
+        val hasLocationPermission = hasPermission(
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            permissionResults
+        ) || hasPermission(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            permissionResults
+        )
+
+        return hasNonLocationPermissions && hasLocationPermission
+    }
+
+    private fun hasPermission(
+        permission: String,
+        permissionResults: Map<String, Boolean>? = null
+    ): Boolean {
+        return permissionResults?.get(permission)
+            ?: (ContextCompat.checkSelfPermission(this, permission) ==
+                PackageManager.PERMISSION_GRANTED)
     }
 
     private fun appContainer() = (application as LetterBleApplication).appContainer
