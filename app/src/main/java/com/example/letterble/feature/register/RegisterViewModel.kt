@@ -14,8 +14,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 // ViewModel の中で coroutine を起動するために使う。
 import androidx.lifecycle.viewModelScope
+import com.example.letterble.data.datasource.ble.BleAdvertiser
 // ユーザー情報の保存・取得をまとめて扱う Repository。
 import com.example.letterble.data.repository.UserRepository
+import java.nio.charset.StandardCharsets
 // 画面状態を変更できる StateFlow。
 import kotlinx.coroutines.flow.MutableStateFlow
 // 画面側に公開する読み取り専用の StateFlow。
@@ -91,9 +93,9 @@ class RegisterViewModel(
 
         // BLE 広告に対応する文字数制限（UTF-8 で 16 bytes 以下）
         // 日本語 10 文字程度を上限とする
-        if (userName.length > 10) {
+        if (userName.toByteArray(StandardCharsets.UTF_8).size > BleAdvertiser.MAX_USER_NAME_BYTES) {
             _uiState.value = _uiState.value.copy(
-                errorMessage = "ユーザー名は 10 文字以内で入力してください"
+                errorMessage = "ユーザー名はBLE通信のためUTF-8で16バイト以内にしてください"
             )
             return
         }

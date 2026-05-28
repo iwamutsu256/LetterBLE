@@ -1,12 +1,14 @@
 package com.example.letterble.notification
 
 import android.Manifest
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
@@ -38,8 +40,9 @@ class BleNotificationHelper(
             return
         }
 
-        notificationManager.notify(
-            BLE_RUNNING_NOTIFICATION_ID,
+        notifyIfAllowed(
+            notificationId = BLE_RUNNING_NOTIFICATION_ID,
+            notification =
             NotificationCompat.Builder(context, BLE_STATUS_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .setContentTitle("BLE通信中")
@@ -69,8 +72,9 @@ class BleNotificationHelper(
             return
         }
 
-        notificationManager.notify(
-            targetUserName.notificationId(),
+        notifyIfAllowed(
+            notificationId = targetUserName.notificationId(),
+            notification =
             NotificationCompat.Builder(context, BLE_EVENT_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .setContentTitle("すれ違いました")
@@ -80,6 +84,18 @@ class BleNotificationHelper(
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .build()
         )
+    }
+
+    private fun notifyIfAllowed(notificationId: Int, notification: Notification) {
+        if (!canPostNotifications()) {
+            return
+        }
+
+        try {
+            notificationManager.notify(notificationId, notification)
+        } catch (exception: SecurityException) {
+            Log.w(TAG, "Notification permission was revoked before notify().", exception)
+        }
     }
 
     /**
@@ -149,5 +165,6 @@ class BleNotificationHelper(
         private const val ENCOUNTER_NOTIFICATION_ID_BASE = 2000
         private const val ENCOUNTER_NOTIFICATION_ID_RANGE = 100_000
         private const val OPEN_APP_REQUEST_CODE = 3001
+        private const val TAG = "BleNotificationHelper"
     }
 }

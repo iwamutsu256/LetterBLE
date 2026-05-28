@@ -102,7 +102,7 @@ class BleAdvertiser(
     }
 
     companion object {
-        private const val MAX_USER_NAME_BYTES = 16
+        const val MAX_USER_NAME_BYTES = 16
         val LETTER_BLE_SERVICE_UUID: ParcelUuid =
             ParcelUuid.fromString("0000feed-0000-1000-8000-00805f9b34fb")
     }
