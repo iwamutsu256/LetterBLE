@@ -21,7 +21,7 @@ class RelayLetterUseCase(
     private val userRepository: RelayUserRepository,
     private val duplicateIntervalMillis: Long = DEFAULT_DUPLICATE_INTERVAL_MILLIS,
     private val currentTimeMillis: () -> Long = { System.currentTimeMillis() },
-    private val currentCoordinates: () -> RelayCoordinates
+    private val currentCoordinates: suspend () -> RelayCoordinates
 ) {
     /**
      * myUserName が targetUserName とすれ違ったときに呼ばれる入口。
@@ -29,30 +29,30 @@ class RelayLetterUseCase(
      * 後続のチェックリストで、重複チェック、手紙取得、運搬リスト追加、
      * 位置保存、tree 更新、宛先到達判定をこの中へ段階的に追加する。
      */
-    suspend fun execute(myUserName: String, targetUserName: String) {
+    suspend fun execute(myUserName: String, targetUserName: String): Boolean {
         if (myUserName.isBlank() || targetUserName.isBlank()) {
-            return
+            return false
         }
 
         if (myUserName == targetUserName) {
-            return
+            return false
         }
 
         val now = currentTimeMillis()
         if (isDuplicateEncounter(myUserName, targetUserName, now)) {
-            return
+            return false
         }
 
         val targetCarriedLetters = letterRepository.getCarriedLetters(targetUserName)
         if (targetCarriedLetters.isEmpty()) {
-            return
+            return false
         }
 
         val relayTargetLetters = targetCarriedLetters.filter { letter ->
             letter.tree.nodes.none { node -> node.userName == myUserName }
         }
         if (relayTargetLetters.isEmpty()) {
-            return
+            return false
         }
 
         val coordinates = currentCoordinates()
@@ -84,7 +84,7 @@ class RelayLetterUseCase(
         }
 
         if (relayedLetters.isEmpty()) {
-            return
+            return false
         }
 
         relayedLetters.map { (letter, _) -> letter }
@@ -109,6 +109,7 @@ class RelayLetterUseCase(
                 timestamp = now
             )
         )
+        return true
     }
 
     private suspend fun isDuplicateEncounter(

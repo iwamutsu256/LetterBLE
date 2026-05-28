@@ -31,8 +31,7 @@ class EncounterFirestoreDataSource(
     /**
      * Encounter を Firestore の ENCOUNTERS/{encounterId} に保存する。
      *
-     * userA/userB の順番ゆれを避けるため、保存時にユーザー名を並べ替える。
-     * これにより taro-hana と hana-taro を同じペアとして扱える。
+     * userA/userB は relay の向きを表すため、並べ替えずに保存する。
      */
     suspend fun saveEncounter(encounter: Encounter) {
         encountersCollection
@@ -55,7 +54,9 @@ class EncounterFirestoreDataSource(
             .get()
             .awaitResult()
 
-        return snapshot.documents.firstOrNull()?.toEncounterOrNull()
+        return snapshot.documents
+            .mapNotNull { document -> document.toEncounterOrNull() }
+            .firstOrNull()
     }
 }
 

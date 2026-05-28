@@ -45,6 +45,7 @@ fun AppNavGraph(
             RegisterScreen(
                 appContainer = appContainer,
                 onRegistered = {
+                    appContainer.bleRepository.startBle()
                     navController.navigate(Destinations.HOME) {
                         popUpTo(Destinations.REGISTER) { inclusive = true }
                     }
