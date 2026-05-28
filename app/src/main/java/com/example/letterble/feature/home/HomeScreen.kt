@@ -172,18 +172,29 @@ fun HomeScreenContent(
             ) {
                 CommonButton(
                     text = "受信",
-                    modifier = Modifier
-                        .width(100.dp),
+                    modifier = Modifier.width(100.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF0F0F6D),
+                        contentColor = Color(0xFFFFFFFA)
+                    ),
                     onClick = onReceivedClicked
                 )
                 CommonButton(
                     text = "ホーム",
                     modifier = Modifier.width(100.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF0F0F6D),
+                        contentColor = Color(0xFFFFFFFA)
+                    ),
                     onClick = onHomeClicked
                 )
                 CommonButton(
                     text = "配達",
                     modifier = Modifier.width(100.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF0F0F6D),
+                        contentColor = Color(0xFFFFFFFA)
+                    ),
                     onClick = onCarryClicked
                 )
             }
