@@ -36,7 +36,7 @@ class BleScanner(
         get() = scanCallback != null
 
     @SuppressLint("MissingPermission")
-    fun startScanning(onUserFound: (String) -> Unit): Boolean {
+    fun startScanning(onUserFound: (String) -> Unit, onFailure: (Int) -> Unit = {}): Boolean {
         if (isScanning || !hasScanPermission()) {
             return false
         }
@@ -58,6 +58,7 @@ class BleScanner(
             override fun onScanFailed(errorCode: Int) {
                 if (scanCallback === this) {
                     scanCallback = null
+                    onFailure(errorCode)
                 }
             }
         }
@@ -87,7 +88,7 @@ class BleScanner(
         val payload = scanRecord
             ?.getServiceData(BleAdvertiser.LETTER_BLE_SERVICE_UUID)
             ?: return null
-        return payload.toString(StandardCharsets.UTF_8).trim().takeIf { it.isNotBlank() }
+        return String(payload, StandardCharsets.UTF_8).trim().takeIf { it.isNotBlank() }
     }
 
     private fun hasScanPermission(): Boolean {

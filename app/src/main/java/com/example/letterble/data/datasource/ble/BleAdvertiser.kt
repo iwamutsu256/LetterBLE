@@ -37,7 +37,7 @@ class BleAdvertiser(
         get() = advertiseCallback != null
 
     @SuppressLint("MissingPermission")
-    fun startAdvertising(userName: String): Boolean {
+    fun startAdvertising(userName: String, onFailure: (Int) -> Unit = {}): Boolean {
         if (isAdvertising || userName.isBlank() || !hasAdvertisePermission()) {
             return false
         }
@@ -51,6 +51,7 @@ class BleAdvertiser(
             override fun onStartFailure(errorCode: Int) {
                 if (advertiseCallback === this) {
                     advertiseCallback = null
+                    onFailure(errorCode)
                 }
             }
         }

@@ -31,9 +31,16 @@ class BleRepository(
             return true
         }
 
-        val started = bleController.start(myUserName) { foundUserName ->
-            onEncounter(foundUserName)
-        }
+        val started = bleController.start(
+            myUserName,
+            onUserFound = { foundUserName ->
+                onEncounter(foundUserName)
+            },
+            onStartFailure = { errorMessage ->
+                Log.e(TAG, "BLE start failed: $errorMessage")
+                notificationHelper.hideBleRunningNotification()
+            }
+        )
         if (started) {
             notificationHelper.showBleRunningNotification(myUserName)
         }

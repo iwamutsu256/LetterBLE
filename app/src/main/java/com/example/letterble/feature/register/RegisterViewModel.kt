@@ -89,6 +89,15 @@ class RegisterViewModel(
             return
         }
 
+        // BLE 広告に対応する文字数制限（UTF-8 で 16 bytes 以下）
+        // 日本語 10 文字程度を上限とする
+        if (userName.length > 10) {
+            _uiState.value = _uiState.value.copy(
+                errorMessage = "ユーザー名は 10 文字以内で入力してください"
+            )
+            return
+        }
+
         // Firestore 保存は時間がかかるので coroutine で実行する。
         viewModelScope.launch {
             // 保存中として画面にローディングを出せる状態にする。
