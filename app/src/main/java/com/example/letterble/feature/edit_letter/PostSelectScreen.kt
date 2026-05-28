@@ -201,7 +201,7 @@ fun PostSelectScreen(
         ) {
             Icon(
                 painter = painterResource(id=R.drawable.back_button),
-                tint = null,
+                tint = Color.Unspecified,
                 contentDescription = "戻る",
                 modifier = Modifier
             )
@@ -380,7 +380,7 @@ private fun PostSelectScreenContentPreview() {
             ) {
                 Icon(
                     painter = painterResource(id=R.drawable.back_button),
-                    tint = null,
+                    tint = Color.Unspecified,
                     contentDescription = "戻る",
                     modifier = Modifier
                 )
