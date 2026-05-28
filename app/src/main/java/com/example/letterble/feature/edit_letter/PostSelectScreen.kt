@@ -16,6 +16,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -155,27 +156,31 @@ fun PostSelectScreen(
                 }
 
                 !hasFineLocationPermission -> {
-                    Text(
-                        text = "1km以内のポスト検索には正確な位置情報の許可が必要です",
-                        modifier = Modifier
-                            .align(Alignment.Center).padding(24.dp),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    CommonButton(
-                        text = if (hasFineLocationPermission) "再取得" else "正確な位置情報を許可して検索",
-                        modifier = Modifier.align(Alignment.Center).padding(16.dp),
+                    Column(
+                        modifier = Modifier.padding(24.dp).align(Alignment.Center)
+                    ) {
+                        Text(
+                            text = "1km以内のポスト検索には正確な位置情報の許可が必要です",
+                            modifier = Modifier
+                                .padding(24.dp),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        CommonButton(
+                            text = if (hasFineLocationPermission) "再取得" else "正確な位置情報を許可して検索",
+                            modifier = Modifier.padding(16.dp),
 //                        enabled = !uiState.isLoading,
-                        enabled = true,
-                        onClick = {
-                            locationPermissionLauncher.launch(
-                                arrayOf(
-                                    Manifest.permission.ACCESS_FINE_LOCATION,
-                                    Manifest.permission.ACCESS_COARSE_LOCATION
+                            enabled = true,
+                            onClick = {
+                                locationPermissionLauncher.launch(
+                                    arrayOf(
+                                        Manifest.permission.ACCESS_FINE_LOCATION,
+                                        Manifest.permission.ACCESS_COARSE_LOCATION
+                                    )
                                 )
-                            )
-                        }
-                    )
+                            }
+                        )
+                    }
                 }
 
                 uiState.posts.isNotEmpty() -> {
