@@ -62,12 +62,17 @@ class BleRepository(
 
         scope.launch {
             try {
+                notificationHelper.showEncounterNotification(targetUserName)
+
                 val relayed = relayLetterUseCase.execute(
                     myUserName = myUserName,
                     targetUserName = targetUserName
                 )
-                if (relayed) {
-                    notificationHelper.showEncounterNotification(targetUserName)
+                if (!relayed) {
+                    Log.d(
+                        TAG,
+                        "BLE encounter detected, but no letters were relayed: $myUserName -> $targetUserName"
+                    )
                 }
             } catch (exception: Exception) {
                 Log.e(
