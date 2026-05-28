@@ -73,6 +73,7 @@ fun HomeScreen(
         hasReceivedLetters = uiState.hasReceivedLetters,
         receivedLetterCount = uiState.receivedLetterCount,
         onReceivedClicked = viewModel::onReceivedClicked,
+        onHomeClicked = {},
         onCarryClicked = viewModel::onCarryClicked,
         onCreateLetterClicked = viewModel::onCreateLetterClicked,
         modifier = modifier
@@ -87,6 +88,7 @@ fun HomeScreenContent(
     hasReceivedLetters: Boolean,
     receivedLetterCount: Int,
     onReceivedClicked: () -> Unit,
+    onHomeClicked: () -> Unit,
     onCarryClicked: () -> Unit,
     onCreateLetterClicked: () -> Unit,
     modifier: Modifier = Modifier
@@ -174,12 +176,12 @@ fun HomeScreenContent(
                 CommonButton(
                     text = "ホーム",
                     modifier = Modifier.width(100.dp),
-                    onClick = onCarryClicked
+                    onClick = onHomeClicked
                 )
                 CommonButton(
                     text = "配達",
                     modifier = Modifier.width(100.dp),
-                    onClick = onCreateLetterClicked
+                    onClick = onCarryClicked
                 )
             }
         }
@@ -197,6 +199,7 @@ private fun HomeScreenContentPreview() {
             hasReceivedLetters = true,
             receivedLetterCount = 2,
             onReceivedClicked = {},
+            onHomeClicked = {},
             onCarryClicked = {},
             onCreateLetterClicked = {}
         )
