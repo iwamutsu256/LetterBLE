@@ -131,9 +131,17 @@ class PostSelectViewModel(
     fun onPostSelected(post: Post) {
         _uiState.update {
             it.copy(
-                selectedPost = post,
-                showConfirmDialog = true
+                selectedPost = post
             )
+        }
+    }
+
+    /**
+     * 投函ボタンが押された際に確認ダイアログを表示する。
+     */
+    fun onPostSubmitClicked() {
+        if (_uiState.value.selectedPost != null) {
+            _uiState.update { it.copy(showConfirmDialog = true) }
         }
     }
 
