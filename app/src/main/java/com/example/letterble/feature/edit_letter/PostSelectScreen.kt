@@ -50,6 +50,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.letterble.R
 import com.example.letterble.di.AppContainer
 import com.example.letterble.domain.model.Post
+import com.example.letterble.ui.components.CommonBackButton
 import com.example.letterble.ui.components.CommonButton
 import com.example.letterble.ui.components.LetterMapView
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -196,21 +197,11 @@ fun PostSelectScreen(
                 }
             }
         }
-        IconButton(
-            modifier = Modifier
-                .width(48.dp)
-                .height(48.dp)
-                .offset(24.dp,48.dp),
+        CommonBackButton(
+            modifier = Modifier,
             onClick = onBackClicked,
-            enabled = !uiState.isSubmitting,
-        ) {
-            Icon(
-                painter = painterResource(id=R.drawable.back_button),
-                tint = Color.Unspecified,
-                contentDescription = "戻る",
-                modifier = Modifier
-            )
-        }
+            enabled = !uiState.isSubmitting
+        )
         Image(
             painter = painterResource(id = R.drawable.img07),
             contentDescription = null,
