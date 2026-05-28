@@ -104,7 +104,7 @@ fun HomeScreenContent(
             modifier = Modifier
                 .size(110.dp)
                 .padding(20.dp)
-                .offset(y = 5.dp)
+                .offset(x = 20.dp , y = 20.dp)
         )
 
         if (currentUserName.isNotBlank()) {
@@ -112,7 +112,10 @@ fun HomeScreenContent(
                 text = currentUserName,
                 modifier = Modifier
                     .align(Alignment.TopStart)
-                    .padding(start = 88.dp, top = 28.dp),
+                    .width(300.dp)
+                    .padding(start = 88.dp, top = 28.dp)
+                    .offset(x = 35.dp , y = 35.dp)
+                    .size(70.dp),
                 color = Color(0xFF55433F)
             )
         }
@@ -128,10 +131,9 @@ fun HomeScreenContent(
 
         Button(
             modifier = Modifier
-                .width(150.dp)
-                .height(150.dp)
-                .align(Alignment.TopStart)
-                .offset(x = 230.dp, y = 590.dp),
+                .width(130.dp)
+                .height(130.dp)
+                .offset(x = 250.dp, y = 590.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color.Transparent,
                 contentColor = Color.Unspecified
@@ -164,7 +166,7 @@ fun HomeScreenContent(
             )
 
             Row(
-                modifier = Modifier.padding(top = 16.dp),
+                modifier = Modifier.padding(top = 25.dp),
                 horizontalArrangement = Arrangement.spacedBy(20.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
