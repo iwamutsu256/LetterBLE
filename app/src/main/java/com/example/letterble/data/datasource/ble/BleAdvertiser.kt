@@ -86,7 +86,18 @@ class BleAdvertiser(
     }
 
     private fun String.toBlePayload(): ByteArray {
-        return toByteArray(StandardCharsets.UTF_8).take(MAX_USER_NAME_BYTES).toByteArray()
+        var payloadEnd = 0
+
+        while (payloadEnd < length) {
+            val nextEnd = offsetByCodePoints(payloadEnd, 1)
+            val nextPayload = substring(0, nextEnd).toByteArray(StandardCharsets.UTF_8)
+            if (nextPayload.size > MAX_USER_NAME_BYTES) {
+                break
+            }
+            payloadEnd = nextEnd
+        }
+
+        return substring(0, payloadEnd).toByteArray(StandardCharsets.UTF_8)
     }
 
     companion object {

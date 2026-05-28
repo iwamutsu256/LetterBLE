@@ -3,13 +3,16 @@ package com.example.letterble.di
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.example.letterble.data.datasource.ble.BleManager
 import com.example.letterble.data.datasource.firestore.EncounterFirestoreDataSource
 import com.example.letterble.data.datasource.firestore.LetterFirestoreDataSource
 import com.example.letterble.data.datasource.firestore.LocationFirestoreDataSource
 import com.example.letterble.data.datasource.firestore.TreeFirestoreDataSource
 import com.example.letterble.data.datasource.firestore.UserFirestoreDataSource
+import com.example.letterble.data.datasource.location.CurrentLocationDataSource
 import com.example.letterble.data.datasource.local.DraftLocalDataSource
 import com.example.letterble.data.datasource.local.UserLocalDataSource
+import com.example.letterble.data.repository.BleRepository
 import com.example.letterble.data.repository.DraftRepository
 import com.example.letterble.data.repository.EncounterRepository
 import com.example.letterble.data.repository.LetterRepository
@@ -17,9 +20,11 @@ import com.example.letterble.data.repository.LocationRepository
 import com.example.letterble.data.repository.TreeRepository
 import com.example.letterble.data.repository.UserRepository
 import com.example.letterble.domain.usecase.BuildRouteTreeUseCase
+import com.example.letterble.domain.usecase.RelayLetterUseCase
 import com.example.letterble.domain.usecase.SubmitLetterUseCase
 import com.example.letterble.feature.edit_letter.EditLetterViewModel
 import com.example.letterble.feature.received.ReceivedViewModelFactory
+import com.example.letterble.notification.BleNotificationHelper
 
 /**
  * App-wide dependency entry point.
@@ -42,6 +47,8 @@ interface AppContainer {
 
     // 経路 Tree データを上位層へ提供する Repository。
     val treeRepository: TreeRepository
+
+    val bleRepository: BleRepository
 
     // 保存済み Tree と Location 履歴から表示用 Tree を決める UseCase。
     val buildRouteTreeUseCase: BuildRouteTreeUseCase
@@ -66,6 +73,9 @@ class DefaultAppContainer(
     private val locationFirestoreDataSource = LocationFirestoreDataSource()
     private val encounterFirestoreDataSource = EncounterFirestoreDataSource()
     private val treeFirestoreDataSource = TreeFirestoreDataSource()
+    private val currentLocationDataSource = CurrentLocationDataSource(applicationContext)
+    private val bleManager = BleManager(applicationContext)
+    private val bleNotificationHelper = BleNotificationHelper(applicationContext)
 
     // ユーザー名用ローカル DataSource。applicationContext を使う。
     private val userLocalDataSource = UserLocalDataSource(applicationContext)
@@ -85,6 +95,22 @@ class DefaultAppContainer(
     override val encounterRepository = EncounterRepository(encounterFirestoreDataSource)
     override val treeRepository = TreeRepository(treeFirestoreDataSource)
     override val buildRouteTreeUseCase = BuildRouteTreeUseCase()
+
+    private val relayLetterUseCase = RelayLetterUseCase(
+        encounterRepository = encounterRepository,
+        letterRepository = letterRepository,
+        locationRepository = locationRepository,
+        treeRepository = treeRepository,
+        userRepository = userRepository,
+        currentCoordinates = currentLocationDataSource::getCurrentCoordinates
+    )
+
+    override val bleRepository = BleRepository(
+        bleController = bleManager,
+        userRepository = userRepository,
+        relayLetterUseCase = relayLetterUseCase,
+        notificationHelper = bleNotificationHelper
+    )
 
     private val submitLetterUseCase = SubmitLetterUseCase(
         letterRepository = letterRepository
