@@ -21,7 +21,7 @@ class RelayLetterUseCase(
     private val userRepository: RelayUserRepository,
     private val duplicateIntervalMillis: Long = DEFAULT_DUPLICATE_INTERVAL_MILLIS,
     private val currentTimeMillis: () -> Long = { System.currentTimeMillis() },
-    private val currentCoordinates: () -> RelayCoordinates
+    private val currentCoordinates: suspend () -> RelayCoordinates
 ) {
     /**
      * myUserName が targetUserName とすれ違ったときに呼ばれる入口。
