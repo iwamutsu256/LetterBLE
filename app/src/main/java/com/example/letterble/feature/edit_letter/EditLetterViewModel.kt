@@ -20,7 +20,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.letterble.data.datasource.local.DraftLetter
 import com.example.letterble.data.repository.DraftRepository
 import com.example.letterble.data.repository.UserRepository
-import com.example.letterble.domain.usecase.SubmitLetterCommand
 import com.example.letterble.domain.usecase.SubmitLetterUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,6 +38,7 @@ data class EditLetterUiState(
     val sentence: String = "",
     val message: String? = null,
     val isDraftSaved: Boolean = false,
+    val isNavigatingToPostSelect: Boolean = false,
     val isSubmitting: Boolean = false
 ) {
     /**
@@ -128,11 +128,11 @@ class EditLetterViewModel(
     }
 
     /**
-     * 投函へ進める最低限の入力があるか確認し、次画面へのイベントを発行する。
+     * 投函へ進める最低限の入力があるか確認し、ポスト選択画面へのイベントを発行する。
      */
     fun onSubmitClicked() {
         val state = _uiState.value
-        if (state.isSubmitting) {
+        if (state.isNavigatingToPostSelect) {
             return
         }
 
@@ -151,45 +151,40 @@ class EditLetterViewModel(
             return
         }
 
-        // 連打や外部呼び出しでも二重投函にならないよう、coroutine 起動前に送信中へ切り替える。
+        if (state.toUser.trim() == fromUser.trim()) {
+            _uiState.update {
+                it.copy(message = "自分宛てには投函できません")
+            }
+            return
+        }
+
+        // ポスト選択画面から投函できるよう、入力内容を下書きとして保存してから遷移する。
+        draftRepository.saveDraft(
+            DraftLetter(
+                toUser = state.toUser,
+                sentence = state.sentence
+            )
+        )
+
+        // 遷移イベント処理前の連打で post_select が複数積まれないよう、遷移中として扱う。
         _uiState.update {
             it.copy(
                 message = null,
-                isSubmitting = true
+                isNavigatingToPostSelect = true
             )
         }
 
         viewModelScope.launch {
-            runCatching {
-                submitLetterUseCase.execute(
-                    SubmitLetterCommand(
-                        fromUser = fromUser,
-                        toUser = state.toUser,
-                        sentence = state.sentence,
-                        latitude = TemporaryPostCoordinates.LATITUDE,
-                        longitude = TemporaryPostCoordinates.LONGITUDE
-                    )
-                )
-            }.onSuccess {
-                // 投函後は差出人端末に本文を残さないため、保存済み下書きと入力状態を消す。
-                draftRepository.clearDraft()
-                _uiState.update {
-                    it.copy(
-                        toUser = "",
-                        sentence = "",
-                        message = "投函しました",
-                        isDraftSaved = false,
-                        isSubmitting = false
-                    )
-                }
-            }.onFailure {
-                _uiState.update {
-                    it.copy(
-                        message = "投函に失敗しました",
-                        isSubmitting = false
-                    )
-                }
-            }
+            _events.emit(EditLetterEvent.NavigateToPostSelect)
+        }
+    }
+
+    /**
+     * UIが投函先選択への遷移イベントを処理した後、再度操作できる状態へ戻す。
+     */
+    fun onPostSelectNavigationHandled() {
+        _uiState.update {
+            it.copy(isNavigatingToPostSelect = false)
         }
     }
 

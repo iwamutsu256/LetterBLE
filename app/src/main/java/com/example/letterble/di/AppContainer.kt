@@ -13,16 +13,19 @@ import com.example.letterble.data.datasource.location.CurrentLocationDataSource
 import com.example.letterble.data.datasource.local.DraftLocalDataSource
 import com.example.letterble.data.datasource.local.UserLocalDataSource
 import com.example.letterble.data.repository.BleRepository
+import com.example.letterble.data.datasource.remote.OverpassPostDataSource
 import com.example.letterble.data.repository.DraftRepository
 import com.example.letterble.data.repository.EncounterRepository
 import com.example.letterble.data.repository.LetterRepository
 import com.example.letterble.data.repository.LocationRepository
+import com.example.letterble.data.repository.PostRepository
 import com.example.letterble.data.repository.TreeRepository
 import com.example.letterble.data.repository.UserRepository
 import com.example.letterble.domain.usecase.BuildRouteTreeUseCase
 import com.example.letterble.domain.usecase.RelayLetterUseCase
 import com.example.letterble.domain.usecase.SubmitLetterUseCase
 import com.example.letterble.feature.edit_letter.EditLetterViewModel
+import com.example.letterble.feature.edit_letter.PostSelectViewModel
 import com.example.letterble.feature.received.ReceivedViewModelFactory
 import com.example.letterble.notification.BleNotificationHelper
 
@@ -44,6 +47,9 @@ interface AppContainer {
     // すれ違い履歴データを上位層へ提供する Repository。
     val encounterRepository: EncounterRepository
 
+    // 近隣ポスト候補を上位層へ提供する Repository。
+    val postRepository: PostRepository
+
     // 経路 Tree データを上位層へ提供する Repository。
     val treeRepository: TreeRepository
 
@@ -52,11 +58,17 @@ interface AppContainer {
     // 保存済み Tree と Location 履歴から表示用 Tree を決める UseCase。
     val buildRouteTreeUseCase: BuildRouteTreeUseCase
 
+    // 現在地取得を担当する DataSource。ポスト検索の起点座標として使う。
+    val currentLocationDataSource: CurrentLocationDataSource
+
     // 受信画面系の ViewModel 生成に必要な依存関係を AppContainer 側でまとめる。
     val receivedViewModelFactory: ReceivedViewModelFactory
 
     // 手紙作成画面の ViewModel 生成に必要な依存関係を AppContainer 側でまとめる。
     fun editLetterViewModelFactory(): ViewModelProvider.Factory
+
+    // ポスト選択画面の ViewModel 生成に必要な依存関係を AppContainer 側でまとめる。
+    fun postSelectViewModelFactory(): ViewModelProvider.Factory
 }
 
 class DefaultAppContainer(
@@ -72,7 +84,7 @@ class DefaultAppContainer(
     private val locationFirestoreDataSource = LocationFirestoreDataSource()
     private val encounterFirestoreDataSource = EncounterFirestoreDataSource()
     private val treeFirestoreDataSource = TreeFirestoreDataSource()
-    private val currentLocationDataSource = CurrentLocationDataSource(applicationContext)
+    private val overpassPostDataSource = OverpassPostDataSource()
     private val bleManager = BleManager(applicationContext)
     private val bleNotificationHelper = BleNotificationHelper(applicationContext)
 
@@ -81,6 +93,8 @@ class DefaultAppContainer(
 
     // 下書き用ローカル DataSource。1回だけ宣言し、applicationContext を使う。
     private val draftLocalDataSource = DraftLocalDataSource(applicationContext)
+
+    override val currentLocationDataSource = CurrentLocationDataSource(applicationContext)
 
     override val userRepository: UserRepository = UserRepository(
         userLocalDataSource = userLocalDataSource,
@@ -92,6 +106,7 @@ class DefaultAppContainer(
     override val letterRepository = LetterRepository(letterFirestoreDataSource)
     override val locationRepository = LocationRepository(locationFirestoreDataSource)
     override val encounterRepository = EncounterRepository(encounterFirestoreDataSource)
+    override val postRepository = PostRepository(overpassPostDataSource)
     override val treeRepository = TreeRepository(treeFirestoreDataSource)
     override val buildRouteTreeUseCase = BuildRouteTreeUseCase()
 
@@ -120,6 +135,21 @@ class DefaultAppContainer(
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 return EditLetterViewModel(
+                    draftRepository = draftRepository,
+                    userRepository = userRepository,
+                    submitLetterUseCase = submitLetterUseCase
+                ) as T
+            }
+        }
+    }
+
+    override fun postSelectViewModelFactory(): ViewModelProvider.Factory {
+        return object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return PostSelectViewModel(
+                    currentLocationDataSource = currentLocationDataSource,
+                    postRepository = postRepository,
                     draftRepository = draftRepository,
                     userRepository = userRepository,
                     submitLetterUseCase = submitLetterUseCase

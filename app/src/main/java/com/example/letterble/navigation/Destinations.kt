@@ -17,6 +17,7 @@ object Destinations {
     const val REGISTER = "register"
     const val HOME = "home"
     const val EDIT_LETTER = "edit_letter"
+    const val POST_SELECT = "post_select"
     const val RECEIVED = "received"
     const val CARRY = "carry"
 
