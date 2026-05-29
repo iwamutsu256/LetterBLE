@@ -13,6 +13,7 @@
 package com.example.letterble.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -27,6 +28,7 @@ import com.example.letterble.feature.home.HomeScreen
 import com.example.letterble.feature.received.ReceivedDetailScreen
 import com.example.letterble.feature.received.ReceivedScreen
 import com.example.letterble.feature.register.RegisterScreen
+import com.example.letterble.service.BleForegroundService
 /**
  * アプリ全体の画面遷移を定義する。
  *
@@ -37,15 +39,24 @@ fun AppNavGraph(
     navController: NavHostController,
     appContainer: AppContainer
 ) {
+    val context = LocalContext.current
+    val startDestination = if (
+        appContainer.userRepository.getCurrentUserName().isNullOrBlank()
+    ) {
+        Destinations.REGISTER
+    } else {
+        Destinations.HOME
+    }
+
     NavHost(
         navController = navController,
-        startDestination = Destinations.REGISTER
+        startDestination = startDestination
     ) {
         composable(Destinations.REGISTER) {
             RegisterScreen(
                 appContainer = appContainer,
                 onRegistered = {
-                    appContainer.bleRepository.startBle()
+                    BleForegroundService.start(context)
                     navController.navigate(Destinations.HOME) {
                         popUpTo(Destinations.REGISTER) { inclusive = true }
                     }

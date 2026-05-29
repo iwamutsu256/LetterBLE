@@ -26,6 +26,20 @@ class BleNotificationHelper(
         createChannels()
     }
 
+    fun createBleRunningNotification(userName: String): Notification {
+        return NotificationCompat.Builder(context, BLE_STATUS_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle("BLE通信中")
+            .setContentText("$userName として周囲のユーザーを探しています")
+            .setContentIntent(openAppPendingIntent())
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setCategory(NotificationCompat.CATEGORY_STATUS)
+            .setShowWhen(false)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .build()
+    }
+
     fun showBleRunningNotification(userName: String) {
         if (!canPostNotifications()) {
             return
@@ -33,17 +47,7 @@ class BleNotificationHelper(
 
         notifyIfAllowed(
             notificationId = BLE_RUNNING_NOTIFICATION_ID,
-            notification = NotificationCompat.Builder(context, BLE_STATUS_CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
-                .setContentTitle("BLE通信中")
-                .setContentText("$userName として周囲のユーザーを探しています")
-                .setContentIntent(openAppPendingIntent())
-                .setOngoing(true)
-                .setOnlyAlertOnce(true)
-                .setCategory(NotificationCompat.CATEGORY_STATUS)
-                .setShowWhen(false)
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .build()
+            notification = createBleRunningNotification(userName)
         )
     }
 
@@ -129,9 +133,10 @@ class BleNotificationHelper(
     }
 
     companion object {
+        const val BLE_RUNNING_NOTIFICATION_ID = 1001
+
         private const val BLE_STATUS_CHANNEL_ID = "letter_ble_status_v2"
         private const val BLE_EVENT_CHANNEL_ID = "letter_ble_events"
-        private const val BLE_RUNNING_NOTIFICATION_ID = 1001
         private const val ENCOUNTER_NOTIFICATION_ID_BASE = 2000
         private const val ENCOUNTER_NOTIFICATION_ID_RANGE = 100_000
         private const val OPEN_APP_REQUEST_CODE = 3001
