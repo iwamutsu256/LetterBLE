@@ -66,6 +66,7 @@ class BleAdvertiser(
 
         val data = AdvertiseData.Builder()
             .setIncludeDeviceName(false)
+            .addServiceUuid(LETTER_BLE_SERVICE_UUID)
             .addServiceData(LETTER_BLE_SERVICE_UUID, payload)
             .build()
 
