@@ -13,6 +13,8 @@ package com.example.letterble.ui.components
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -33,12 +35,14 @@ fun CommonButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    colors: ButtonColors = ButtonDefaults.buttonColors(),
     enabled: Boolean = true
 ) {
     Button(
         modifier = modifier.fillMaxWidth(),
         onClick = onClick,
         enabled = enabled,
+        colors = colors,
         contentPadding = PaddingValues(horizontal = 20.dp, vertical = 14.dp)
     ) {
         Text(text = text)
