@@ -67,7 +67,7 @@ class BleRepository(
                     targetUserName = targetUserName
                 )
                 if (relayed) {
-                    notificationHelper.showRelayedNotification(targetUserName)
+                    notificationHelper.showEncounterNotification(targetUserName)
                 } else {
                     Log.d(
                         TAG,
