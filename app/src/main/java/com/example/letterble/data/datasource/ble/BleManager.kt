@@ -39,7 +39,11 @@ class BleManager(
     override val isRunning: Boolean
         get() = advertiser.isAdvertising || scanner.isScanning
 
-    override fun start(userName: String, onUserFound: (String) -> Unit, onStartFailure: (String) -> Unit): Boolean {
+    override fun start(
+        userName: String, 
+        onUserFound: (String) -> Unit,
+        onStartFailure: (String) -> Unit
+    ): Boolean {
         if (userName.isBlank()) {
             return false
         }
@@ -48,7 +52,7 @@ class BleManager(
             onStartFailure("Advertiser failed with code $errorCode")
             scanner.stopScanning()
         }
-        if (!advertisingStarted) {
+        if(!advertisingStarted) {
             return false
         }
 
@@ -56,6 +60,7 @@ class BleManager(
             onStartFailure("Scanner failed with code $errorCode")
             advertiser.stopAdvertising()
         }
+
         if (!scanningStarted) {
             advertiser.stopAdvertising()
             return false
