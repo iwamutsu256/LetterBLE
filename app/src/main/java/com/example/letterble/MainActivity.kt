@@ -33,7 +33,7 @@ class MainActivity : ComponentActivity() {
         ActivityResultContracts.RequestMultiplePermissions()
     ) { results ->
         if (hasBleRuntimePermissions(results)) {
-            BleForegroundService.start(this)
+            startBleServiceIfReady()
         }
     }
 
@@ -61,12 +61,20 @@ class MainActivity : ComponentActivity() {
         }
 
         if (hasBleRuntimePermissions()) {
-            BleForegroundService.start(this)
+            startBleServiceIfReady()
         }
 
         if (missingPermissions.isNotEmpty()) {
             blePermissionLauncher.launch(missingPermissions.toTypedArray())
         }
+    }
+
+    private fun startBleServiceIfReady() {
+        val appContainer = (application as LetterBleApplication).appContainer
+        BleForegroundService.startIfReady(
+            context = this,
+            userName = appContainer.userRepository.getCurrentUserName()
+        )
     }
 
     private fun startupPermissions(): List<String> {

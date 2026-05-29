@@ -56,7 +56,10 @@ fun AppNavGraph(
             RegisterScreen(
                 appContainer = appContainer,
                 onRegistered = {
-                    BleForegroundService.start(context)
+                    BleForegroundService.startIfReady(
+                        context = context,
+                        userName = appContainer.userRepository.getCurrentUserName()
+                    )
                     navController.navigate(Destinations.HOME) {
                         popUpTo(Destinations.REGISTER) { inclusive = true }
                     }

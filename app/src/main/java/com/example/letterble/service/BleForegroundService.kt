@@ -1,12 +1,15 @@
 package com.example.letterble.service
 
+import android.Manifest
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
+import androidx.core.content.ContextCompat
 import com.example.letterble.LetterBleApplication
 import com.example.letterble.notification.BleNotificationHelper
 
@@ -79,7 +82,19 @@ class BleForegroundService : Service() {
         private const val ACTION_STOP = "com.example.letterble.service.action.STOP_BLE"
         private const val TAG = "BleForegroundService"
 
-        fun start(context: Context) {
+        fun startIfReady(context: Context, userName: String?) {
+            if (userName.isNullOrBlank()) {
+                Log.w(TAG, "Skip starting BLE foreground service: user is not registered.")
+                return
+            }
+            if (!hasRequiredRuntimePermissions(context)) {
+                Log.w(TAG, "Skip starting BLE foreground service: required permission is missing.")
+                return
+            }
+            start(context)
+        }
+
+        private fun start(context: Context) {
             val intent = Intent(context, BleForegroundService::class.java).apply {
                 action = ACTION_START
             }
@@ -92,6 +107,25 @@ class BleForegroundService : Service() {
 
         fun stop(context: Context) {
             context.stopService(Intent(context, BleForegroundService::class.java))
+        }
+
+        private fun hasRequiredRuntimePermissions(context: Context): Boolean {
+            return requiredBlePermissions().all { permission ->
+                ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
+            }
+        }
+
+        private fun requiredBlePermissions(): List<String> {
+            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                listOf(
+                    Manifest.permission.BLUETOOTH_SCAN,
+                    Manifest.permission.BLUETOOTH_ADVERTISE,
+                    Manifest.permission.BLUETOOTH_CONNECT,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+            } else {
+                listOf(Manifest.permission.ACCESS_COARSE_LOCATION)
+            }
         }
     }
 }
