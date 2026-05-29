@@ -62,8 +62,6 @@ class BleRepository(
 
         scope.launch {
             try {
-                notificationHelper.showEncounterNotification(targetUserName)
-
                 val relayed = relayLetterUseCase.execute(
                     myUserName = myUserName,
                     targetUserName = targetUserName
