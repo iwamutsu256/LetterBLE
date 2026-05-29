@@ -113,7 +113,7 @@ fun HomeScreenContent(
             modifier = Modifier
                 .size(110.dp)
                 .padding(20.dp)
-                .offset(x = 20.dp , y = 20.dp)
+                .offset(x = 20.dp, y = 20.dp)
         )
 
         if (currentUserName.isNotBlank()) {
@@ -123,7 +123,7 @@ fun HomeScreenContent(
                     .align(Alignment.TopStart)
                     .width(300.dp)
                     .padding(start = 88.dp, top = 28.dp)
-                    .offset(x = 35.dp , y = 35.dp)
+                    .offset(x = 35.dp, y = 35.dp)
                     .size(70.dp),
                 color = Color(0xFF55433F)
             )
