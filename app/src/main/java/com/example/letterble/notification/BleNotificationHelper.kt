@@ -15,10 +15,7 @@ import androidx.core.content.ContextCompat
 import com.example.letterble.R
 
 /**
- * BLE の状態をユーザーに知らせる通知をまとめて扱うヘルパー。
- *
- * BLE の開始・停止やすれ違い処理そのものはリポジトリ / データソース側で行い、
- * このクラスでは通知チャンネルの作成と通知表示だけを担当する。
+ * BLE の状態とすれ違い検知をユーザーへ知らせる通知ヘルパー。
  */
 class BleNotificationHelper(
     private val context: Context
@@ -26,15 +23,23 @@ class BleNotificationHelper(
     private val notificationManager = NotificationManagerCompat.from(context)
 
     init {
-        // Android 8.0 以降では通知を出す前にチャンネルを作っておく必要がある。
         createChannels()
     }
 
-    /**
-     * BLE 通信中であることを固定通知として表示する。
-     *
-     * setOngoing(true) にして、ユーザーが通信中であることを通知欄で確認できるようにする。
-     */
+    fun createBleRunningNotification(userName: String): Notification {
+        return NotificationCompat.Builder(context, BLE_STATUS_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle("BLE通信中")
+            .setContentText("$userName として周囲のユーザーを探しています")
+            .setContentIntent(openAppPendingIntent())
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setCategory(NotificationCompat.CATEGORY_STATUS)
+            .setShowWhen(false)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .build()
+    }
+
     fun showBleRunningNotification(userName: String) {
         if (!canPostNotifications()) {
             return
@@ -42,31 +47,14 @@ class BleNotificationHelper(
 
         notifyIfAllowed(
             notificationId = BLE_RUNNING_NOTIFICATION_ID,
-            notification =
-            NotificationCompat.Builder(context, BLE_STATUS_CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
-                .setContentTitle("BLE通信中")
-                .setContentText("$userName として周囲のユーザーを探しています")
-                .setContentIntent(openAppPendingIntent())
-                .setOngoing(true)
-                .setOnlyAlertOnce(true)
-                .setCategory(NotificationCompat.CATEGORY_STATUS)
-                .setShowWhen(false)
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .build()
+            notification = createBleRunningNotification(userName)
         )
     }
 
-    /**
-     * BLE 通信中の固定通知を消す。
-     */
     fun hideBleRunningNotification() {
         notificationManager.cancel(BLE_RUNNING_NOTIFICATION_ID)
     }
 
-    /**
-     * 周囲のユーザーを検知したときに、すれ違い通知を表示する。
-     */
     fun showEncounterNotification(targetUserName: String) {
         if (!canPostNotifications()) {
             return
@@ -74,8 +62,7 @@ class BleNotificationHelper(
 
         notifyIfAllowed(
             notificationId = targetUserName.notificationId(),
-            notification =
-            NotificationCompat.Builder(context, BLE_EVENT_CHANNEL_ID)
+            notification = NotificationCompat.Builder(context, BLE_EVENT_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .setContentTitle("すれ違いました")
                 .setContentText("$targetUserName さんを検知しました")
@@ -98,9 +85,6 @@ class BleNotificationHelper(
         }
     }
 
-    /**
-     * BLE 通信中通知とすれ違い通知、それぞれの通知チャンネルを作成する。
-     */
     private fun createChannels() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             return
@@ -127,9 +111,6 @@ class BleNotificationHelper(
         )
     }
 
-    /**
-     * Android 13 以降では通知権限が必要なので、通知を出せる状態か確認する。
-     */
     private fun canPostNotifications(): Boolean {
         return Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
             ContextCompat.checkSelfPermission(
@@ -138,9 +119,6 @@ class BleNotificationHelper(
             ) == PackageManager.PERMISSION_GRANTED
     }
 
-    /**
-     * 通知をタップしたときにアプリを開くための PendingIntent を作る。
-     */
     private fun openAppPendingIntent(): PendingIntent? {
         val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
             ?: return null
@@ -148,9 +126,6 @@ class BleNotificationHelper(
         return PendingIntent.getActivity(context, OPEN_APP_REQUEST_CODE, intent, flags)
     }
 
-    /**
-     * 相手ユーザー名ごとに通知 ID を分け、すれ違い通知が上書きされすぎないようにする。
-     */
     private fun String.notificationId(): Int {
         return ENCOUNTER_NOTIFICATION_ID_BASE + hashCode().let { hash ->
             if (hash == Int.MIN_VALUE) 0 else kotlin.math.abs(hash)
@@ -158,10 +133,10 @@ class BleNotificationHelper(
     }
 
     companion object {
-        // v2 にしているのは、古い LOW 重要度の通知チャンネル設定が端末に残るのを避けるため。
+        const val BLE_RUNNING_NOTIFICATION_ID = 1001
+
         private const val BLE_STATUS_CHANNEL_ID = "letter_ble_status_v2"
         private const val BLE_EVENT_CHANNEL_ID = "letter_ble_events"
-        private const val BLE_RUNNING_NOTIFICATION_ID = 1001
         private const val ENCOUNTER_NOTIFICATION_ID_BASE = 2000
         private const val ENCOUNTER_NOTIFICATION_ID_RANGE = 100_000
         private const val OPEN_APP_REQUEST_CODE = 3001

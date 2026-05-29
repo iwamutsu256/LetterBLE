@@ -25,6 +25,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
 import com.example.letterble.navigation.AppNavGraph
+import com.example.letterble.service.BleForegroundService
 import com.example.letterble.ui.theme.LetterBLETheme
 
 class MainActivity : ComponentActivity() {
@@ -32,7 +33,7 @@ class MainActivity : ComponentActivity() {
         ActivityResultContracts.RequestMultiplePermissions()
     ) { results ->
         if (hasBleRuntimePermissions(results)) {
-            appContainer().bleRepository.startBle()
+            BleForegroundService.start(this)
         }
     }
 
@@ -53,11 +54,6 @@ class MainActivity : ComponentActivity() {
         requestBlePermissionsIfNeeded()
     }
 
-    override fun onDestroy() {
-        appContainer().bleRepository.stopBle()
-        super.onDestroy()
-    }
-
     private fun requestBlePermissionsIfNeeded() {
         val missingPermissions = startupPermissions().filter { permission ->
             ContextCompat.checkSelfPermission(this, permission) !=
@@ -65,7 +61,7 @@ class MainActivity : ComponentActivity() {
         }
 
         if (hasBleRuntimePermissions()) {
-            appContainer().bleRepository.startBle()
+            BleForegroundService.start(this)
         }
 
         if (missingPermissions.isNotEmpty()) {
@@ -133,6 +129,4 @@ class MainActivity : ComponentActivity() {
             ?: (ContextCompat.checkSelfPermission(this, permission) ==
                 PackageManager.PERMISSION_GRANTED)
     }
-
-    private fun appContainer() = (application as LetterBleApplication).appContainer
-    }
+}
