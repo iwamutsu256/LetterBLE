@@ -68,7 +68,9 @@ class BleRepository(
                     myUserName = myUserName,
                     targetUserName = targetUserName
                 )
-                if (!relayed) {
+                if (relayed) {
+                    notificationHelper.showRelayedNotification(targetUserName)
+                } else {
                     Log.d(
                         TAG,
                         "BLE encounter detected, but no letters were relayed: $myUserName -> $targetUserName"
