@@ -66,6 +66,7 @@ fun AppNavGraph(
 
         composable(Destinations.HOME) {
             HomeScreen(
+                navController = navController,
                 appContainer = appContainer,
                 onReceivedClicked = { navController.navigate(Destinations.RECEIVED) },
                 onCarryClicked = { navController.navigate(Destinations.CARRY) },
