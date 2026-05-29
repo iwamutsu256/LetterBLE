@@ -19,7 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.material3.ButtonColors
+//import androidx.compose.material3.ButtonColors
 
 // TODO: 必要になったら共通Cardなどの再利用UIを追加する
 // TODO: MapViewなどの画面横断コンポーネントはViewModel非依存で定義する
