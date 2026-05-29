@@ -16,6 +16,7 @@ import android.bluetooth.BluetoothAdapter
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
+import android.bluetooth.le.ScanFilter
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
@@ -66,8 +67,12 @@ class BleScanner(
             .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
             .build()
 
+        val filter = ScanFilter.Builder()
+            .setServiceUuid(BleAdvertiser.LETTER_BLE_SERVICE_UUID)
+            .build()
+
         scanCallback = callback
-        scanner.startScan(null, settings, callback)
+        scanner.startScan(listOf(filter), settings, callback)
         return true
     }
 
