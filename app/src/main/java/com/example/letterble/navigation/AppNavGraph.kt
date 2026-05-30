@@ -78,6 +78,7 @@ fun AppNavGraph(
 
         composable(Destinations.HOME) {
             HomeScreen(
+                navController = navController,
                 appContainer = appContainer,
                 blePermissionErrorMessage = blePermissionErrorMessage,
                 onOpenAppSettingsClicked = onOpenAppSettingsClicked,
