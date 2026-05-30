@@ -42,6 +42,13 @@ fun AppNavGraph(
     onOpenAppSettingsClicked: () -> Unit = {}
 ) {
     val context = LocalContext.current
+    val navigateBackOrHome = {
+        if (!navController.popBackStack()) {
+            navController.navigate(Destinations.HOME) {
+                launchSingleTop = true
+            }
+        }
+    }
     val startDestination = if (
         appContainer.userRepository.getCurrentUserName().isNullOrBlank()
     ) {
@@ -74,16 +81,28 @@ fun AppNavGraph(
                 appContainer = appContainer,
                 blePermissionErrorMessage = blePermissionErrorMessage,
                 onOpenAppSettingsClicked = onOpenAppSettingsClicked,
-                onReceivedClicked = { navController.navigate(Destinations.RECEIVED) },
-                onCarryClicked = { navController.navigate(Destinations.CARRY) },
-                onCreateLetterClicked = { navController.navigate(Destinations.EDIT_LETTER) }
+                onReceivedClicked = {
+                    navController.navigate(Destinations.RECEIVED) {
+                        launchSingleTop = true
+                    }
+                },
+                onCarryClicked = {
+                    navController.navigate(Destinations.CARRY) {
+                        launchSingleTop = true
+                    }
+                },
+                onCreateLetterClicked = {
+                    navController.navigate(Destinations.EDIT_LETTER) {
+                        launchSingleTop = true
+                    }
+                }
             )
         }
 
         composable(Destinations.EDIT_LETTER) {
             EditLetterScreen(
                 appContainer = appContainer,
-                onBackClicked = navController::popBackStack,
+                onBackClicked = navigateBackOrHome,
                 onSubmitClicked = {
                     navController.navigate(Destinations.POST_SELECT) {
                         launchSingleTop = true
@@ -95,7 +114,7 @@ fun AppNavGraph(
         composable(Destinations.POST_SELECT) {
             PostSelectScreen(
                 appContainer = appContainer,
-                onBackClicked = navController::popBackStack,
+                onBackClicked = navigateBackOrHome,
                 onSubmitted = {
                     navController.navigate(Destinations.HOME) {
                         popUpTo(Destinations.HOME) { inclusive = false }
@@ -109,9 +128,11 @@ fun AppNavGraph(
             ReceivedScreen(
                 appContainer = appContainer,
                 onLetterClicked = { letterId ->
-                    navController.navigate(Destinations.receivedDetail(letterId))
+                    navController.navigate(Destinations.receivedDetail(letterId)) {
+                        launchSingleTop = true
+                    }
                 },
-                onBackClicked = navController::popBackStack
+                onBackClicked = navigateBackOrHome
             )
         }
 
@@ -122,7 +143,7 @@ fun AppNavGraph(
             ReceivedDetailScreen(
                 appContainer = appContainer,
                 letterId = backStackEntry.arguments?.getString(Destinations.LETTER_ID_ARG).orEmpty(),
-                onBackClicked = navController::popBackStack
+                onBackClicked = navigateBackOrHome
             )
         }
 
@@ -130,9 +151,11 @@ fun AppNavGraph(
             CarryScreen(
                 appContainer = appContainer,
                 onLetterClicked = { letterId ->
-                    navController.navigate(Destinations.carryDetail(letterId))
+                    navController.navigate(Destinations.carryDetail(letterId)) {
+                        launchSingleTop = true
+                    }
                 },
-                onBackClicked = navController::popBackStack
+                onBackClicked = navigateBackOrHome
             )
         }
 
@@ -143,7 +166,7 @@ fun AppNavGraph(
             CarryDetailScreen(
                 appContainer = appContainer,
                 letterId = backStackEntry.arguments?.getString(Destinations.LETTER_ID_ARG).orEmpty(),
-                onBackClicked = navController::popBackStack
+                onBackClicked = navigateBackOrHome
             )
         }
     }
