@@ -28,9 +28,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import com.example.letterble.di.AppContainer
+import com.example.letterble.ui.components.CommonBottomNavigation
 
 /**
  * 運搬中の手紙一覧画面を表示する。
@@ -42,6 +45,7 @@ import com.example.letterble.di.AppContainer
  */
 @Composable
 fun CarryScreen(
+    navController: NavHostController,
     appContainer: AppContainer,
     onLetterClicked: (String) -> Unit,
     onBackClicked: () -> Unit,
@@ -60,9 +64,32 @@ fun CarryScreen(
         viewModel.loadCarryingLetters()
     }
 
+    CommonBottomNavigation(navController = navController) { innerPadding ->
+        CarryScreenContent(
+            uiState = uiState,
+            onLetterClicked = onLetterClicked,
+            onBackClicked = onBackClicked,
+            innerPadding = innerPadding,
+            modifier = modifier
+        )
+    }
+}
+
+/**
+ * 表示ロジックを分離したコンテンツ部分。
+ */
+@Composable
+private fun CarryScreenContent(
+    uiState: CarryUiState,
+    onLetterClicked: (String) -> Unit,
+    onBackClicked: () -> Unit,
+    innerPadding: PaddingValues,
+    modifier: Modifier = Modifier
+) {
     Column(
         modifier = modifier
             .fillMaxSize()
+            .padding(innerPadding)
             .padding(24.dp)
     ) {
         Text(
@@ -96,6 +123,24 @@ fun CarryScreen(
         ) {
             Text("戻る")
         }
+    }
+}
+
+@Preview(showSystemUi = true)
+@Composable
+private fun CarryScreenSystemUIPreview() {
+    MaterialTheme {
+        CarryScreenContent(
+            uiState = CarryUiState(
+                currentUserName = "sample-user",
+                carryingLetters = listOf(
+                    CarryLetterListItem("1", "Alice", "Bob")
+                )
+            ),
+            onLetterClicked = {},
+            onBackClicked = {},
+            innerPadding = PaddingValues(0.dp)
+        )
     }
 }
 

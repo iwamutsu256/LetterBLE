@@ -13,6 +13,7 @@ package com.example.letterble.feature.edit_letter
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -20,6 +21,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -31,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.letterble.di.AppContainer
@@ -111,9 +114,40 @@ fun EditLetterScreen(
         )
     }
 
+    Scaffold { innerPadding ->
+        EditLetterScreenContent(
+            uiState = uiState,
+            onToUserChanged = viewModel::onToUserChanged,
+            onSentenceChanged = viewModel::onSentenceChanged,
+            onSaveDraftClicked = viewModel::onSaveDraftClicked,
+            onClearDraftClicked = viewModel::onClearDraftClicked,
+            onSubmitClicked = viewModel::onSubmitClicked,
+            onRequestBack = ::requestBack,
+            innerPadding = innerPadding,
+            modifier = modifier
+        )
+    }
+}
+
+/**
+ * 表示ロジックを分離したコンテンツ部分。
+ */
+@Composable
+private fun EditLetterScreenContent(
+    uiState: EditLetterUiState,
+    onToUserChanged: (String) -> Unit,
+    onSentenceChanged: (String) -> Unit,
+    onSaveDraftClicked: () -> Unit,
+    onClearDraftClicked: () -> Unit,
+    onSubmitClicked: () -> Unit,
+    onRequestBack: () -> Unit,
+    innerPadding: PaddingValues,
+    modifier: Modifier = Modifier
+) {
     Column(
         modifier = modifier
             .fillMaxSize()
+            .padding(innerPadding)
             .padding(24.dp),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -125,7 +159,7 @@ fun EditLetterScreen(
 
         OutlinedTextField(
             value = uiState.toUser,
-            onValueChange = viewModel::onToUserChanged,
+            onValueChange = onToUserChanged,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 24.dp),
@@ -135,7 +169,7 @@ fun EditLetterScreen(
 
         OutlinedTextField(
             value = uiState.sentence,
-            onValueChange = viewModel::onSentenceChanged,
+            onValueChange = onSentenceChanged,
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = 160.dp)
@@ -156,23 +190,43 @@ fun EditLetterScreen(
         CommonButton(
             text = "下書き保存",
             modifier = Modifier.padding(top = 24.dp),
-            onClick = viewModel::onSaveDraftClicked
+            onClick = onSaveDraftClicked
         )
         CommonButton(
             text = "下書き削除",
             modifier = Modifier.padding(top = 8.dp),
-            onClick = viewModel::onClearDraftClicked
+            onClick = onClearDraftClicked
         )
         CommonButton(
             text = if (uiState.isNavigatingToPostSelect) "移動中" else "ポストを選ぶ",
             modifier = Modifier.padding(top = 8.dp),
             enabled = !uiState.isSubmitting && !uiState.isNavigatingToPostSelect,
-            onClick = viewModel::onSubmitClicked
+            onClick = onSubmitClicked
         )
         CommonButton(
             text = "戻る",
             modifier = Modifier.padding(top = 8.dp),
-            onClick = ::requestBack
+            onClick = onRequestBack
+        )
+    }
+}
+
+@Preview(showSystemUi = true)
+@Composable
+private fun EditLetterScreenSystemUIPreview() {
+    MaterialTheme {
+        EditLetterScreenContent(
+            uiState = EditLetterUiState(
+                toUser = "Bob",
+                sentence = "This is a sample letter sentence for preview."
+            ),
+            onToUserChanged = {},
+            onSentenceChanged = {},
+            onSaveDraftClicked = {},
+            onClearDraftClicked = {},
+            onSubmitClicked = {},
+            onRequestBack = {},
+            innerPadding = PaddingValues(0.dp)
         )
     }
 }
