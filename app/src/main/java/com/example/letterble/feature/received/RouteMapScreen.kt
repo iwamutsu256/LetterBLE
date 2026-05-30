@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.letterble.domain.model.Tree
 import com.example.letterble.ui.components.LetterTreeMapView
@@ -46,5 +47,13 @@ fun RouteMapScreen(
             tree = tree,
             modifier = Modifier.matchParentSize()
         )
+    }
+}
+
+@Preview(showSystemUi = true)
+@Composable
+private fun RouteMapScreenPreview() {
+    MaterialTheme {
+        RouteMapScreen(tree = Tree())
     }
 }

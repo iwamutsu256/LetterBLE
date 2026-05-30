@@ -8,6 +8,7 @@
 package com.example.letterble.feature.carry
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,6 +19,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,9 +27,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.letterble.di.AppContainer
+import com.example.letterble.domain.model.Tree
 
 /**
  * 運搬中の手紙の詳細画面を表示する。
@@ -57,9 +61,36 @@ fun CarryDetailScreen(
         viewModel.loadLetterDetail(letterId)
     }
 
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background
+    ) { innerPadding ->
+        CarryDetailScreenContent(
+            uiState = uiState,
+            letterId = letterId,
+            onBackClicked = onBackClicked,
+            onRetryClicked = { viewModel.loadLetterDetail(letterId) },
+            innerPadding = innerPadding,
+            modifier = modifier
+        )
+    }
+}
+
+/**
+ * 表示ロジックを分離したコンテンツ部分。
+ */
+@Composable
+private fun CarryDetailScreenContent(
+    uiState: CarryUiState,
+    letterId: String,
+    onBackClicked: () -> Unit,
+    onRetryClicked: () -> Unit,
+    innerPadding: PaddingValues,
+    modifier: Modifier = Modifier
+) {
     Column(
         modifier = modifier
             .fillMaxSize()
+            .padding(innerPadding)
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -77,7 +108,7 @@ fun CarryDetailScreen(
 
         CarryLetterDetailContent(
             uiState = uiState,
-            onRetryClicked = { viewModel.loadLetterDetail(letterId) },
+            onRetryClicked = onRetryClicked,
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
@@ -89,6 +120,31 @@ fun CarryDetailScreen(
         ) {
             Text("戻る")
         }
+    }
+}
+
+@Preview(showSystemUi = true)
+@Composable
+private fun CarryDetailScreenSystemUIPreview() {
+    MaterialTheme {
+        CarryDetailScreenContent(
+            uiState = CarryUiState(
+                currentUserName = "sample-user",
+                selectedLetter = CarryLetterDetailInfo(
+                    letterId = "letter-123",
+                    toUser = "Bob",
+                    fromUser = "Alice",
+                    isSurvival = true,
+                    routeNodeCount = 2,
+                    routeEdgeCount = 1,
+                    tree = Tree()
+                )
+            ),
+            letterId = "letter-123",
+            onBackClicked = {},
+            onRetryClicked = {},
+            innerPadding = PaddingValues(0.dp)
+        )
     }
 }
 

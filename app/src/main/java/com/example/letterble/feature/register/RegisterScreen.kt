@@ -11,6 +11,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -23,6 +24,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -73,16 +75,19 @@ fun RegisterScreen(
         }
     }
 
-    RegisterScreenContent(
-        currentScreen = currentScreen,
-        userName = uiState.userName,
-        errorMessage = uiState.errorMessage,
-        isLoading = uiState.isLoading,
-        onStartClicked = { currentScreen = RegisterSubScreen.NewRegistration },
-        onNameChanged = viewModel::onNameChanged,
-        onNameSubmitClicked = viewModel::onNameSubmitClicked,
-        modifier = modifier
-    )
+    Scaffold { innerPadding ->
+        RegisterScreenContent(
+            currentScreen = currentScreen,
+            userName = uiState.userName,
+            errorMessage = uiState.errorMessage,
+            isLoading = uiState.isLoading,
+            onStartClicked = { currentScreen = RegisterSubScreen.NewRegistration },
+            onNameChanged = viewModel::onNameChanged,
+            onNameSubmitClicked = viewModel::onNameSubmitClicked,
+            modifier = modifier,
+            innerPadding = innerPadding
+        )
+    }
 }
 
 @Composable
@@ -94,12 +99,14 @@ private fun RegisterScreenContent(
     onStartClicked: () -> Unit,
     onNameChanged: (String) -> Unit,
     onNameSubmitClicked: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    innerPadding: PaddingValues = PaddingValues()
 ) {
     when (currentScreen) {
         RegisterSubScreen.Start -> RegisterStartContent(
             onStartClicked = onStartClicked,
-            modifier = modifier
+            modifier = modifier,
+            innerPadding = innerPadding
         )
 
         RegisterSubScreen.NewRegistration -> NewRegistrationContent(
@@ -108,7 +115,8 @@ private fun RegisterScreenContent(
             isLoading = isLoading,
             onNameChanged = onNameChanged,
             onNameSubmitClicked = onNameSubmitClicked,
-            modifier = modifier
+            modifier = modifier,
+            innerPadding = innerPadding
         )
     }
 }
@@ -116,13 +124,15 @@ private fun RegisterScreenContent(
 @Composable
 private fun RegisterStartContent(
     onStartClicked: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    innerPadding: PaddingValues = PaddingValues()
 ) {
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(Color(0xFFFFFFFA))
     ) {
+        // 背景画像などはエッジまで広げる
         Image(
             painter = painterResource(id = R.drawable.img01),
             contentDescription = null,
@@ -155,6 +165,7 @@ private fun RegisterStartContent(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(innerPadding)
                 .padding(24.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
@@ -191,7 +202,8 @@ private fun NewRegistrationContent(
     isLoading: Boolean,
     onNameChanged: (String) -> Unit,
     onNameSubmitClicked: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    innerPadding: PaddingValues = PaddingValues()
 ) {
     Box(
         modifier = modifier
@@ -211,13 +223,16 @@ private fun NewRegistrationContent(
             text = "What's Your",
             fontSize = 50.sp,
             color = Color(0xFF0F0F6D),
-            modifier = Modifier.offset(x = 50.dp, y = 60.dp)
+            modifier = Modifier
+                .padding(top = innerPadding.calculateTopPadding())
+                .offset(x = 50.dp, y = 60.dp)
         )
         Text(
             text = "Name?",
             fontSize = 50.sp,
             color = Color(0xFF0F0F6D),
             modifier = Modifier
+                .padding(top = innerPadding.calculateTopPadding())
                 .offset(x = 190.dp, y = 120.dp)
                 .padding(bottom = 90.dp)
         )
@@ -225,6 +240,7 @@ private fun NewRegistrationContent(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(innerPadding)
                 .padding(24.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
@@ -287,6 +303,40 @@ private fun NewRegistrationContent(
                 )
             }
         }
+    }
+}
+
+@Preview(showSystemUi = true)
+@Composable
+private fun RegisterStartScreenSystemUIPreview() {
+    LetterBLETheme {
+        RegisterScreenContent(
+            currentScreen = RegisterSubScreen.Start,
+            userName = "",
+            errorMessage = null,
+            isLoading = false,
+            onStartClicked = {},
+            onNameChanged = {},
+            onNameSubmitClicked = {},
+            innerPadding = PaddingValues(0.dp)
+        )
+    }
+}
+
+@Preview(showSystemUi = true)
+@Composable
+private fun NewRegisterScreenSystemUIPreview() {
+    LetterBLETheme {
+        RegisterScreenContent(
+            currentScreen = RegisterSubScreen.NewRegistration,
+            userName = "",
+            errorMessage = null,
+            isLoading = false,
+            onStartClicked = {},
+            onNameChanged = {},
+            onNameSubmitClicked = {},
+            innerPadding = PaddingValues(0.dp)
+        )
     }
 }
 

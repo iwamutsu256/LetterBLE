@@ -13,6 +13,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -49,7 +50,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import com.example.letterble.di.AppContainer
+import com.example.letterble.ui.components.CommonBottomNavigation
 import com.example.letterble.ui.components.CommonButton
 import com.example.letterble.R
 
@@ -62,6 +65,7 @@ import com.example.letterble.R
  */
 @Composable
 fun ReceivedScreen(
+    navController: NavHostController,
     appContainer: AppContainer,
     onLetterClicked: (String) -> Unit,
     onBackClicked: () -> Unit,
@@ -94,9 +98,34 @@ fun ReceivedScreen(
         viewModel.loadReceivedLetters()
     }
 
+    CommonBottomNavigation(navController = navController) { innerPadding ->
+        ReceivedScreenContent(
+            uiState = uiState,
+            onLetterClicked = onLetterClicked,
+            onBackClicked = onBackClicked,
+            onRetryClicked = viewModel::loadReceivedLetters,
+            innerPadding = innerPadding,
+            modifier = modifier
+        )
+    }
+}
+
+/**
+ * 表示ロジックを分離したコンテンツ部分。プレビューで使用可能。
+ */
+@Composable
+private fun ReceivedScreenContent(
+    uiState: ReceivedUiState,
+    onLetterClicked: (String) -> Unit,
+    onBackClicked: () -> Unit,
+    onRetryClicked: () -> Unit,
+    innerPadding: PaddingValues,
+    modifier: Modifier = Modifier
+) {
     Column(
         modifier = modifier
             .fillMaxSize()
+            .padding(innerPadding)
             .padding(24.dp),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.Start
@@ -128,7 +157,7 @@ fun ReceivedScreen(
             errorMessage != null -> {
                 ReceivedErrorContent(
                     errorMessage = errorMessage,
-                    onRetryClicked = viewModel::loadReceivedLetters
+                    onRetryClicked = onRetryClicked
                 )
             }
 
@@ -139,7 +168,8 @@ fun ReceivedScreen(
             else -> {
                 ReceivedLetterList(
                     letters = uiState.receivedLetters,
-                    onLetterClicked = onLetterClicked
+                    onLetterClicked = onLetterClicked,
+                    modifier = Modifier.weight(1f)
                 )
             }
         }
@@ -242,10 +272,11 @@ fun ReceivedErrorContentPreview(){
 @Composable
 private fun ReceivedLetterList(
     letters: List<ReceivedLetterListItem>,
-    onLetterClicked: (String) -> Unit
+    onLetterClicked: (String) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(Color(0xFFFFFFFA)),
         contentAlignment = Alignment.Center
@@ -347,6 +378,25 @@ fun ReceivedLetterListPreview() {
         onLetterClicked = {}
     )
 }
+@Preview(showSystemUi = true)
+@Composable
+private fun ReceivedScreenSystemUIPreview() {
+    MaterialTheme {
+        ReceivedScreenContent(
+            uiState = ReceivedUiState(
+                currentUserName = "sample-user",
+                receivedLetters = listOf(
+                    ReceivedLetterListItem("1", "Alice", "sample-user", "Hello!", false)
+                )
+            ),
+            onLetterClicked = {},
+            onBackClicked = {},
+            onRetryClicked = {},
+            innerPadding = PaddingValues(0.dp)
+        )
+    }
+}
+
 /**
  * 一覧の1行。
  *
