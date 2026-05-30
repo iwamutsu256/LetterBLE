@@ -7,17 +7,27 @@
  */
 package com.example.letterble.feature.received
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -29,12 +39,19 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.letterble.di.AppContainer
 import com.example.letterble.ui.components.CommonButton
+import com.example.letterble.R
 
 /**
  * 受信した手紙一覧画面。
@@ -141,16 +158,20 @@ fun ReceivedScreen(
  * 画面本体のwhenの中に直接書くこともできるが、
  * 状態ごとのUIを小さいComposableへ分けると、一覧・空・エラーの差が読みやすい。
  */
+@Preview
 @Composable
 private fun ReceivedLoadingContent() {
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        CircularProgressIndicator()
+        CircularProgressIndicator(
+            color = Color(0xFFFFF01D)
+        )
         Text(
             modifier = Modifier.padding(top = 12.dp),
             text = "読み込み中",
+            color = Color(0xFF55433F),
             style = MaterialTheme.typography.bodyMedium
         )
     }
@@ -159,12 +180,15 @@ private fun ReceivedLoadingContent() {
 /**
  * 受信した手紙が1件もないときの表示。
  */
+@Preview
 @Composable
 private fun ReceivedEmptyContent() {
     Text(
         modifier = Modifier.fillMaxWidth(),
         text = "届いた手紙はありません",
-        style = MaterialTheme.typography.bodyMedium
+        color = Color(0xFF55433F),
+        style = MaterialTheme.typography.bodyMedium,
+        textAlign = TextAlign.Center
     )
 }
 
@@ -175,13 +199,13 @@ private fun ReceivedEmptyContent() {
  * 画面側は「再試行された」ことだけを伝え、取得処理の中身はViewModelに任せる。
  */
 @Composable
-private fun ReceivedErrorContent(
+fun ReceivedErrorContent(
     errorMessage: String,
     onRetryClicked: () -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.Start
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
             text = errorMessage,
@@ -190,12 +214,25 @@ private fun ReceivedErrorContent(
         )
         CommonButton(
             text = "再試行",
-            modifier = Modifier.padding(top = 12.dp),
+            modifier = Modifier
+                .width(200.dp)
+                .padding(top = 12.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF55433F),
+                contentColor = Color(0xFFFFFFFA)
+            ),
             onClick = onRetryClicked
         )
     }
 }
-
+@Preview
+@Composable
+fun ReceivedErrorContentPreview(){
+    ReceivedErrorContent(
+        errorMessage = "ネットワークエラー",
+        onRetryClicked = {}
+    )
+}
 /**
  * 受信した手紙の一覧。
  *
@@ -207,21 +244,109 @@ private fun ReceivedLetterList(
     letters: List<ReceivedLetterListItem>,
     onLetterClicked: (String) -> Unit
 ) {
-    LazyColumn(
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFFFFFFA)),
+        contentAlignment = Alignment.Center
     ) {
-        items(
-            items = letters,
-            key = { letter -> letter.letterId }
-        ) { letter ->
-            ReceivedLetterRow(
-                letter = letter,
-                onClick = { onLetterClicked(letter.letterId) }
+        Image(
+            painter = painterResource(id = R.drawable.img01),
+            contentDescription = null,
+            modifier = Modifier
+                .size(320.dp)
+                .offset(x = (-100).dp, y = (-400).dp)
+        )
+        Image(
+            painter = painterResource(id = R.drawable.img02),
+            contentDescription = null,
+            modifier = Modifier
+                .size(120.dp)
+                .offset(x = 40.dp, y = -360.dp)
+        )
+        Column(
+            modifier = Modifier
+                .width(700.dp)
+                .padding(25.dp),
+            verticalArrangement = Arrangement.Bottom,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "受け取ったメッセージ",
+                fontSize = 30.sp,
+                color = Color(0xFF55433F),
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 50.dp)
             )
+
+            LazyVerticalGrid(
+                columns = GridCells.Adaptive(minSize = 100.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalArrangement = Arrangement.spacedBy(30.dp)
+            ) {
+                items(
+                    count = letters.size,
+                    key = { index -> letters[index].letterId }
+                ) { index ->
+
+                    val letter = letters[index]
+
+                    val imageRes = if (!letter.isDelivered) {
+                        R.drawable.letter01
+                    } else {
+                        R.drawable.letter02
+                    }
+                    Image(
+                        painter = painterResource(id = imageRes),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(75.dp)
+                            .clickable { onLetterClicked(letter.letterId) }
+                    )
+                }
+            }
         }
     }
 }
 
+@Preview(showBackground = true)
+@Composable
+fun ReceivedLetterListPreview() {
+    val sampleLetters = listOf(
+        ReceivedLetterListItem(
+            letterId = "1",
+            fromUser = "Alice",
+            toUser = "ken",
+            sentencePreview = "こんにちは！元気？",
+            isDelivered = false
+        ),
+        ReceivedLetterListItem(
+            letterId = "2",
+            fromUser = "Alice",
+            toUser = "ken",
+            sentencePreview = "こんにちは！元気？",
+            isDelivered = false
+        ),
+        ReceivedLetterListItem(
+            letterId = "3",
+            fromUser = "Bob",
+            toUser = "ken",
+            sentencePreview = "今日の予定どうする？",
+            isDelivered = true
+        )
+    )
+
+    ReceivedLetterList(
+        letters = sampleLetters,
+        onLetterClicked = {}
+    )
+}
 /**
  * 一覧の1行。
  *
