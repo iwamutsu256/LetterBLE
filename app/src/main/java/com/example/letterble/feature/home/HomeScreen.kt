@@ -11,16 +11,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -34,9 +34,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.example.letterble.R
 import com.example.letterble.di.AppContainer
-import com.example.letterble.ui.components.CommonButton
+import com.example.letterble.ui.components.CommonBottomNavigation
 import com.example.letterble.ui.theme.LetterBLETheme
 
 /**
@@ -44,6 +46,7 @@ import com.example.letterble.ui.theme.LetterBLETheme
  */
 @Composable
 fun HomeScreen(
+    navController: NavHostController,
     appContainer: AppContainer,
     blePermissionErrorMessage: String?,
     onOpenAppSettingsClicked: () -> Unit,
@@ -70,20 +73,23 @@ fun HomeScreen(
         }
     }
 
-    HomeScreenContent(
-        currentUserName = uiState.currentUserName,
-        isReceivedStatusLoading = uiState.isReceivedStatusLoading,
-        receivedStatusErrorMessage = uiState.receivedStatusErrorMessage,
-        hasReceivedLetters = uiState.hasReceivedLetters,
-        receivedLetterCount = uiState.receivedLetterCount,
-        blePermissionErrorMessage = blePermissionErrorMessage,
-        onOpenAppSettingsClicked = onOpenAppSettingsClicked,
-        onReceivedClicked = viewModel::onReceivedClicked,
-        onHomeClicked = {},
-        onCarryClicked = viewModel::onCarryClicked,
-        onCreateLetterClicked = viewModel::onCreateLetterClicked,
-        modifier = modifier
-    )
+    CommonBottomNavigation(navController = navController) { innerPadding ->
+        HomeScreenContent(
+            currentUserName = uiState.currentUserName,
+            isReceivedStatusLoading = uiState.isReceivedStatusLoading,
+            receivedStatusErrorMessage = uiState.receivedStatusErrorMessage,
+            hasReceivedLetters = uiState.hasReceivedLetters,
+            receivedLetterCount = uiState.receivedLetterCount,
+            blePermissionErrorMessage = blePermissionErrorMessage,
+            onOpenAppSettingsClicked = onOpenAppSettingsClicked,
+            onReceivedClicked = viewModel::onReceivedClicked,
+            onHomeClicked = {},
+            onCarryClicked = viewModel::onCarryClicked,
+            onCreateLetterClicked = viewModel::onCreateLetterClicked,
+            modifier = modifier,
+            innerPadding = innerPadding
+        )
+    }
 }
 
 @Composable
@@ -99,7 +105,8 @@ fun HomeScreenContent(
     onHomeClicked: () -> Unit,
     onCarryClicked: () -> Unit,
     onCreateLetterClicked: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    innerPadding: PaddingValues = PaddingValues()
 ) {
     Box(
         modifier = modifier
@@ -112,7 +119,7 @@ fun HomeScreenContent(
             modifier = Modifier
                 .size(110.dp)
                 .padding(20.dp)
-                .offset(x = 20.dp , y = 20.dp)
+                .offset(x = 20.dp, y = 20.dp)
         )
 
         if (currentUserName.isNotBlank()) {
@@ -122,7 +129,7 @@ fun HomeScreenContent(
                     .align(Alignment.TopStart)
                     .width(300.dp)
                     .padding(start = 88.dp, top = 28.dp)
-                    .offset(x = 35.dp , y = 35.dp)
+                    .offset(x = 35.dp, y = 35.dp)
                     .size(70.dp),
                 color = Color(0xFF55433F)
             )
@@ -159,7 +166,7 @@ fun HomeScreenContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 24.dp)
-                .padding(bottom = 40.dp),
+                .padding(bottom = innerPadding.calculateBottomPadding() + 16.dp),
             verticalArrangement = Arrangement.Bottom,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -172,40 +179,6 @@ fun HomeScreenContent(
                 },
                 color = Color(0xFF55433F)
             )
-
-            Row(
-                modifier = Modifier.padding(top = 25.dp),
-                horizontalArrangement = Arrangement.spacedBy(20.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                CommonButton(
-                    text = "受信",
-                    modifier = Modifier.width(100.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF0F0F6D),
-                        contentColor = Color(0xFFFFFFFA)
-                    ),
-                    onClick = onReceivedClicked
-                )
-                CommonButton(
-                    text = "ホーム",
-                    modifier = Modifier.width(100.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF0F0F6D),
-                        contentColor = Color(0xFFFFFFFA)
-                    ),
-                    onClick = onHomeClicked
-                )
-                CommonButton(
-                    text = "配達",
-                    modifier = Modifier.width(100.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF0F0F6D),
-                        contentColor = Color(0xFFFFFFFA)
-                    ),
-                    onClick = onCarryClicked
-                )
-            }
         }
 
         if (blePermissionErrorMessage != null) {
@@ -230,19 +203,24 @@ fun HomeScreenContent(
 @Preview(showBackground = true)
 @Composable
 private fun HomeScreenContentPreview() {
+    val navController = rememberNavController()
     LetterBLETheme {
-        HomeScreenContent(
-            currentUserName = "sample-user",
-            isReceivedStatusLoading = false,
-            receivedStatusErrorMessage = null,
-            hasReceivedLetters = true,
-            receivedLetterCount = 2,
-            blePermissionErrorMessage = null,
-            onOpenAppSettingsClicked = {},
-            onReceivedClicked = {},
-            onHomeClicked = {},
-            onCarryClicked = {},
-            onCreateLetterClicked = {}
-        )
+        CommonBottomNavigation(navController = navController) { innerPadding ->
+            HomeScreenContent(
+                currentUserName = "sample-user",
+                isReceivedStatusLoading = false,
+                receivedStatusErrorMessage = null,
+                hasReceivedLetters = true,
+                receivedLetterCount = 2,
+                blePermissionErrorMessage = null,
+                onOpenAppSettingsClicked = {},
+                onReceivedClicked = {},
+                onHomeClicked = {},
+                onCarryClicked = {},
+                onCreateLetterClicked = {},
+                modifier = Modifier,
+                innerPadding = innerPadding
+            )
+        }
     }
 }
