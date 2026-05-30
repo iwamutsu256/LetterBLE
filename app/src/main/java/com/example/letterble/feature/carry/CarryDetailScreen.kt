@@ -77,6 +77,7 @@ fun CarryDetailScreen(
 
         CarryLetterDetailContent(
             uiState = uiState,
+            onRetryClicked = { viewModel.loadLetterDetail(letterId) },
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
@@ -97,6 +98,7 @@ fun CarryDetailScreen(
 @Composable
 private fun CarryLetterDetailContent(
     uiState: CarryUiState,
+    onRetryClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     when {
@@ -110,11 +112,18 @@ private fun CarryLetterDetailContent(
         }
 
         uiState.errorMessage != null -> {
-            Text(
-                modifier = modifier,
-                text = uiState.errorMessage,
-                color = MaterialTheme.colorScheme.error
-            )
+            Column(modifier = modifier) {
+                Text(
+                    text = uiState.errorMessage,
+                    color = MaterialTheme.colorScheme.error
+                )
+                OutlinedButton(
+                    modifier = Modifier.padding(top = 12.dp),
+                    onClick = onRetryClicked
+                ) {
+                    Text("再試行")
+                }
+            }
         }
 
         uiState.selectedLetter == null -> {
