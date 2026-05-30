@@ -184,6 +184,9 @@ private fun PostSelectScreenContent(
     modifier: Modifier = Modifier
 ) {
     Box(modifier = modifier.fillMaxSize()) {
+        val errorMessage = uiState.errorMessage
+        val message = uiState.message
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -198,25 +201,30 @@ private fun PostSelectScreenContent(
                 }
 
                 !hasFineLocationPermission -> {
-                    Column(
-                        modifier = Modifier
-                            .padding(24.dp)
-                            .align(Alignment.Center)
-                    ) {
-                        Text(
-                            text = "1km以内のポスト検索には正確な位置情報の許可が必要です",
-                            modifier = Modifier
-                                .padding(24.dp),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        CommonButton(
-                            text = "正確な位置情報を許可して検索",
-                            modifier = Modifier.padding(16.dp),
-                            enabled = true,
-                            onClick = onLocationPermissionRequest
-                        )
-                    }
+                    PostSelectStatusContent(
+                        message = "1km以内のポスト検索には正確な位置情報の許可が必要です",
+                        isError = true,
+                        buttonText = "正確な位置情報を許可して検索",
+                        modifier = Modifier.align(Alignment.Center),
+                        onButtonClick = {
+                            locationPermissionLauncher.launch(
+                                arrayOf(
+                                    Manifest.permission.ACCESS_FINE_LOCATION,
+                                    Manifest.permission.ACCESS_COARSE_LOCATION
+                                )
+                            )
+                        }
+                    )
+                }
+
+                errorMessage != null && uiState.canRetryPostSearch -> {
+                    PostSelectStatusContent(
+                        message = errorMessage,
+                        isError = true,
+                        buttonText = "再試行",
+                        modifier = Modifier.align(Alignment.Center),
+                        onButtonClick = viewModel::loadNearbyPosts
+                    )
                 }
 
                 uiState.posts.isNotEmpty() -> {
@@ -228,6 +236,16 @@ private fun PostSelectScreenContent(
                         onPostClicked = onPostClicked,
                         modifier = Modifier
                             .fillMaxSize()
+                    )
+                }
+
+                message != null -> {
+                    PostSelectStatusContent(
+                        message = message,
+                        isError = false,
+                        buttonText = "再検索",
+                        modifier = Modifier.align(Alignment.Center),
+                        onButtonClick = viewModel::loadNearbyPosts
                     )
                 }
             }
@@ -252,18 +270,13 @@ private fun PostSelectScreenContent(
                 .padding(top = innerPadding.calculateTopPadding())
                 .offset((-24).dp, 40.dp)
         )
-        uiState.message?.let { message ->
-            Text(
-                text = message,
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .padding(16.dp),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary
+        if (errorMessage != null && !uiState.canRetryPostSearch && hasFineLocationPermission) {
+            PostSelectStatusContent(
+                message = errorMessage,
+                isError = true,
+                modifier = Modifier.align(Alignment.Center)
             )
         }
-
-
         // 投函ボタン (下部中央)
         if (uiState.selectedPost != null) {
             CommonButton(
@@ -294,6 +307,40 @@ private fun PostSelectScreenSystemUIPreview() {
             onSubmitClicked = {},
             innerPadding = PaddingValues(0.dp)
         )
+    }
+}
+@Composable
+private fun PostSelectStatusContent(
+    message: String,
+    isError: Boolean,
+    buttonText: String? = null,
+    onButtonClick: (() -> Unit)? = null,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(24.dp)
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.92f))
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodyMedium,
+            color = if (isError) {
+                MaterialTheme.colorScheme.error
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            }
+        )
+        if (buttonText != null && onButtonClick != null) {
+            CommonButton(
+                text = buttonText,
+                modifier = Modifier.padding(top = 16.dp),
+                onClick = onButtonClick
+            )
+        }
     }
 }
 

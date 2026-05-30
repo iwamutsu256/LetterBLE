@@ -38,6 +38,8 @@ data class PostSelectUiState(
     val showConfirmDialog: Boolean = false,
     val isSubmitting: Boolean = false,
     val isLoading: Boolean = false,
+    val errorMessage: String? = null,
+    val canRetryPostSearch: Boolean = false,
     val message: String? = null
 )
 
@@ -76,6 +78,8 @@ class PostSelectViewModel(
         _uiState.update {
             it.copy(
                 isLoading = true,
+                errorMessage = null,
+                canRetryPostSearch = false,
                 message = null
             )
         }
@@ -90,7 +94,9 @@ class PostSelectViewModel(
                         currentLatitude = null,
                         currentLongitude = null,
                         isLoading = false,
-                        message = "現在地を取得できませんでした"
+                        errorMessage = "現在地を取得できませんでした",
+                        canRetryPostSearch = true,
+                        message = null
                     )
                 }
                 return@launch
@@ -109,6 +115,8 @@ class PostSelectViewModel(
                         currentLatitude = currentLocation.latitude,
                         currentLongitude = currentLocation.longitude,
                         isLoading = false,
+                        errorMessage = null,
+                        canRetryPostSearch = false,
                         message = if (posts.isEmpty()) "1km以内にポストが見つかりませんでした" else null
                     )
                 }
@@ -118,7 +126,9 @@ class PostSelectViewModel(
                         posts = emptyList(),
                         selectedPost = null,
                         isLoading = false,
-                        message = "ポスト候補の取得に失敗しました"
+                        errorMessage = "ポスト候補の取得に失敗しました",
+                        canRetryPostSearch = true,
+                        message = null
                     )
                 }
             }
@@ -151,7 +161,13 @@ class PostSelectViewModel(
     fun onLocationPermissionDenied() {
         _uiState.update {
             it.copy(
+                posts = emptyList(),
+                selectedPost = null,
+                currentLatitude = null,
+                currentLongitude = null,
                 isLoading = false,
+                errorMessage = "1km以内のポスト検索には正確な位置情報の許可が必要です",
+                canRetryPostSearch = false,
                 message = null
             )
         }
@@ -180,7 +196,9 @@ class PostSelectViewModel(
             _uiState.update {
                 it.copy(
                     showConfirmDialog = false,
-                    message = "投函する手紙の下書きがありません"
+                    errorMessage = "投函する手紙の下書きがありません",
+                    canRetryPostSearch = false,
+                    message = null
                 )
             }
             return
@@ -191,7 +209,9 @@ class PostSelectViewModel(
             _uiState.update {
                 it.copy(
                     showConfirmDialog = false,
-                    message = "ユーザー登録後に投函できます"
+                    errorMessage = "ユーザー登録後に投函できます",
+                    canRetryPostSearch = false,
+                    message = null
                 )
             }
             return
@@ -200,6 +220,8 @@ class PostSelectViewModel(
         _uiState.update {
             it.copy(
                 isSubmitting = true,
+                errorMessage = null,
+                canRetryPostSearch = false,
                 message = null
             )
         }
@@ -222,6 +244,8 @@ class PostSelectViewModel(
                     it.copy(
                         showConfirmDialog = false,
                         isSubmitting = false,
+                        errorMessage = null,
+                        canRetryPostSearch = false,
                         message = "投函しました"
                     )
                 }
@@ -231,7 +255,9 @@ class PostSelectViewModel(
                     it.copy(
                         showConfirmDialog = false,
                         isSubmitting = false,
-                        message = "投函に失敗しました"
+                        errorMessage = "投函に失敗しました",
+                        canRetryPostSearch = false,
+                        message = null
                     )
                 }
             }
