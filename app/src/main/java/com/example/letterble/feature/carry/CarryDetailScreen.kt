@@ -68,6 +68,7 @@ fun CarryDetailScreen(
             uiState = uiState,
             letterId = letterId,
             onBackClicked = onBackClicked,
+            onRetryClicked = { viewModel.loadLetterDetail(letterId) },
             innerPadding = innerPadding,
             modifier = modifier
         )
@@ -82,6 +83,7 @@ private fun CarryDetailScreenContent(
     uiState: CarryUiState,
     letterId: String,
     onBackClicked: () -> Unit,
+    onRetryClicked: () -> Unit,
     innerPadding: PaddingValues,
     modifier: Modifier = Modifier
 ) {
@@ -106,7 +108,7 @@ private fun CarryDetailScreenContent(
 
         CarryLetterDetailContent(
             uiState = uiState,
-            onRetryClicked = { viewModel.loadLetterDetail(letterId) },
+            onRetryClicked = onRetryClicked,
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
@@ -140,6 +142,7 @@ private fun CarryDetailScreenSystemUIPreview() {
             ),
             letterId = "letter-123",
             onBackClicked = {},
+            onRetryClicked = {},
             innerPadding = PaddingValues(0.dp)
         )
     }

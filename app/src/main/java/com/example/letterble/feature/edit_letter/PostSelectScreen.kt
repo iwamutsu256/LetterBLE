@@ -162,6 +162,7 @@ fun PostSelectScreen(
             },
             onPostClicked = viewModel::onPostSelected,
             onBackClicked = onBackClicked,
+            onRetryPostsClicked = viewModel::loadNearbyPosts,
             onSubmitClicked = viewModel::onPostSubmitClicked,
             innerPadding = innerPadding,
             modifier = modifier
@@ -179,6 +180,7 @@ private fun PostSelectScreenContent(
     onLocationPermissionRequest: () -> Unit,
     onPostClicked: (Post) -> Unit,
     onBackClicked: () -> Unit,
+    onRetryPostsClicked: () -> Unit,
     onSubmitClicked: () -> Unit,
     innerPadding: PaddingValues,
     modifier: Modifier = Modifier
@@ -206,14 +208,7 @@ private fun PostSelectScreenContent(
                         isError = true,
                         buttonText = "正確な位置情報を許可して検索",
                         modifier = Modifier.align(Alignment.Center),
-                        onButtonClick = {
-                            locationPermissionLauncher.launch(
-                                arrayOf(
-                                    Manifest.permission.ACCESS_FINE_LOCATION,
-                                    Manifest.permission.ACCESS_COARSE_LOCATION
-                                )
-                            )
-                        }
+                        onButtonClick = onLocationPermissionRequest
                     )
                 }
 
@@ -223,7 +218,7 @@ private fun PostSelectScreenContent(
                         isError = true,
                         buttonText = "再試行",
                         modifier = Modifier.align(Alignment.Center),
-                        onButtonClick = viewModel::loadNearbyPosts
+                        onButtonClick = onRetryPostsClicked
                     )
                 }
 
@@ -245,7 +240,7 @@ private fun PostSelectScreenContent(
                         isError = false,
                         buttonText = "再検索",
                         modifier = Modifier.align(Alignment.Center),
-                        onButtonClick = viewModel::loadNearbyPosts
+                        onButtonClick = onRetryPostsClicked
                     )
                 }
             }
@@ -304,6 +299,7 @@ private fun PostSelectScreenSystemUIPreview() {
             onLocationPermissionRequest = {},
             onPostClicked = {},
             onBackClicked = {},
+            onRetryPostsClicked = {},
             onSubmitClicked = {},
             innerPadding = PaddingValues(0.dp)
         )

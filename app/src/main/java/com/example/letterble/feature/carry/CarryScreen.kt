@@ -69,6 +69,7 @@ fun CarryScreen(
             uiState = uiState,
             onLetterClicked = onLetterClicked,
             onBackClicked = onBackClicked,
+            onRetryClicked = viewModel::loadCarryingLetters,
             innerPadding = innerPadding,
             modifier = modifier
         )
@@ -83,6 +84,7 @@ private fun CarryScreenContent(
     uiState: CarryUiState,
     onLetterClicked: (String) -> Unit,
     onBackClicked: () -> Unit,
+    onRetryClicked: () -> Unit,
     innerPadding: PaddingValues,
     modifier: Modifier = Modifier
 ) {
@@ -111,7 +113,7 @@ private fun CarryScreenContent(
 
         CarryingLetterList(
             uiState = uiState,
-            onRetryClicked = viewModel::loadCarryingLetters,
+            onRetryClicked = onRetryClicked,
             onLetterClicked = onLetterClicked,
             modifier = Modifier.weight(1f)
         )
@@ -140,6 +142,7 @@ private fun CarryScreenSystemUIPreview() {
             ),
             onLetterClicked = {},
             onBackClicked = {},
+            onRetryClicked = {},
             innerPadding = PaddingValues(0.dp)
         )
     }
