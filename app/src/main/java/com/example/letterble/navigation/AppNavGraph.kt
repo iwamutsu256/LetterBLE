@@ -37,7 +37,9 @@ import com.example.letterble.service.BleForegroundService
 @Composable
 fun AppNavGraph(
     navController: NavHostController,
-    appContainer: AppContainer
+    appContainer: AppContainer,
+    blePermissionErrorMessage: String? = null,
+    onOpenAppSettingsClicked: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val startDestination = if (
@@ -70,6 +72,8 @@ fun AppNavGraph(
         composable(Destinations.HOME) {
             HomeScreen(
                 appContainer = appContainer,
+                blePermissionErrorMessage = blePermissionErrorMessage,
+                onOpenAppSettingsClicked = onOpenAppSettingsClicked,
                 onReceivedClicked = { navController.navigate(Destinations.RECEIVED) },
                 onCarryClicked = { navController.navigate(Destinations.CARRY) },
                 onCreateLetterClicked = { navController.navigate(Destinations.EDIT_LETTER) }

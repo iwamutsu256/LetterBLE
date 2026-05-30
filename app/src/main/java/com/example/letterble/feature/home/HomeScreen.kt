@@ -20,7 +20,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -43,6 +45,8 @@ import com.example.letterble.ui.theme.LetterBLETheme
 @Composable
 fun HomeScreen(
     appContainer: AppContainer,
+    blePermissionErrorMessage: String?,
+    onOpenAppSettingsClicked: () -> Unit,
     onReceivedClicked: () -> Unit,
     onCarryClicked: () -> Unit,
     onCreateLetterClicked: () -> Unit,
@@ -72,6 +76,8 @@ fun HomeScreen(
         receivedStatusErrorMessage = uiState.receivedStatusErrorMessage,
         hasReceivedLetters = uiState.hasReceivedLetters,
         receivedLetterCount = uiState.receivedLetterCount,
+        blePermissionErrorMessage = blePermissionErrorMessage,
+        onOpenAppSettingsClicked = onOpenAppSettingsClicked,
         onReceivedClicked = viewModel::onReceivedClicked,
         onHomeClicked = {},
         onCarryClicked = viewModel::onCarryClicked,
@@ -87,6 +93,8 @@ fun HomeScreenContent(
     receivedStatusErrorMessage: String?,
     hasReceivedLetters: Boolean,
     receivedLetterCount: Int,
+    blePermissionErrorMessage: String?,
+    onOpenAppSettingsClicked: () -> Unit,
     onReceivedClicked: () -> Unit,
     onHomeClicked: () -> Unit,
     onCarryClicked: () -> Unit,
@@ -199,6 +207,23 @@ fun HomeScreenContent(
                 )
             }
         }
+
+        if (blePermissionErrorMessage != null) {
+            AlertDialog(
+                onDismissRequest = {},
+                title = {
+                    Text("権限が必要です")
+                },
+                text = {
+                    Text(blePermissionErrorMessage)
+                },
+                confirmButton = {
+                    TextButton(onClick = onOpenAppSettingsClicked) {
+                        Text("設定を開く")
+                    }
+                }
+            )
+        }
     }
 }
 
@@ -212,6 +237,8 @@ private fun HomeScreenContentPreview() {
             receivedStatusErrorMessage = null,
             hasReceivedLetters = true,
             receivedLetterCount = 2,
+            blePermissionErrorMessage = null,
+            onOpenAppSettingsClicked = {},
             onReceivedClicked = {},
             onHomeClicked = {},
             onCarryClicked = {},
