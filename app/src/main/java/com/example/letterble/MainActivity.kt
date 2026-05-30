@@ -15,25 +15,36 @@
 package com.example.letterble
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.content.ContextCompat
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.navigation.compose.rememberNavController
 import com.example.letterble.navigation.AppNavGraph
 import com.example.letterble.service.BleForegroundService
 import com.example.letterble.ui.theme.LetterBLETheme
 
 class MainActivity : ComponentActivity() {
+    private var blePermissionErrorMessage by mutableStateOf<String?>(null)
+
     private val blePermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { results ->
         if (hasBleRuntimePermissions(results)) {
-            BleForegroundService.start(this)
+            blePermissionErrorMessage = null
+            startBleServiceIfReady()
+        } else {
+            blePermissionErrorMessage = "BLEを使うにはBluetoothと位置情報の権限が必要です"
         }
     }
 
@@ -47,11 +58,18 @@ class MainActivity : ComponentActivity() {
                 val appContainer = (application as LetterBleApplication).appContainer
                 AppNavGraph(
                     navController = navController,
-                    appContainer = appContainer
+                    appContainer = appContainer,
+                    blePermissionErrorMessage = blePermissionErrorMessage,
+                    onOpenAppSettingsClicked = ::openAppSettings
                 )
             }
         }
         requestBlePermissionsIfNeeded()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        refreshBlePermissionState()
     }
 
     private fun requestBlePermissionsIfNeeded() {
@@ -61,12 +79,40 @@ class MainActivity : ComponentActivity() {
         }
 
         if (hasBleRuntimePermissions()) {
-            BleForegroundService.start(this)
+            blePermissionErrorMessage = null
+            startBleServiceIfReady()
+        } else {
+            blePermissionErrorMessage = "BLEを使うにはBluetoothと位置情報の権限が必要です"
         }
 
         if (missingPermissions.isNotEmpty()) {
             blePermissionLauncher.launch(missingPermissions.toTypedArray())
         }
+    }
+
+    private fun refreshBlePermissionState() {
+        if (hasBleRuntimePermissions()) {
+            blePermissionErrorMessage = null
+            startBleServiceIfReady()
+        } else {
+            blePermissionErrorMessage = "BLEを使うにはBluetoothと位置情報の権限が必要です"
+        }
+    }
+
+    private fun openAppSettings() {
+        val intent = Intent(
+            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+            Uri.fromParts("package", packageName, null)
+        )
+        startActivity(intent)
+    }
+
+    private fun startBleServiceIfReady() {
+        val appContainer = (application as LetterBleApplication).appContainer
+        BleForegroundService.startIfReady(
+            context = this,
+            userName = appContainer.userRepository.getCurrentUserName()
+        )
     }
 
     private fun startupPermissions(): List<String> {

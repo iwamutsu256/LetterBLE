@@ -84,6 +84,7 @@ fun CarryScreen(
 
         CarryingLetterList(
             uiState = uiState,
+            onRetryClicked = viewModel::loadCarryingLetters,
             onLetterClicked = onLetterClicked,
             modifier = Modifier.weight(1f)
         )
@@ -105,6 +106,7 @@ fun CarryScreen(
 @Composable
 private fun CarryingLetterList(
     uiState: CarryUiState,
+    onRetryClicked: () -> Unit,
     onLetterClicked: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -119,11 +121,20 @@ private fun CarryingLetterList(
         }
 
         uiState.errorMessage != null -> {
-            Text(
-                modifier = modifier.fillMaxWidth(),
-                text = uiState.errorMessage,
-                color = MaterialTheme.colorScheme.error
-            )
+            Column(modifier = modifier.fillMaxWidth()) {
+                Text(
+                    text = uiState.errorMessage,
+                    color = MaterialTheme.colorScheme.error
+                )
+                if (uiState.currentUserName.isNotBlank()) {
+                    OutlinedButton(
+                        modifier = Modifier.padding(top = 12.dp),
+                        onClick = onRetryClicked
+                    ) {
+                        Text("再試行")
+                    }
+                }
+            }
         }
 
         uiState.carryingLetters.isEmpty() -> {
