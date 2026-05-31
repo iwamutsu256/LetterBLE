@@ -26,12 +26,14 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.Button
@@ -581,10 +583,19 @@ private fun PostSelectMap(
                     zIndex = if (isSelected) SelectedPostMarkerZIndex else DefaultPostMarkerZIndex,
                     onClick = {
                         onPostClicked(post)
-                        false
+                        true
                     }
                 )
             }
+        }
+
+        if (selectedPost != null) {
+            SelectedPostInfoBubble(
+                post = selectedPost,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .offset(y = SelectedPostInfoBubbleOffsetY)
+            )
         }
 
         when {
@@ -606,12 +617,44 @@ private fun PostSelectMap(
     }
 }
 
+@Composable
+private fun SelectedPostInfoBubble(
+    post: Post,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier
+            .fillMaxWidth(0.76f),
+        shape = RoundedCornerShape(8.dp),
+        tonalElevation = 6.dp,
+        shadowElevation = 6.dp,
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.96f)
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = post.name.ifBlank { "郵便ポスト" },
+                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = post.description.ifBlank { "${post.latitude}, ${post.longitude}" },
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
 private val DefaultPostMapCenter = LatLng(35.681236, 139.767125)
 private const val PostSearchRadiusMeters = 1_000.0
 private const val PostMapBoundsPadding = 160
 private const val SelectedPostCameraAnimationMillis = 500
 private const val DefaultPostMarkerZIndex = 0f
 private const val SelectedPostMarkerZIndex = 1f
+private val SelectedPostInfoBubbleOffsetY = (-116).dp
 
 private fun PostSelectUiState.currentLatLng(): LatLng? {
     val latitude = currentLatitude ?: return null
