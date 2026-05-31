@@ -9,6 +9,7 @@ package com.example.letterble.feature.received
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,6 +21,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -28,9 +30,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.letterble.di.AppContainer
+import com.example.letterble.domain.model.Letter
+import com.example.letterble.domain.model.Tree
 import com.example.letterble.ui.components.CommonButton
 
 /**
@@ -67,10 +72,35 @@ fun ReceivedDetailScreen(
         viewModel.loadLetterDetail(letterId)
     }
 
+    Scaffold { innerPadding ->
+        ReceivedDetailScreenContent(
+            detailState = detailState,
+            letterId = letterId,
+            onBackClicked = onBackClicked,
+            onRetryClicked = { viewModel.loadLetterDetail(letterId) },
+            innerPadding = innerPadding,
+            modifier = modifier
+        )
+    }
+}
+
+/**
+ * 表示ロジックを分離したコンテンツ部分。
+ */
+@Composable
+private fun ReceivedDetailScreenContent(
+    detailState: ReceivedDetailUiState,
+    letterId: String,
+    onBackClicked: () -> Unit,
+    onRetryClicked: () -> Unit,
+    innerPadding: PaddingValues,
+    modifier: Modifier = Modifier
+) {
     Column(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
+            .padding(innerPadding)
             .padding(24.dp),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.Start
@@ -90,7 +120,7 @@ fun ReceivedDetailScreen(
             detailState.errorMessage != null -> {
                 ReceivedDetailErrorContent(
                     errorMessage = detailState.errorMessage,
-                    onRetryClicked = { viewModel.loadLetterDetail(letterId) }
+                    onRetryClicked = onRetryClicked
                 )
             }
 
@@ -111,6 +141,34 @@ fun ReceivedDetailScreen(
             modifier = Modifier.padding(top = 24.dp),
             onClick = onBackClicked
         )
+    }
+}
+
+@Preview(showSystemUi = true)
+@Composable
+private fun ReceivedDetailScreenSystemUIPreview() {
+    MaterialTheme {
+        Scaffold { innerPadding ->
+            ReceivedDetailScreenContent(
+                detailState = ReceivedDetailUiState(
+                    detail = ReceivedLetterDetail(
+                        letter = Letter(
+                            letterId = "123",
+                            fromUser = "Alice",
+                            toUser = "Bob",
+                            sentence = "Hello world!"
+                        ),
+                        locations = emptyList(),
+                        tree = Tree(),
+                        routeSummary = "2 users"
+                    )
+                ),
+                letterId = "123",
+                onBackClicked = {},
+                onRetryClicked = {},
+                innerPadding = innerPadding
+            )
+        }
     }
 }
 

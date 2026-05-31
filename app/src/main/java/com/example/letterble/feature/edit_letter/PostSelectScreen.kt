@@ -17,6 +17,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -29,6 +30,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -146,42 +148,78 @@ fun PostSelectScreen(
         )
     }
 
+    Scaffold { innerPadding ->
+        PostSelectScreenContent(
+            uiState = uiState,
+            hasFineLocationPermission = hasFineLocationPermission,
+            onLocationPermissionRequest = {
+                locationPermissionLauncher.launch(
+                    arrayOf(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    )
+                )
+            },
+            onPostClicked = viewModel::onPostSelected,
+            onBackClicked = onBackClicked,
+            onRetryPostsClicked = viewModel::loadNearbyPosts,
+            onSubmitClicked = viewModel::onPostSubmitClicked,
+            innerPadding = innerPadding,
+            modifier = modifier
+        )
+    }
+}
+
+/**
+ * 表示ロジックを分離したコンテンツ部分。
+ */
+@Composable
+private fun PostSelectScreenContent(
+    uiState: PostSelectUiState,
+    hasFineLocationPermission: Boolean,
+    onLocationPermissionRequest: () -> Unit,
+    onPostClicked: (Post) -> Unit,
+    onBackClicked: () -> Unit,
+    onRetryPostsClicked: () -> Unit,
+    onSubmitClicked: () -> Unit,
+    innerPadding: PaddingValues,
+    modifier: Modifier = Modifier
+) {
     Box(modifier = modifier.fillMaxSize()) {
+        val errorMessage = uiState.errorMessage
+        val message = uiState.message
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
         ) {
             when {
                 uiState.isLoading -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center).padding(24.dp))
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .padding(24.dp)
+                    )
                 }
 
                 !hasFineLocationPermission -> {
-                    Column(
-                        modifier = Modifier.padding(24.dp).align(Alignment.Center)
-                    ) {
-                        Text(
-                            text = "1km以内のポスト検索には正確な位置情報の許可が必要です",
-                            modifier = Modifier
-                                .padding(24.dp),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        CommonButton(
-                            text = if (hasFineLocationPermission) "再取得" else "正確な位置情報を許可して検索",
-                            modifier = Modifier.padding(16.dp),
-//                        enabled = !uiState.isLoading,
-                            enabled = true,
-                            onClick = {
-                                locationPermissionLauncher.launch(
-                                    arrayOf(
-                                        Manifest.permission.ACCESS_FINE_LOCATION,
-                                        Manifest.permission.ACCESS_COARSE_LOCATION
-                                    )
-                                )
-                            }
-                        )
-                    }
+                    PostSelectStatusContent(
+                        message = "1km以内のポスト検索には正確な位置情報の許可が必要です",
+                        isError = true,
+                        buttonText = "正確な位置情報を許可して検索",
+                        modifier = Modifier.align(Alignment.Center),
+                        onButtonClick = onLocationPermissionRequest
+                    )
+                }
+
+                errorMessage != null && uiState.canRetryPostSearch -> {
+                    PostSelectStatusContent(
+                        message = errorMessage,
+                        isError = true,
+                        buttonText = "再試行",
+                        modifier = Modifier.align(Alignment.Center),
+                        onButtonClick = onRetryPostsClicked
+                    )
                 }
 
                 uiState.posts.isNotEmpty() -> {
@@ -190,15 +228,25 @@ fun PostSelectScreen(
                         currentPosition = uiState.currentLatLng(),
                         selectedPost = uiState.selectedPost,
                         hasFineLocationPermission = hasFineLocationPermission,
-                        onPostClicked = viewModel::onPostSelected,
+                        onPostClicked = onPostClicked,
                         modifier = Modifier
                             .fillMaxSize()
+                    )
+                }
+
+                message != null -> {
+                    PostSelectStatusContent(
+                        message = message,
+                        isError = false,
+                        buttonText = "再検索",
+                        modifier = Modifier.align(Alignment.Center),
+                        onButtonClick = onRetryPostsClicked
                     )
                 }
             }
         }
         CommonBackButton(
-            modifier = Modifier,
+            modifier = Modifier.padding(top = innerPadding.calculateTopPadding()),
             onClick = onBackClicked,
             enabled = !uiState.isSubmitting
         )
@@ -207,35 +255,88 @@ fun PostSelectScreen(
             contentDescription = null,
             modifier = Modifier
                 .size(400.dp)
-                .offset(120.dp,(-144).dp)
+                .offset(120.dp, (-144).dp)
         )
         Text(
             text = "とうかんする場所\nを選ぶ",
             style = MaterialTheme.typography.headlineMedium,
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .offset((-24).dp,40.dp)
+                .padding(top = innerPadding.calculateTopPadding())
+                .offset((-24).dp, 40.dp)
         )
-        uiState.message?.let { message ->
-            Text(
-                text = message,
-                modifier = Modifier.align(Alignment.Center).padding(16.dp),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary
+        if (errorMessage != null && !uiState.canRetryPostSearch && hasFineLocationPermission) {
+            PostSelectStatusContent(
+                message = errorMessage,
+                isError = true,
+                modifier = Modifier.align(Alignment.Center)
             )
         }
-
-
         // 投函ボタン (下部中央)
         if (uiState.selectedPost != null) {
             CommonButton(
                 text = "ここに投函する",
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = 32.dp)
+                    .padding(bottom = innerPadding.calculateBottomPadding() + 32.dp)
                     .fillMaxWidth(0.8f),
                 enabled = !uiState.isSubmitting,
-                onClick = viewModel::onPostSubmitClicked
+                onClick = onSubmitClicked
+            )
+        }
+    }
+}
+
+@Preview(showSystemUi = true)
+@Composable
+private fun PostSelectScreenSystemUIPreview() {
+    MaterialTheme {
+        Scaffold { innerPadding ->
+            PostSelectScreenContent(
+                uiState = PostSelectUiState(
+                    posts = listOf(Post("1", "Tokyo Station", 35.681236, 139.767125))
+                ),
+                hasFineLocationPermission = true,
+                onLocationPermissionRequest = {},
+                onPostClicked = {},
+                onBackClicked = {},
+                onRetryPostsClicked = {},
+                onSubmitClicked = {},
+                innerPadding = innerPadding
+            )
+        }
+    }
+}
+@Composable
+private fun PostSelectStatusContent(
+    message: String,
+    isError: Boolean,
+    buttonText: String? = null,
+    onButtonClick: (() -> Unit)? = null,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(24.dp)
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.92f))
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodyMedium,
+            color = if (isError) {
+                MaterialTheme.colorScheme.error
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            }
+        )
+        if (buttonText != null && onButtonClick != null) {
+            CommonButton(
+                text = buttonText,
+                modifier = Modifier.padding(top = 16.dp),
+                onClick = onButtonClick
             )
         }
     }
@@ -352,61 +453,3 @@ private fun List<LatLng>.allSamePosition(): Boolean {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-private fun PostSelectScreenContentPreview() {
-    // UIのレイアウト確認用の簡易プレビュー
-    MaterialTheme {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
-            Box(
-                // 地図の代わり
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color(0xFFFFFFCA))
-            )
-            IconButton(
-                modifier = Modifier
-                    .width(48.dp)
-                    .height(48.dp)
-                    .offset(x = 24.dp, y = 24.dp),
-                onClick = {}
-            ) {
-                Icon(
-                    painter = painterResource(id=R.drawable.back_button),
-                    tint = Color.Unspecified,
-                    contentDescription = "戻る",
-                    modifier = Modifier
-                )
-            }
-            Image(
-                painter = painterResource(id = R.drawable.img07),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(400.dp)
-                    .offset(120.dp, (-192).dp)
-            )
-            Text(
-                text = "投函する場所\nを選ぶ",
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .offset((-24).dp, 16.dp)
-            )
-
-
-
-            // 投函ボタン (ピン選択時を想定)
-            CommonButton(
-                text = "ここに投函する",
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 32.dp)
-                    .fillMaxWidth(0.8f),
-                onClick = {}
-            )
-        }
-    }
-}

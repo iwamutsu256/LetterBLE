@@ -124,7 +124,7 @@ class RelayLetterUseCase(
     }
 
     companion object {
-        private const val DEFAULT_DUPLICATE_INTERVAL_MILLIS = 24L * 60L * 60L * 1000L
+        private const val DEFAULT_DUPLICATE_INTERVAL_MILLIS = 30L* 1000L //テストでは30秒ぐらいにします。本番では24L * 60L * 60L * 1000L
     }
 }
 
