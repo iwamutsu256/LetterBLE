@@ -127,24 +127,26 @@ private fun CarryDetailScreenContent(
 @Composable
 private fun CarryDetailScreenSystemUIPreview() {
     MaterialTheme {
-        CarryDetailScreenContent(
-            uiState = CarryUiState(
-                currentUserName = "sample-user",
-                selectedLetter = CarryLetterDetailInfo(
-                    letterId = "letter-123",
-                    toUser = "Bob",
-                    fromUser = "Alice",
-                    isSurvival = true,
-                    routeNodeCount = 2,
-                    routeEdgeCount = 1,
-                    tree = Tree()
-                )
-            ),
-            letterId = "letter-123",
-            onBackClicked = {},
-            onRetryClicked = {},
-            innerPadding = PaddingValues(0.dp)
-        )
+        Scaffold { innerPadding ->
+            CarryDetailScreenContent(
+                uiState = CarryUiState(
+                    currentUserName = "sample-user",
+                    selectedLetter = CarryLetterDetailInfo(
+                        letterId = "letter-123",
+                        toUser = "Bob",
+                        fromUser = "Alice",
+                        isSurvival = true,
+                        routeNodeCount = 2,
+                        routeEdgeCount = 1,
+                        tree = Tree()
+                    )
+                ),
+                letterId = "letter-123",
+                onBackClicked = {},
+                onRetryClicked = {},
+                innerPadding = innerPadding
+            )
+        }
     }
 }
 

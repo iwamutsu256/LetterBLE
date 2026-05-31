@@ -148,25 +148,27 @@ private fun ReceivedDetailScreenContent(
 @Composable
 private fun ReceivedDetailScreenSystemUIPreview() {
     MaterialTheme {
-        ReceivedDetailScreenContent(
-            detailState = ReceivedDetailUiState(
-                detail = ReceivedLetterDetail(
-                    letter = Letter(
-                        letterId = "123",
-                        fromUser = "Alice",
-                        toUser = "Bob",
-                        sentence = "Hello world!"
-                    ),
-                    locations = emptyList(),
-                    tree = Tree(),
-                    routeSummary = "2 users"
-                )
-            ),
-            letterId = "123",
-            onBackClicked = {},
-            onRetryClicked = {},
-            innerPadding = PaddingValues(0.dp)
-        )
+        Scaffold { innerPadding ->
+            ReceivedDetailScreenContent(
+                detailState = ReceivedDetailUiState(
+                    detail = ReceivedLetterDetail(
+                        letter = Letter(
+                            letterId = "123",
+                            fromUser = "Alice",
+                            toUser = "Bob",
+                            sentence = "Hello world!"
+                        ),
+                        locations = emptyList(),
+                        tree = Tree(),
+                        routeSummary = "2 users"
+                    )
+                ),
+                letterId = "123",
+                onBackClicked = {},
+                onRetryClicked = {},
+                innerPadding = innerPadding
+            )
+        }
     }
 }
 

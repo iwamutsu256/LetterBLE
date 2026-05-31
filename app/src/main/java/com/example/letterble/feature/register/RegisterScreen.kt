@@ -310,16 +310,18 @@ private fun NewRegistrationContent(
 @Composable
 private fun RegisterStartScreenSystemUIPreview() {
     LetterBLETheme {
-        RegisterScreenContent(
-            currentScreen = RegisterSubScreen.Start,
-            userName = "",
-            errorMessage = null,
-            isLoading = false,
-            onStartClicked = {},
-            onNameChanged = {},
-            onNameSubmitClicked = {},
-            innerPadding = PaddingValues(0.dp)
-        )
+        Scaffold { innerPadding ->
+            RegisterScreenContent(
+                currentScreen = RegisterSubScreen.Start,
+                userName = "",
+                errorMessage = null,
+                isLoading = false,
+                onStartClicked = {},
+                onNameChanged = {},
+                onNameSubmitClicked = {},
+                innerPadding = innerPadding
+            )
+        }
     }
 }
 
@@ -327,37 +329,18 @@ private fun RegisterStartScreenSystemUIPreview() {
 @Composable
 private fun NewRegisterScreenSystemUIPreview() {
     LetterBLETheme {
-        RegisterScreenContent(
-            currentScreen = RegisterSubScreen.NewRegistration,
-            userName = "",
-            errorMessage = null,
-            isLoading = false,
-            onStartClicked = {},
-            onNameChanged = {},
-            onNameSubmitClicked = {},
-            innerPadding = PaddingValues(0.dp)
-        )
+        Scaffold { innerPadding ->
+            RegisterScreenContent(
+                currentScreen = RegisterSubScreen.NewRegistration,
+                userName = "",
+                errorMessage = null,
+                isLoading = false,
+                onStartClicked = {},
+                onNameChanged = {},
+                onNameSubmitClicked = {},
+                innerPadding = innerPadding
+            )
+        }
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-private fun RegisterStartContentPreview() {
-    LetterBLETheme {
-        RegisterStartContent(onStartClicked = {})
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun NewRegistrationContentPreview() {
-    LetterBLETheme {
-        NewRegistrationContent(
-            userName = "sample-user",
-            errorMessage = null,
-            isLoading = false,
-            onNameChanged = {},
-            onNameSubmitClicked = {}
-        )
-    }
-}

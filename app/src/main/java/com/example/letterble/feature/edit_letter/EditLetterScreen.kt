@@ -215,18 +215,20 @@ private fun EditLetterScreenContent(
 @Composable
 private fun EditLetterScreenSystemUIPreview() {
     MaterialTheme {
-        EditLetterScreenContent(
-            uiState = EditLetterUiState(
-                toUser = "Bob",
-                sentence = "This is a sample letter sentence for preview."
-            ),
-            onToUserChanged = {},
-            onSentenceChanged = {},
-            onSaveDraftClicked = {},
-            onClearDraftClicked = {},
-            onSubmitClicked = {},
-            onRequestBack = {},
-            innerPadding = PaddingValues(0.dp)
-        )
+        Scaffold { innerPadding ->
+            EditLetterScreenContent(
+                uiState = EditLetterUiState(
+                    toUser = "Bob",
+                    sentence = "This is a sample letter sentence for preview."
+                ),
+                onToUserChanged = {},
+                onSentenceChanged = {},
+                onSaveDraftClicked = {},
+                onClearDraftClicked = {},
+                onSubmitClicked = {},
+                onRequestBack = {},
+                innerPadding = innerPadding
+            )
+        }
     }
 }

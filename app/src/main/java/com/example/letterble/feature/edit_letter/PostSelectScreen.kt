@@ -291,18 +291,20 @@ private fun PostSelectScreenContent(
 @Composable
 private fun PostSelectScreenSystemUIPreview() {
     MaterialTheme {
-        PostSelectScreenContent(
-            uiState = PostSelectUiState(
-                posts = listOf(Post("1", "Tokyo Station", 35.681236, 139.767125))
-            ),
-            hasFineLocationPermission = true,
-            onLocationPermissionRequest = {},
-            onPostClicked = {},
-            onBackClicked = {},
-            onRetryPostsClicked = {},
-            onSubmitClicked = {},
-            innerPadding = PaddingValues(0.dp)
-        )
+        Scaffold { innerPadding ->
+            PostSelectScreenContent(
+                uiState = PostSelectUiState(
+                    posts = listOf(Post("1", "Tokyo Station", 35.681236, 139.767125))
+                ),
+                hasFineLocationPermission = true,
+                onLocationPermissionRequest = {},
+                onPostClicked = {},
+                onBackClicked = {},
+                onRetryPostsClicked = {},
+                onSubmitClicked = {},
+                innerPadding = innerPadding
+            )
+        }
     }
 }
 @Composable
@@ -451,61 +453,3 @@ private fun List<LatLng>.allSamePosition(): Boolean {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-private fun PostSelectScreenContentPreview() {
-    // UIのレイアウト確認用の簡易プレビュー
-    MaterialTheme {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
-            Box(
-                // 地図の代わり
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color(0xFFFFFFCA))
-            )
-            IconButton(
-                modifier = Modifier
-                    .width(48.dp)
-                    .height(48.dp)
-                    .offset(x = 24.dp, y = 24.dp),
-                onClick = {}
-            ) {
-                Icon(
-                    painter = painterResource(id=R.drawable.back_button),
-                    tint = Color.Unspecified,
-                    contentDescription = "戻る",
-                    modifier = Modifier
-                )
-            }
-            Image(
-                painter = painterResource(id = R.drawable.img07),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(400.dp)
-                    .offset(120.dp, (-192).dp)
-            )
-            Text(
-                text = "投函する場所\nを選ぶ",
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .offset((-24).dp, 16.dp)
-            )
-
-
-
-            // 投函ボタン (ピン選択時を想定)
-            CommonButton(
-                text = "ここに投函する",
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 32.dp)
-                    .fillMaxWidth(0.8f),
-                onClick = {}
-            )
-        }
-    }
-}
