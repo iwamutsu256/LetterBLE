@@ -118,8 +118,11 @@ fun PostSelectScreen(
         }
     }
 
-    BackHandler(enabled = uiState.isSubmitting) {
-        // 投函中は coroutine の成功処理で下書き削除と画面遷移を完了させるため、戻る操作を無視する。
+    BackHandler(enabled = uiState.isSubmitting || uiState.isSubmitted) {
+        if (uiState.isSubmitted && !uiState.isSubmitting) {
+            viewModel.onSubmittedOkClicked()
+        }
+        // 投函中(isSubmitting)は戻る操作を無視し、完了後はOKボタンと同じ挙動(Homeへ)にする。
     }
 
     if (uiState.showConfirmDialog) {
