@@ -9,10 +9,10 @@ package com.example.letterble.feature.carry
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,7 +26,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -43,7 +42,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.letterble.R
 import com.example.letterble.di.AppContainer
+import com.example.letterble.ui.components.CommonBackButton
 import com.example.letterble.ui.components.CommonBottomNavigation
+import com.example.letterble.ui.theme.LetterBLETheme
 
 /**
  * 運搬中の手紙一覧画面を表示する。
@@ -72,6 +73,10 @@ fun CarryScreen(
     // 画面が開かれたタイミングで、現在ユーザーが運搬中の手紙を読み込む。
     LaunchedEffect(Unit) {
         viewModel.loadCarryingLetters()
+    }
+
+    BackHandler {
+        onBackClicked()
     }
 
     CommonBottomNavigation(navController = navController) { innerPadding ->
@@ -152,7 +157,7 @@ private fun CarryScreenContent(
 @Composable
 private fun CarryScreenSystemUIPreview() {
     val navController = androidx.navigation.compose.rememberNavController()
-    MaterialTheme {
+    LetterBLETheme {
         CommonBottomNavigation(navController = navController) { innerPadding ->
             CarryScreenContent(
                 uiState = CarryUiState(

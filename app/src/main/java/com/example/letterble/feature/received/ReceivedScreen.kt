@@ -7,6 +7,7 @@
  */
 package com.example.letterble.feature.received
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -15,7 +16,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,17 +23,13 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -41,21 +37,22 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.letterble.di.AppContainer
 import com.example.letterble.ui.components.CommonBottomNavigation
+import com.example.letterble.ui.components.CommonBackButton
 import com.example.letterble.ui.components.CommonButton
 import com.example.letterble.R
+import com.example.letterble.ui.theme.LetterBLEColors
+import com.example.letterble.ui.theme.LetterBLEFontFamilies
+import com.example.letterble.ui.theme.LetterBLETheme
 
 /**
  * 受信した手紙一覧画面。
@@ -99,6 +96,10 @@ fun ReceivedScreen(
         viewModel.loadReceivedLetters()
     }
 
+    BackHandler {
+        onBackClicked()
+    }
+
     CommonBottomNavigation(navController = navController) { innerPadding ->
         ReceivedScreenContent(
             uiState = uiState,
@@ -123,62 +124,51 @@ private fun ReceivedScreenContent(
     innerPadding: PaddingValues,
     modifier: Modifier = Modifier
 ) {
-    Column(
+    Box(
         modifier = modifier
             .fillMaxSize()
-            .padding(innerPadding)
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.Start
+            .padding(bottom = innerPadding.calculateBottomPadding())
+            .background(LetterBLEColors.AppBackground)
     ) {
-        Text(
-            text = "受信した手紙",
-            style = MaterialTheme.typography.headlineMedium
-        )
+        ReceivedBackgroundImages()
 
-        Text(
-            modifier = Modifier.padding(top = 8.dp),
-            text = if (uiState.currentUserName.isBlank()) {
-                "ユーザー未登録"
-            } else {
-                "宛先: ${uiState.currentUserName}"
-            },
-            style = MaterialTheme.typography.bodyMedium
-        )
+        CommonBackButton(onClick = onBackClicked)
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        val errorMessage = uiState.errorMessage
-
-        when {
-            uiState.isLoading -> {
-                ReceivedLoadingContent()
-            }
-
-            errorMessage != null -> {
-                ReceivedErrorContent(
-                    errorMessage = errorMessage,
-                    onRetryClicked = onRetryClicked
-                )
-            }
-
-            uiState.isEmpty -> {
-                ReceivedEmptyContent()
-            }
-
-            else -> {
-                ReceivedLetterList(
-                    letters = uiState.receivedLetters,
-                    onLetterClicked = onLetterClicked,
-                    modifier = Modifier.weight(1f)
-                )
-            }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            ReceivedMessagesContent(
+                uiState = uiState,
+                onLetterClicked = onLetterClicked,
+                onRetryClicked = onRetryClicked
+            )
         }
+    }
+}
 
-        CommonButton(
-            text = "戻る",
-            modifier = Modifier.padding(top = 24.dp),
-            onClick = onBackClicked
+@Composable
+private fun ReceivedBackgroundImages() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.img01),
+            contentDescription = null,
+            modifier = Modifier
+                .size(320.dp)
+                .offset(x = (-100).dp, y = (-400).dp)
+        )
+        Image(
+            painter = painterResource(id = R.drawable.img02),
+            contentDescription = null,
+            modifier = Modifier
+                .size(120.dp)
+                .offset(x = 40.dp, y = (-360).dp)
         )
     }
 }
@@ -197,12 +187,12 @@ private fun ReceivedLoadingContent() {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         CircularProgressIndicator(
-            color = Color(0xFFFFF01D)
+            color = LetterBLEColors.Accent
         )
         Text(
             modifier = Modifier.padding(top = 12.dp),
             text = "読み込み中",
-            color = Color(0xFF55433F),
+            color = LetterBLEColors.TextPrimary,
             style = MaterialTheme.typography.bodyMedium
         )
     }
@@ -217,7 +207,7 @@ private fun ReceivedEmptyContent() {
     Text(
         modifier = Modifier.fillMaxWidth(),
         text = "届いた手紙はありません",
-        color = Color(0xFF55433F),
+        color = LetterBLEColors.TextPrimary,
         style = MaterialTheme.typography.bodyMedium,
         textAlign = TextAlign.Center
     )
@@ -249,8 +239,8 @@ fun ReceivedErrorContent(
                 .width(200.dp)
                 .padding(top = 12.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF55433F),
-                contentColor = Color(0xFFFFFFFA)
+                containerColor = LetterBLEColors.TextPrimary,
+                contentColor = LetterBLEColors.AppBackground
             ),
             onClick = onRetryClicked
         )
@@ -276,72 +266,83 @@ private fun ReceivedLetterList(
     onLetterClicked: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Box(
+    LazyVerticalGrid(
+        columns = GridCells.Adaptive(minSize = 100.dp),
         modifier = modifier
-            .fillMaxSize()
-            .background(Color(0xFFFFFFFA)),
-        contentAlignment = Alignment.Center
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.spacedBy(30.dp)
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.img01),
-            contentDescription = null,
-            modifier = Modifier
-                .size(320.dp)
-                .offset(x = (-100).dp, y = (-400).dp)
-        )
-        Image(
-            painter = painterResource(id = R.drawable.img02),
-            contentDescription = null,
-            modifier = Modifier
-                .size(120.dp)
-                .offset(x = 40.dp, y = (-360).dp)
-        )
-        Column(
-            modifier = Modifier
-                .width(700.dp)
-                .padding(25.dp),
-            verticalArrangement = Arrangement.Bottom,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "受け取ったメッセージ",
-                fontSize = 30.sp,
-                color = Color(0xFF55433F),
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center,
+        items(
+            count = letters.size,
+            key = { index -> letters[index].letterId }
+        ) { index ->
+
+            val letter = letters[index]
+
+            val imageRes = if (!letter.isDelivered) {
+                R.drawable.letter01
+            } else {
+                R.drawable.letter02
+            }
+            Image(
+                painter = painterResource(id = imageRes),
+                contentDescription = null,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 50.dp)
+                    .size(75.dp)
+                    .clickable { onLetterClicked(letter.letterId) }
             )
+        }
+    }
+}
 
-            LazyVerticalGrid(
-                columns = GridCells.Adaptive(minSize = 100.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalArrangement = Arrangement.spacedBy(30.dp)
-            ) {
-                items(
-                    count = letters.size,
-                    key = { index -> letters[index].letterId }
-                ) { index ->
+@Composable
+private fun ReceivedMessagesContent(
+    uiState: ReceivedUiState,
+    onLetterClicked: (String) -> Unit,
+    onRetryClicked: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .width(700.dp)
+            .padding(25.dp),
+        verticalArrangement = Arrangement.Bottom,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "受け取ったメッセージ",
+            color = LetterBLEColors.TextPrimary,
+            style = MaterialTheme.typography.titleMedium,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 50.dp)
+        )
 
-                    val letter = letters[index]
+        val errorMessage = uiState.errorMessage
+        when {
+            uiState.isLoading -> {
+                ReceivedLoadingContent()
+            }
 
-                    val imageRes = if (!letter.isDelivered) {
-                        R.drawable.letter01
-                    } else {
-                        R.drawable.letter02
-                    }
-                    Image(
-                        painter = painterResource(id = imageRes),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(75.dp)
-                            .clickable { onLetterClicked(letter.letterId) }
-                    )
-                }
+            errorMessage != null -> {
+                ReceivedErrorContent(
+                    errorMessage = errorMessage,
+                    onRetryClicked = onRetryClicked
+                )
+            }
+
+            uiState.isEmpty -> {
+                ReceivedEmptyContent()
+            }
+
+            else -> {
+                ReceivedLetterList(
+                    letters = uiState.receivedLetters,
+                    onLetterClicked = onLetterClicked,
+                    modifier = Modifier.height(280.dp)
+                )
             }
         }
     }
@@ -351,7 +352,7 @@ private fun ReceivedLetterList(
 @Composable
 private fun ReceivedScreenSystemUIPreview() {
     val navController = androidx.navigation.compose.rememberNavController()
-    MaterialTheme {
+    LetterBLETheme {
         CommonBottomNavigation(navController = navController) { innerPadding ->
             ReceivedScreenContent(
                 uiState = ReceivedUiState(
@@ -398,7 +399,9 @@ private fun ReceivedLetterRow(
             ) {
                 Text(
                     text = "From: ${letter.fromUser}",
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontFamily = LetterBLEFontFamilies.PostNoBillsColombo
+                    ),
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -420,7 +423,9 @@ private fun ReceivedLetterRow(
             Text(
                 modifier = Modifier.padding(top = 6.dp),
                 text = "To: ${letter.toUser}",
-                style = MaterialTheme.typography.bodySmall
+                style = MaterialTheme.typography.bodySmall.copy(
+                    fontFamily = LetterBLEFontFamilies.PostNoBillsColombo
+                )
             )
         }
     }

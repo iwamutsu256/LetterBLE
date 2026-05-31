@@ -7,15 +7,22 @@
  */
 package com.example.letterble.feature.carry
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -27,11 +34,16 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.letterble.R
 import com.example.letterble.di.AppContainer
 import com.example.letterble.domain.model.Tree
+import com.example.letterble.ui.theme.LetterBLEColors
+import com.example.letterble.ui.theme.LetterBLETheme
 
 /**
  * 運搬中の手紙の詳細画面を表示する。
@@ -87,38 +99,84 @@ private fun CarryDetailScreenContent(
     innerPadding: PaddingValues,
     modifier: Modifier = Modifier
 ) {
-    Column(
+    Box(
         modifier = modifier
             .fillMaxSize()
-            .padding(innerPadding)
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "運搬詳細",
-            style = MaterialTheme.typography.headlineMedium
-        )
-
-        Text(
-            modifier = Modifier.padding(top = 12.dp),
-            text = "ID: $letterId"
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        CarryLetterDetailContent(
-            uiState = uiState,
-            onRetryClicked = onRetryClicked,
+            .padding(all = 40.dp)
+            .background(LetterBLEColors.AppBackground)
+    ){
+        Image(
+            painter = painterResource(id = R.drawable.img02),
+            contentDescription = null,
             modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-        )
+                .size(200.dp)
+                .offset(x = 150.dp, y = -50.dp),
 
+        )
+        Image(
+            painter = painterResource(id = R.drawable.img02),
+            contentDescription = null,
+            modifier = Modifier
+                .size(230.dp)
+                .offset(x = -20.dp, y = 600.dp),
+
+            )
+        Image(
+            painter = painterResource(id = R.drawable.img03),
+            contentDescription = null,
+            modifier = Modifier
+                .size(220.dp)
+                .offset(x = 130.dp, y = 640.dp),
+
+            )
+        Image(
+            painter = painterResource(id = R.drawable.img04),
+            contentDescription = null,
+            modifier = Modifier
+                .size(60.dp)
+                .offset(x = 110.dp, y = 670.dp),
+
+            )
         OutlinedButton(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .width(100.dp)
+                .height(100.dp)
+                .offset(x = (-10).dp, y = 5.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Transparent,
+                contentColor = Color.Unspecified
+            ),
             onClick = onBackClicked
         ) {
-            Text("戻る")
+            Image(
+                painter = painterResource(id = R.drawable.back_button),
+                contentDescription = "戻る",
+                modifier = Modifier
+                    .fillMaxWidth()
+            )
+        }
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "運んだルート",
+                color = LetterBLEColors.TextPrimary,
+                modifier = modifier
+                    .padding(top = 56.dp),
+                style = MaterialTheme.typography.headlineMedium
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+
+            CarryLetterDetailContent(
+                uiState = uiState,
+                onRetryClicked = onRetryClicked,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+            )
         }
     }
 }
@@ -126,7 +184,7 @@ private fun CarryDetailScreenContent(
 @Preview(showSystemUi = true)
 @Composable
 private fun CarryDetailScreenSystemUIPreview() {
-    MaterialTheme {
+    LetterBLETheme {
         Scaffold { innerPadding ->
             CarryDetailScreenContent(
                 uiState = CarryUiState(
@@ -187,7 +245,8 @@ private fun CarryLetterDetailContent(
         uiState.selectedLetter == null -> {
             Text(
                 modifier = modifier,
-                text = "手紙の詳細はありません"
+                text = "手紙の詳細はありません",
+                color = LetterBLEColors.TextPrimary,
             )
         }
 
@@ -215,23 +274,26 @@ private fun CarryLetterDetail(
             .fillMaxWidth()
             .verticalScroll(rememberScrollState())
     ) {
-        Text("差出人: ${letter.fromUser}")
         Text(
-            modifier = Modifier.padding(top = 8.dp),
-            text = "宛先: ${letter.toUser}"
+            "差出人: ${letter.fromUser}",
+            color = LetterBLEColors.TextPrimary,
         )
         Text(
             modifier = Modifier.padding(top = 8.dp),
-            text = if (letter.isSurvival) "到達状態: 運搬中" else "到達状態: 到達済み"
+            text = "宛先: ${letter.toUser}",
+            color = LetterBLEColors.TextPrimary
         )
         Text(
             modifier = Modifier.padding(top = 8.dp),
-            text = "経路概要: ${letter.routeNodeCount}地点 / ${letter.routeEdgeCount}区間"
+            text = if (letter.isSurvival) "到達状態: 運搬中" else "到達状態: 到達済み",
+            color = LetterBLEColors.TextPrimary
         )
         CarryMapScreen(
             tree = letter.tree,
             currentUserName = currentUserName,
-            modifier = Modifier.padding(top = 16.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 36.dp)
         )
     }
 }

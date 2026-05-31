@@ -17,6 +17,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.example.letterble.domain.model.Node
 import com.example.letterble.domain.model.Tree
+import com.example.letterble.ui.theme.LetterBLEColors
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
@@ -58,6 +59,7 @@ fun LetterMapView(
     cameraPositionState: CameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(initialCenter, initialZoom)
     },
+    onMapClick: (LatLng) -> Unit = {},
     onMapLoaded: () -> Unit = {},
     content: @Composable () -> Unit = {}
 ) {
@@ -66,6 +68,7 @@ fun LetterMapView(
         cameraPositionState = cameraPositionState,
         properties = properties,
         uiSettings = uiSettings,
+        onMapClick = onMapClick,
         onMapLoaded = onMapLoaded,
         content = content
     )
@@ -82,8 +85,8 @@ fun LetterTreeMapView(
     modifier: Modifier = Modifier,
     highlightedNodeIds: Set<String> = emptySet(),
     highlightedEdgeFromNodeIds: Set<String> = emptySet(),
-    routeLineColor: androidx.compose.ui.graphics.Color = androidx.compose.ui.graphics.Color(0xFF4F46E5),
-    highlightedRouteLineColor: androidx.compose.ui.graphics.Color = androidx.compose.ui.graphics.Color(0xFFDC2626),
+    routeLineColor: androidx.compose.ui.graphics.Color = LetterBLEColors.RouteLine,
+    highlightedRouteLineColor: androidx.compose.ui.graphics.Color = LetterBLEColors.HighlightedRouteLine,
     markerHue: Float = BitmapDescriptorFactory.HUE_AZURE,
     highlightedMarkerHue: Float = BitmapDescriptorFactory.HUE_RED
 ) {

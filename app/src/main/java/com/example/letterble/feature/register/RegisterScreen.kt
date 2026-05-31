@@ -36,17 +36,18 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.letterble.R
 import com.example.letterble.di.AppContainer
+import com.example.letterble.ui.theme.LetterBLEColors
+import com.example.letterble.ui.theme.LetterBLESpacing
+import com.example.letterble.ui.theme.LetterBLETextStyles
 import com.example.letterble.ui.theme.LetterBLETheme
 
 private enum class RegisterSubScreen {
@@ -130,7 +131,7 @@ private fun RegisterStartContent(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFFFFFFFA))
+            .background(LetterBLEColors.AppBackground)
     ) {
         // 背景画像などはエッジまで広げる
         Image(
@@ -166,14 +167,13 @@ private fun RegisterStartContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(24.dp),
+                .padding(LetterBLESpacing.XLarge),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = "Sheep relay",
-                fontSize = 40.sp,
-                style = MaterialTheme.typography.headlineMedium
+                style = MaterialTheme.typography.displayLarge
             )
             Button(
                 modifier = Modifier
@@ -181,14 +181,14 @@ private fun RegisterStartContent(
                     .width(150.dp)
                     .height(50.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF55433F),
-                    contentColor = Color(0xFFFFFFFA)
+                    containerColor = LetterBLEColors.TextPrimary,
+                    contentColor = LetterBLEColors.AppBackground
                 ),
                 onClick = onStartClicked
             ) {
                 Text(
                     text = "Log In",
-                    fontSize = 20.sp
+                    style = LetterBLETextStyles.EnglishButton
                 )
             }
         }
@@ -208,7 +208,7 @@ private fun NewRegistrationContent(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFFFF6242))
+            .background(LetterBLEColors.RegisterBackground)
     ) {
         Image(
             painter = painterResource(id = R.drawable.img06),
@@ -221,16 +221,16 @@ private fun NewRegistrationContent(
         )
         Text(
             text = "What's Your",
-            fontSize = 50.sp,
-            color = Color(0xFF0F0F6D),
+            color = LetterBLEColors.RegisterPrimary,
+            style = LetterBLETextStyles.EnglishDisplay,
             modifier = Modifier
                 .padding(top = innerPadding.calculateTopPadding())
                 .offset(x = 50.dp, y = 60.dp)
         )
         Text(
             text = "Name?",
-            fontSize = 50.sp,
-            color = Color(0xFF0F0F6D),
+            color = LetterBLEColors.RegisterPrimary,
+            style = LetterBLETextStyles.EnglishDisplay,
             modifier = Modifier
                 .padding(top = innerPadding.calculateTopPadding())
                 .offset(x = 190.dp, y = 120.dp)
@@ -241,7 +241,7 @@ private fun NewRegistrationContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(24.dp),
+                .padding(LetterBLESpacing.XLarge),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -255,19 +255,25 @@ private fun NewRegistrationContent(
             OutlinedTextField(
                 value = userName,
                 onValueChange = onNameChanged,
-                placeholder = { Text("名前を入力") },
+                textStyle = MaterialTheme.typography.bodyLarge,
+                placeholder = {
+                    Text(
+                        text = "名前を入力",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                },
                 singleLine = true,
                 enabled = !isLoading,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 colors = TextFieldDefaults.colors(
-                    focusedIndicatorColor = Color(0xFF0F0F6D),
-                    unfocusedIndicatorColor = Color(0xFF0F0F6D),
-                    cursorColor = Color(0xFF04041F)
+                    focusedIndicatorColor = LetterBLEColors.RegisterPrimary,
+                    unfocusedIndicatorColor = LetterBLEColors.RegisterPrimary,
+                    cursorColor = LetterBLEColors.RegisterCursor
                 ),
                 modifier = Modifier
                     .width(265.dp)
                     .height(80.dp)
-                    .padding(top = 24.dp)
+                    .padding(top = LetterBLESpacing.XLarge)
             )
 
             if (errorMessage != null) {
@@ -286,14 +292,14 @@ private fun NewRegistrationContent(
                     .height(50.dp),
                 enabled = !isLoading,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF0F0F6D),
-                    contentColor = Color(0xFFFFF01D)
+                    containerColor = LetterBLEColors.RegisterPrimary,
+                    contentColor = LetterBLEColors.Accent
                 ),
                 onClick = onNameSubmitClicked
             ) {
                 Text(
                     text = "次へ",
-                    fontSize = 20.sp
+                    style = MaterialTheme.typography.labelLarge
                 )
             }
 
