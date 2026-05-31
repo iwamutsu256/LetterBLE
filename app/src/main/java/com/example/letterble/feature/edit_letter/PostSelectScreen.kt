@@ -547,6 +547,26 @@ private fun PostSelectMap(
             position = CameraPosition.fromLatLngZoom(initialCenter, initialZoom)
         }
         var isMapLoaded by remember { mutableStateOf(false) }
+        var radiusCameraCenter by remember { mutableStateOf(initialCenter) }
+
+        LaunchedEffect(isMapLoaded, currentPosition, posts) {
+            if (!isMapLoaded || currentPosition == null || currentPosition == radiusCameraCenter) {
+                return@LaunchedEffect
+            }
+
+            radiusCameraCenter = currentPosition
+            cameraPositionState.move(
+                CameraUpdateFactory.newLatLngZoom(
+                    currentPosition,
+                    currentPosition.toRadiusZoom(
+                        mapWidthPx = mapWidthPx,
+                        mapHeightPx = mapHeightPx,
+                        paddingPx = boundsPaddingPx,
+                        radiusMeters = PostSearchRadiusMeters
+                    )
+                )
+            )
+        }
 
         LaunchedEffect(isMapLoaded, selectedPost?.id) {
             if (!isMapLoaded || selectedPost == null) {

@@ -91,8 +91,12 @@ class PostSelectViewModel(
         }
 
         viewModelScope.launch {
-            val cachedPrefetch = nearbyPostPrefetchRepository.cachedPrefetch.value
-            if (cachedPrefetch != null && cachedPrefetch.isFresh()) {
+            val cachedPrefetch = nearbyPostPrefetchRepository.cachedPrefetch.value?.takeIf { it.isFresh() }
+            if (nearbyPostPrefetchRepository.cachedPrefetch.value != null && cachedPrefetch == null) {
+                nearbyPostPrefetchRepository.clearCachedPrefetch()
+            }
+
+            if (cachedPrefetch != null) {
                 _uiState.update {
                     it.copy(
                         posts = cachedPrefetch.posts,
@@ -136,7 +140,6 @@ class PostSelectViewModel(
 
             if (
                 cachedPrefetch != null &&
-                cachedPrefetch.isFresh() &&
                 cachedPrefetch.distanceMetersTo(currentLocation) <= NearbyPostPrefetchRepository.MAX_REUSE_DISTANCE_METERS
             ) {
                 _uiState.update {
