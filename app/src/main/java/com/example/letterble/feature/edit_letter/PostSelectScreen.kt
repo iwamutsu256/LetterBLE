@@ -15,6 +15,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -33,6 +34,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.Button
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -53,13 +55,17 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.letterble.R
 import com.example.letterble.di.AppContainer
+import com.example.letterble.domain.model.Letter
 import com.example.letterble.domain.model.Post
 import com.example.letterble.ui.components.CommonBackButton
 import com.example.letterble.ui.components.CommonButton
 import com.example.letterble.ui.components.LetterMapView
 import com.example.letterble.ui.theme.LetterBLEFontFamilies
 import com.example.letterble.ui.theme.LetterBLEFontSize
+import com.example.letterble.ui.theme.LetterBLEFontSize.Button
+import com.example.letterble.ui.theme.LetterBLETextStyles
 import com.example.letterble.ui.theme.LetterBLETheme
+import com.example.letterble.ui.theme.LetterBleFontFamily
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
@@ -139,7 +145,7 @@ fun PostSelectScreen(
                     enabled = !uiState.isSubmitting && selectedPost != null,
                     onClick = viewModel::onSubmitConfirmed
                 ) {
-                    Text(if (uiState.isSubmitting) "投函中" else "投函")
+                    Text("投函")
                 }
             },
             dismissButton = {
@@ -169,6 +175,7 @@ fun PostSelectScreen(
             onBackClicked = onBackClicked,
             onRetryPostsClicked = viewModel::loadNearbyPosts,
             onSubmitClicked = viewModel::onPostSubmitClicked,
+            onSubmittedOkClicked = viewModel::onSubmittedOkClicked,
             innerPadding = innerPadding,
             modifier = modifier
         )
@@ -187,113 +194,123 @@ private fun PostSelectScreenContent(
     onBackClicked: () -> Unit,
     onRetryPostsClicked: () -> Unit,
     onSubmitClicked: () -> Unit,
+    onSubmittedOkClicked: () -> Unit,
     innerPadding: PaddingValues,
     modifier: Modifier = Modifier
 ) {
-    Box(modifier = modifier.fillMaxSize()) {
-        val errorMessage = uiState.errorMessage
-        val message = uiState.message
+    if (uiState.isSubmitted) {
+        PostSubmittedContent(
+            isSubmitting = uiState.isSubmitting,
+            onOkClicked = onSubmittedOkClicked,
+            innerPadding = innerPadding,
+            modifier = modifier
+        )
+    } else {
+        Box(modifier = modifier.fillMaxSize()) {
+            val errorMessage = uiState.errorMessage
+            val message = uiState.message
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
-            when {
-                uiState.isLoading -> {
-                    CircularProgressIndicator(
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .padding(24.dp)
-                    )
-                }
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+            ) {
+                when {
+                    uiState.isLoading -> {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .padding(24.dp)
+                        )
+                    }
 
-                !hasFineLocationPermission -> {
-                    PostSelectStatusContent(
-                        message = "1km以内のポスト検索には正確な位置情報の許可が必要です",
-                        isError = true,
-                        buttonText = "正確な位置情報を許可して検索",
-                        modifier = Modifier.align(Alignment.Center),
-                        onButtonClick = onLocationPermissionRequest
-                    )
-                }
+                    !hasFineLocationPermission -> {
+                        PostSelectStatusContent(
+                            message = "1km以内のポスト検索には正確な位置情報の許可が必要です",
+                            isError = true,
+                            buttonText = "正確な位置情報を許可して検索",
+                            modifier = Modifier.align(Alignment.Center),
+                            onButtonClick = onLocationPermissionRequest
+                        )
+                    }
 
-                errorMessage != null && uiState.canRetryPostSearch -> {
-                    PostSelectStatusContent(
-                        message = errorMessage,
-                        isError = true,
-                        buttonText = "再試行",
-                        modifier = Modifier.align(Alignment.Center),
-                        onButtonClick = onRetryPostsClicked
-                    )
-                }
+                    errorMessage != null && uiState.canRetryPostSearch -> {
+                        PostSelectStatusContent(
+                            message = errorMessage,
+                            isError = true,
+                            buttonText = "再試行",
+                            modifier = Modifier.align(Alignment.Center),
+                            onButtonClick = onRetryPostsClicked
+                        )
+                    }
 
-                uiState.posts.isNotEmpty() -> {
-                    PostSelectMap(
-                        posts = uiState.posts,
-                        currentPosition = uiState.currentLatLng(),
-                        selectedPost = uiState.selectedPost,
-                        hasFineLocationPermission = hasFineLocationPermission,
-                        onPostClicked = onPostClicked,
-                        modifier = Modifier
-                            .fillMaxSize()
-                    )
-                }
+                    uiState.posts.isNotEmpty() -> {
+                        PostSelectMap(
+                            posts = uiState.posts,
+                            currentPosition = uiState.currentLatLng(),
+                            selectedPost = uiState.selectedPost,
+                            hasFineLocationPermission = hasFineLocationPermission,
+                            onPostClicked = onPostClicked,
+                            modifier = Modifier
+                                .fillMaxSize()
+                        )
+                    }
 
-                message != null -> {
-                    PostSelectStatusContent(
-                        message = message,
-                        isError = false,
-                        buttonText = "再検索",
-                        modifier = Modifier.align(Alignment.Center),
-                        onButtonClick = onRetryPostsClicked
-                    )
+                    message != null -> {
+                        PostSelectStatusContent(
+                            message = message,
+                            isError = false,
+                            buttonText = "再検索",
+                            modifier = Modifier.align(Alignment.Center),
+                            onButtonClick = onRetryPostsClicked
+                        )
+                    }
                 }
             }
-        }
-        CommonBackButton(
-            modifier = Modifier.padding(top = innerPadding.calculateTopPadding()),
-            onClick = onBackClicked,
-            enabled = !uiState.isSubmitting
-        )
-        Image(
-            painter = painterResource(id = R.drawable.img07),
-            contentDescription = null,
-            modifier = Modifier
-                .size(400.dp)
-                .offset(120.dp, (-144).dp)
-        )
-        Text(
-            text = "とうかんする場所\nを選ぶ",
-            style = MaterialTheme.typography.headlineMedium.copy(
-                fontFamily = LetterBLEFontFamilies.NotoSansJp,
-                fontWeight = FontWeight.Black,
-                fontSize = LetterBLEFontSize.Headline,
-                lineHeight = LetterBLEFontSize.SectionTitle
-            ),
-            textAlign = TextAlign.End,
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(top = innerPadding.calculateTopPadding())
-                .offset((-24).dp, 40.dp)
-        )
-        if (errorMessage != null && !uiState.canRetryPostSearch && hasFineLocationPermission) {
-            PostSelectStatusContent(
-                message = errorMessage,
-                isError = true,
-                modifier = Modifier.align(Alignment.Center)
+            CommonBackButton(
+                modifier = Modifier.padding(top = innerPadding.calculateTopPadding()),
+                onClick = onBackClicked,
+                enabled = !uiState.isSubmitting
             )
-        }
-        // 投函ボタン (下部中央)
-        if (uiState.selectedPost != null) {
-            CommonButton(
-                text = "ここに投函する",
+            Image(
+                painter = painterResource(id = R.drawable.img07),
+                contentDescription = null,
                 modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = innerPadding.calculateBottomPadding() + 32.dp)
-                    .fillMaxWidth(0.8f),
-                enabled = !uiState.isSubmitting,
-                onClick = onSubmitClicked
+                    .size(400.dp)
+                    .offset(120.dp, (-144).dp)
             )
+            Text(
+                text = "とうかんする場所\nを選ぶ",
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontFamily = LetterBLEFontFamilies.NotoSansJp,
+                    fontWeight = FontWeight.Black,
+                    fontSize = LetterBLEFontSize.Headline,
+                    lineHeight = LetterBLEFontSize.SectionTitle
+                ),
+                textAlign = TextAlign.End,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = innerPadding.calculateTopPadding())
+                    .offset((-24).dp, 40.dp)
+            )
+            if (errorMessage != null && !uiState.canRetryPostSearch && hasFineLocationPermission) {
+                PostSelectStatusContent(
+                    message = errorMessage,
+                    isError = true,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+            // 投函ボタン (下部中央)
+            if (uiState.selectedPost != null) {
+                CommonButton(
+                    text = "ここに投函する",
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = innerPadding.calculateBottomPadding() + 32.dp)
+                        .fillMaxWidth(0.8f),
+                    enabled = !uiState.isSubmitting,
+                    onClick = onSubmitClicked
+                )
+            }
         }
     }
 }
@@ -313,8 +330,103 @@ private fun PostSelectScreenSystemUIPreview() {
                 onBackClicked = {},
                 onRetryPostsClicked = {},
                 onSubmitClicked = {},
+                onSubmittedOkClicked = {},
                 innerPadding = innerPadding
             )
+        }
+    }
+}
+
+@Preview(showSystemUi = true)
+@Composable
+private fun PostSubmittedScreenSystemUIPreview() {
+    LetterBLETheme {
+        Scaffold { innerPadding ->
+            PostSelectScreenContent(
+                uiState = PostSelectUiState(
+                    isSubmitted = true,
+                    isSubmitting = false
+                ),
+                hasFineLocationPermission = true,
+                onLocationPermissionRequest = {},
+                onPostClicked = {},
+                onBackClicked = {},
+                onRetryPostsClicked = {},
+                onSubmitClicked = {},
+                onSubmittedOkClicked = {},
+                innerPadding = innerPadding
+            )
+        }
+    }
+}
+
+@Composable
+private fun PostSubmittedContent(
+    isSubmitting: Boolean,
+    onOkClicked: () -> Unit,
+    innerPadding: PaddingValues,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.img08),
+            contentDescription = null,
+            modifier = Modifier
+                .size(400.dp)
+                .align(Alignment.TopEnd)
+                .offset(110.dp, 20.dp)
+        )
+        Image(
+            painter = painterResource(id = R.drawable.img09),
+            contentDescription = null,
+            modifier = Modifier
+                .size(400.dp)
+                .align(Alignment.BottomStart)
+                .offset((-80).dp, 130.dp)
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .offset(y = 80.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            if (isSubmitting) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(48.dp),
+                    color = MaterialTheme.colorScheme.primary
+                )
+            } else {
+                Text(
+                    text = "とうかんしました！",
+                    style = MaterialTheme.typography.headlineMedium.copy(
+                        fontFamily = LetterBLEFontFamilies.NotoSansJp,
+                        fontWeight = FontWeight.Black,
+                        fontSize = LetterBLEFontSize.SectionTitle
+                    ),
+                    color = MaterialTheme.colorScheme.onBackground,
+                    textAlign = TextAlign.Center
+                )
+                Button(
+                    modifier = Modifier
+                        .padding(top = 40.dp)
+                        .width(180.dp),
+                    onClick = onOkClicked
+                ) {
+                    Text(
+                        text = "OK!",
+                        style = LetterBLETextStyles.EnglishButton.copy(
+                            fontSize = LetterBLEFontSize.Button
+                        )
+                    )
+                }
+            }
         }
     }
 }

@@ -37,6 +37,7 @@ data class PostSelectUiState(
     val currentLongitude: Double? = null,
     val showConfirmDialog: Boolean = false,
     val isSubmitting: Boolean = false,
+    val isSubmitted: Boolean = false,
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val canRetryPostSearch: Boolean = false,
@@ -219,7 +220,9 @@ class PostSelectViewModel(
 
         _uiState.update {
             it.copy(
+                showConfirmDialog = false,
                 isSubmitting = true,
+                isSubmitted = true,
                 errorMessage = null,
                 canRetryPostSearch = false,
                 message = null
@@ -242,18 +245,16 @@ class PostSelectViewModel(
                 draftRepository.clearDraft()
                 _uiState.update {
                     it.copy(
-                        showConfirmDialog = false,
                         isSubmitting = false,
                         errorMessage = null,
                         canRetryPostSearch = false,
                         message = "投函しました"
                     )
                 }
-                _events.emit(PostSelectEvent.NavigateHome)
             }.onFailure {
                 _uiState.update {
                     it.copy(
-                        showConfirmDialog = false,
+                        isSubmitted = false,
                         isSubmitting = false,
                         errorMessage = "投函に失敗しました",
                         canRetryPostSearch = false,
@@ -261,6 +262,15 @@ class PostSelectViewModel(
                     )
                 }
             }
+        }
+    }
+
+    /**
+     * 投函完了後のOKボタンが押された際にホームへ戻る。
+     */
+    fun onSubmittedOkClicked() {
+        viewModelScope.launch {
+            _events.emit(PostSelectEvent.NavigateHome)
         }
     }
 
