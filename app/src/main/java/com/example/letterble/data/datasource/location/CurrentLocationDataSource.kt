@@ -50,6 +50,40 @@ class CurrentLocationDataSource(
     }
 
     @SuppressLint("MissingPermission")
+    suspend fun getApproximateLocation(): Location? {
+        if (!hasLocationPermission()) {
+            return null
+        }
+
+        return suspendCancellableCoroutine { continuation ->
+            val cancellationTokenSource = CancellationTokenSource()
+
+            try {
+                fusedLocationClient
+                    .getCurrentLocation(
+                        Priority.PRIORITY_BALANCED_POWER_ACCURACY,
+                        cancellationTokenSource.token
+                    )
+                    .addOnSuccessListener { location ->
+                        if (continuation.isActive) continuation.resume(location)
+                    }
+                    .addOnFailureListener {
+                        if (continuation.isActive) continuation.resume(null)
+                    }
+                    .addOnCanceledListener {
+                        if (continuation.isActive) continuation.resume(null)
+                    }
+            } catch (_: SecurityException) {
+                if (continuation.isActive) continuation.resume(null)
+            }
+
+            continuation.invokeOnCancellation {
+                cancellationTokenSource.cancel()
+            }
+        }
+    }
+
+    @SuppressLint("MissingPermission")
     suspend fun getCurrentLocation(): Location? {
         if (!hasFineLocationPermission()) {
             return null

@@ -13,6 +13,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.letterble.data.datasource.local.DraftLetter
 import com.example.letterble.data.datasource.location.CurrentLocationDataSource
 import com.example.letterble.data.repository.DraftRepository
+import com.example.letterble.data.repository.NearbyPostPrefetchRepository
 import com.example.letterble.data.repository.PostRepository
 import com.example.letterble.data.repository.UserRepository
 import com.example.letterble.domain.model.Post
@@ -59,6 +60,7 @@ sealed interface PostSelectEvent {
 class PostSelectViewModel(
     private val currentLocationDataSource: CurrentLocationDataSource,
     private val postRepository: PostRepository,
+    private val nearbyPostPrefetchRepository: NearbyPostPrefetchRepository,
     private val draftRepository: DraftRepository,
     private val userRepository: UserRepository,
     private val submitLetterUseCase: SubmitLetterUseCase
@@ -89,23 +91,69 @@ class PostSelectViewModel(
         }
 
         viewModelScope.launch {
+            val cachedPrefetch = nearbyPostPrefetchRepository.cachedPrefetch.value
+            if (cachedPrefetch != null && cachedPrefetch.isFresh()) {
+                _uiState.update {
+                    it.copy(
+                        posts = cachedPrefetch.posts,
+                        selectedPost = null,
+                        currentLatitude = cachedPrefetch.latitude,
+                        currentLongitude = cachedPrefetch.longitude,
+                        isLoading = false,
+                        isPostSearchLoading = true,
+                        errorMessage = null,
+                        canRetryPostSearch = false,
+                        message = if (cachedPrefetch.posts.isEmpty()) {
+                            "1km以内にポストが見つかりませんでした"
+                        } else {
+                            null
+                        }
+                    )
+                }
+            }
+
             val currentLocation = currentLocationDataSource.getCurrentLocation()
             if (currentLocation == null) {
                 _uiState.update {
                     it.copy(
-                        posts = emptyList(),
+                        posts = cachedPrefetch?.posts ?: emptyList(),
                         selectedPost = null,
-                        currentLatitude = null,
-                        currentLongitude = null,
+                        currentLatitude = cachedPrefetch?.latitude,
+                        currentLongitude = cachedPrefetch?.longitude,
                         isLoading = false,
                         isPostSearchLoading = false,
-                        errorMessage = "現在地を取得できませんでした",
-                        canRetryPostSearch = true,
-                        message = null
+                        errorMessage = if (cachedPrefetch == null) "現在地を取得できませんでした" else null,
+                        canRetryPostSearch = cachedPrefetch == null,
+                        message = if (cachedPrefetch != null && cachedPrefetch.posts.isEmpty()) {
+                            "1km以内にポストが見つかりませんでした"
+                        } else {
+                            null
+                        }
                     )
                 }
                 return@launch
             }
+
+            if (
+                cachedPrefetch != null &&
+                cachedPrefetch.isFresh() &&
+                cachedPrefetch.distanceMetersTo(currentLocation) <= NearbyPostPrefetchRepository.MAX_REUSE_DISTANCE_METERS
+            ) {
+                _uiState.update {
+                    it.copy(
+                        currentLatitude = currentLocation.latitude,
+                        currentLongitude = currentLocation.longitude,
+                        isLoading = false,
+                        isPostSearchLoading = false,
+                        errorMessage = null,
+                        canRetryPostSearch = false,
+                        message = if (cachedPrefetch.posts.isEmpty()) "1km以内にポストが見つかりませんでした" else null
+                    )
+                }
+                return@launch
+            }
+
+            nearbyPostPrefetchRepository.clearCachedPrefetch()
 
             _uiState.update {
                 it.copy(

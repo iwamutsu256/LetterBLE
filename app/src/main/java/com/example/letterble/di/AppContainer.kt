@@ -18,6 +18,7 @@ import com.example.letterble.data.repository.DraftRepository
 import com.example.letterble.data.repository.EncounterRepository
 import com.example.letterble.data.repository.LetterRepository
 import com.example.letterble.data.repository.LocationRepository
+import com.example.letterble.data.repository.NearbyPostPrefetchRepository
 import com.example.letterble.data.repository.PostRepository
 import com.example.letterble.data.repository.TreeRepository
 import com.example.letterble.data.repository.UserRepository
@@ -49,6 +50,9 @@ interface AppContainer {
 
     // 近隣ポスト候補を上位層へ提供する Repository。
     val postRepository: PostRepository
+
+    // ポスト選択画面を開く前の低精度プリフェッチを共有する Repository。
+    val nearbyPostPrefetchRepository: NearbyPostPrefetchRepository
 
     // 経路 Tree データを上位層へ提供する Repository。
     val treeRepository: TreeRepository
@@ -107,6 +111,10 @@ class DefaultAppContainer(
     override val locationRepository = LocationRepository(locationFirestoreDataSource)
     override val encounterRepository = EncounterRepository(encounterFirestoreDataSource)
     override val postRepository = PostRepository(overpassPostDataSource)
+    override val nearbyPostPrefetchRepository = NearbyPostPrefetchRepository(
+        currentLocationDataSource = currentLocationDataSource,
+        postRepository = postRepository
+    )
     override val treeRepository = TreeRepository(treeFirestoreDataSource)
     override val buildRouteTreeUseCase = BuildRouteTreeUseCase()
 
@@ -137,7 +145,8 @@ class DefaultAppContainer(
                 return EditLetterViewModel(
                     draftRepository = draftRepository,
                     userRepository = userRepository,
-                    submitLetterUseCase = submitLetterUseCase
+                    submitLetterUseCase = submitLetterUseCase,
+                    nearbyPostPrefetchRepository = nearbyPostPrefetchRepository
                 ) as T
             }
         }
@@ -150,6 +159,7 @@ class DefaultAppContainer(
                 return PostSelectViewModel(
                     currentLocationDataSource = currentLocationDataSource,
                     postRepository = postRepository,
+                    nearbyPostPrefetchRepository = nearbyPostPrefetchRepository,
                     draftRepository = draftRepository,
                     userRepository = userRepository,
                     submitLetterUseCase = submitLetterUseCase
