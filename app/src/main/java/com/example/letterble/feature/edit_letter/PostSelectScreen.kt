@@ -331,16 +331,18 @@ private fun PostSelectScreenContent(
                     onButtonClick = onRetryPostsClicked
                 )
             }
-            // 投函ボタン (下部中央)
             if (uiState.selectedPost != null) {
-                CommonButton(
-                    text = "ここに投函する",
+                SelectedPostBottomSheet(
+                    post = uiState.selectedPost,
+                    enabled = !uiState.isSubmitting,
+                    onSubmitClicked = onSubmitClicked,
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .padding(bottom = innerPadding.calculateBottomPadding() + 32.dp)
-                        .fillMaxWidth(0.8f),
-                    enabled = !uiState.isSubmitting,
-                    onClick = onSubmitClicked
+                        .padding(
+                            start = 16.dp,
+                            end = 16.dp,
+                            bottom = innerPadding.calculateBottomPadding() + 16.dp
+                        )
                 )
             }
         }
@@ -589,15 +591,6 @@ private fun PostSelectMap(
             }
         }
 
-        if (selectedPost != null) {
-            SelectedPostInfoBubble(
-                post = selectedPost,
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .offset(y = SelectedPostInfoBubbleOffsetY)
-            )
-        }
-
         when {
             isPostSearchLoading -> {
                 PostSelectStatusContent(
@@ -618,21 +611,23 @@ private fun PostSelectMap(
 }
 
 @Composable
-private fun SelectedPostInfoBubble(
+private fun SelectedPostBottomSheet(
     post: Post,
+    enabled: Boolean,
+    onSubmitClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Surface(
         modifier = modifier
-            .fillMaxWidth(0.76f),
+            .fillMaxWidth(),
         shape = RoundedCornerShape(8.dp),
         tonalElevation = 6.dp,
         shadowElevation = 6.dp,
         color = MaterialTheme.colorScheme.surface.copy(alpha = 0.96f)
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
                 text = post.name.ifBlank { "郵便ポスト" },
@@ -644,6 +639,14 @@ private fun SelectedPostInfoBubble(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+            CommonButton(
+                text = "ここに投函する",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp),
+                enabled = enabled,
+                onClick = onSubmitClicked
+            )
         }
     }
 }
@@ -654,7 +657,6 @@ private const val PostMapBoundsPadding = 160
 private const val SelectedPostCameraAnimationMillis = 500
 private const val DefaultPostMarkerZIndex = 0f
 private const val SelectedPostMarkerZIndex = 1f
-private val SelectedPostInfoBubbleOffsetY = (-116).dp
 
 private fun PostSelectUiState.currentLatLng(): LatLng? {
     val latitude = currentLatitude ?: return null
