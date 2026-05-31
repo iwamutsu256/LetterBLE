@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.letterble.di.AppContainer
 import com.example.letterble.ui.components.CommonButton
+import com.example.letterble.ui.theme.LetterBLETheme
 
 /**
  * 手紙作成画面の最小UIを表示する。
@@ -160,21 +161,23 @@ private fun EditLetterScreenContent(
         OutlinedTextField(
             value = uiState.toUser,
             onValueChange = onToUserChanged,
+            textStyle = MaterialTheme.typography.bodyLarge,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 24.dp),
-            label = { Text("宛先") },
+            label = { Text("宛先", style = MaterialTheme.typography.bodySmall) },
             singleLine = true
         )
 
         OutlinedTextField(
             value = uiState.sentence,
             onValueChange = onSentenceChanged,
+            textStyle = MaterialTheme.typography.bodyLarge,
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = 160.dp)
                 .padding(top = 12.dp),
-            label = { Text("本文") },
+            label = { Text("本文", style = MaterialTheme.typography.bodySmall) },
             minLines = 6
         )
 
@@ -214,7 +217,7 @@ private fun EditLetterScreenContent(
 @Preview(showSystemUi = true)
 @Composable
 private fun EditLetterScreenSystemUIPreview() {
-    MaterialTheme {
+    LetterBLETheme {
         Scaffold { innerPadding ->
             EditLetterScreenContent(
                 uiState = EditLetterUiState(

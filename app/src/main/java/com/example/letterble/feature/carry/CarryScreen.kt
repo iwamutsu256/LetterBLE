@@ -35,6 +35,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.letterble.di.AppContainer
 import com.example.letterble.ui.components.CommonBottomNavigation
+import com.example.letterble.ui.theme.LetterBLETheme
 
 /**
  * 運搬中の手紙一覧画面を表示する。
@@ -134,7 +135,7 @@ private fun CarryScreenContent(
 @Composable
 private fun CarryScreenSystemUIPreview() {
     val navController = androidx.navigation.compose.rememberNavController()
-    MaterialTheme {
+    LetterBLETheme {
         CommonBottomNavigation(navController = navController) { innerPadding ->
             CarryScreenContent(
                 uiState = CarryUiState(

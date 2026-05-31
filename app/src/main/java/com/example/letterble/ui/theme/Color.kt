@@ -17,10 +17,25 @@ package com.example.letterble.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+/**
+ * アプリ全体で使う色定義。
+ *
+ * 画面側では Color(0x...) を直接書かず、ここに名前を付けてから参照する。
+ */
+object LetterBLEColors {
+    val AppBackground = Color(0xFFFFFFFA)
+    val TextPrimary = Color(0xFF55433F)
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+    val NavigationContainer = Color(0xFF000066)
+    val NavigationContent = Color.White
+    val NavigationDivider = Color.White
+
+    val RegisterBackground = Color(0xFFFF6242)
+    val RegisterPrimary = Color(0xFF0F0F6D)
+    val RegisterCursor = Color(0xFF04041F)
+
+    val Accent = Color(0xFFFFF01D)
+
+    val RouteLine = Color(0xFF4F46E5)
+    val HighlightedRouteLine = Color(0xFFDC2626)
+}

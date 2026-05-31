@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -40,6 +41,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.letterble.R
 import com.example.letterble.di.AppContainer
 import com.example.letterble.ui.components.CommonBottomNavigation
+import com.example.letterble.ui.theme.LetterBLEColors
 import com.example.letterble.ui.theme.LetterBLETheme
 
 /**
@@ -112,7 +114,7 @@ fun HomeScreenContent(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFFFFFFFA))
+            .background(LetterBLEColors.AppBackground)
     ) {
         Image(
             painter = painterResource(id = R.drawable.icon),
@@ -130,9 +132,9 @@ fun HomeScreenContent(
                     .align(Alignment.TopStart)
                     .width(300.dp)
                     .padding(start = 88.dp, top = 28.dp)
-                    .offset(x = 35.dp, y = 35.dp)
-                    .size(70.dp),
-                color = Color(0xFF55433F)
+                    .offset(x = 35.dp, y = 35.dp),
+                color = LetterBLEColors.TextPrimary,
+                style = MaterialTheme.typography.titleLarge
             )
         }
 
@@ -178,7 +180,8 @@ fun HomeScreenContent(
                     hasReceivedLetters -> "〒 受信した手紙 ${receivedLetterCount}件"
                     else -> "受信した手紙はありません"
                 },
-                color = Color(0xFF55433F)
+                color = LetterBLEColors.TextPrimary,
+                style = MaterialTheme.typography.bodyLarge
             )
         }
 

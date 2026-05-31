@@ -18,6 +18,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.letterble.domain.model.Tree
 import com.example.letterble.ui.components.LetterTreeMapView
+import com.example.letterble.ui.theme.LetterBLETheme
 
 /**
  * 受信詳細で使う経路地図。
@@ -53,7 +54,7 @@ fun RouteMapScreen(
 @Preview(showSystemUi = true)
 @Composable
 private fun RouteMapScreenPreview() {
-    MaterialTheme {
+    LetterBLETheme {
         RouteMapScreen(tree = Tree())
     }
 }

@@ -42,6 +42,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.letterble.R
 import com.example.letterble.di.AppContainer
 import com.example.letterble.domain.model.Tree
+import com.example.letterble.ui.theme.LetterBLEColors
+import com.example.letterble.ui.theme.LetterBLETheme
 
 /**
  * 運搬中の手紙の詳細画面を表示する。
@@ -101,7 +103,7 @@ private fun CarryDetailScreenContent(
         modifier = modifier
             .fillMaxSize()
             .padding(all = 40.dp)
-            .background(Color(0xFFFFFFFA))
+            .background(LetterBLEColors.AppBackground)
     ){
         Image(
             painter = painterResource(id = R.drawable.img02),
@@ -161,7 +163,7 @@ private fun CarryDetailScreenContent(
         ) {
             Text(
                 text = "運んだルート",
-                color = Color(0xFF55433F),
+                color = LetterBLEColors.TextPrimary,
                 modifier = modifier
                     .padding(top = 56.dp),
                 style = MaterialTheme.typography.headlineMedium
@@ -182,7 +184,7 @@ private fun CarryDetailScreenContent(
 @Preview(showSystemUi = true)
 @Composable
 private fun CarryDetailScreenSystemUIPreview() {
-    MaterialTheme {
+    LetterBLETheme {
         Scaffold { innerPadding ->
             CarryDetailScreenContent(
                 uiState = CarryUiState(
@@ -244,7 +246,7 @@ private fun CarryLetterDetailContent(
             Text(
                 modifier = modifier,
                 text = "手紙の詳細はありません",
-                color = Color(0xFF55433F),
+                color = LetterBLEColors.TextPrimary,
             )
         }
 
@@ -274,17 +276,17 @@ private fun CarryLetterDetail(
     ) {
         Text(
             "差出人: ${letter.fromUser}",
-            color = Color(0xFF55433F),
+            color = LetterBLEColors.TextPrimary,
         )
         Text(
             modifier = Modifier.padding(top = 8.dp),
             text = "宛先: ${letter.toUser}",
-            color = Color(0xFF55433F)
+            color = LetterBLEColors.TextPrimary
         )
         Text(
             modifier = Modifier.padding(top = 8.dp),
             text = if (letter.isSurvival) "到達状態: 運搬中" else "到達状態: 到達済み",
-            color = Color(0xFF55433F)
+            color = LetterBLEColors.TextPrimary
         )
         CarryMapScreen(
             tree = letter.tree,

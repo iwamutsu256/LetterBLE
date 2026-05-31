@@ -15,14 +15,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-//import androidx.compose.material3.ButtonColors
 
-// TODO: 必要になったら共通Cardなどの再利用UIを追加する
-// TODO: MapViewなどの画面横断コンポーネントはViewModel非依存で定義する
 /**
  * 横幅いっぱいに表示する共通ボタン。
  *
@@ -46,7 +44,9 @@ fun CommonButton(
         colors = colors,
         contentPadding = PaddingValues(horizontal = 20.dp, vertical = 14.dp)
     ) {
-        Text(text = text)
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelLarge
+        )
     }
 }
-

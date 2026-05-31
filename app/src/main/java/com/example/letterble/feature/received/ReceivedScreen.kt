@@ -41,7 +41,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -49,13 +48,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.letterble.di.AppContainer
 import com.example.letterble.ui.components.CommonBottomNavigation
 import com.example.letterble.ui.components.CommonButton
 import com.example.letterble.R
+import com.example.letterble.ui.theme.LetterBLEColors
+import com.example.letterble.ui.theme.LetterBLEFontFamilies
+import com.example.letterble.ui.theme.LetterBLETheme
 
 /**
  * 受信した手紙一覧画面。
@@ -197,12 +198,12 @@ private fun ReceivedLoadingContent() {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         CircularProgressIndicator(
-            color = Color(0xFFFFF01D)
+            color = LetterBLEColors.Accent
         )
         Text(
             modifier = Modifier.padding(top = 12.dp),
             text = "読み込み中",
-            color = Color(0xFF55433F),
+            color = LetterBLEColors.TextPrimary,
             style = MaterialTheme.typography.bodyMedium
         )
     }
@@ -217,7 +218,7 @@ private fun ReceivedEmptyContent() {
     Text(
         modifier = Modifier.fillMaxWidth(),
         text = "届いた手紙はありません",
-        color = Color(0xFF55433F),
+        color = LetterBLEColors.TextPrimary,
         style = MaterialTheme.typography.bodyMedium,
         textAlign = TextAlign.Center
     )
@@ -249,8 +250,8 @@ fun ReceivedErrorContent(
                 .width(200.dp)
                 .padding(top = 12.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF55433F),
-                contentColor = Color(0xFFFFFFFA)
+                containerColor = LetterBLEColors.TextPrimary,
+                contentColor = LetterBLEColors.AppBackground
             ),
             onClick = onRetryClicked
         )
@@ -279,7 +280,7 @@ private fun ReceivedLetterList(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFFFFFFFA)),
+            .background(LetterBLEColors.AppBackground),
         contentAlignment = Alignment.Center
     ) {
         Image(
@@ -305,9 +306,8 @@ private fun ReceivedLetterList(
         ) {
             Text(
                 text = "受け取ったメッセージ",
-                fontSize = 30.sp,
-                color = Color(0xFF55433F),
-                style = MaterialTheme.typography.bodyMedium,
+                color = LetterBLEColors.TextPrimary,
+                style = MaterialTheme.typography.titleMedium,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -351,7 +351,7 @@ private fun ReceivedLetterList(
 @Composable
 private fun ReceivedScreenSystemUIPreview() {
     val navController = androidx.navigation.compose.rememberNavController()
-    MaterialTheme {
+    LetterBLETheme {
         CommonBottomNavigation(navController = navController) { innerPadding ->
             ReceivedScreenContent(
                 uiState = ReceivedUiState(
@@ -398,7 +398,9 @@ private fun ReceivedLetterRow(
             ) {
                 Text(
                     text = "From: ${letter.fromUser}",
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontFamily = LetterBLEFontFamilies.PostNoBillsColombo
+                    ),
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -420,7 +422,9 @@ private fun ReceivedLetterRow(
             Text(
                 modifier = Modifier.padding(top = 6.dp),
                 text = "To: ${letter.toUser}",
-                style = MaterialTheme.typography.bodySmall
+                style = MaterialTheme.typography.bodySmall.copy(
+                    fontFamily = LetterBLEFontFamilies.PostNoBillsColombo
+                )
             )
         }
     }
