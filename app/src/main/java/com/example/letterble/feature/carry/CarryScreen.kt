@@ -96,7 +96,7 @@ private fun CarryScreenContent(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .padding(innerPadding)
+            .padding(bottom = innerPadding.calculateBottomPadding())
     ) {
         CommonBackButton(onClick = onBackClicked)
 

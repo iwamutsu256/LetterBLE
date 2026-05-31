@@ -127,7 +127,7 @@ private fun ReceivedScreenContent(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .padding(innerPadding)
+            .padding(bottom = innerPadding.calculateBottomPadding())
             .background(LetterBLEColors.AppBackground)
     ) {
         ReceivedBackgroundImages()
