@@ -37,6 +37,7 @@ import com.example.letterble.di.AppContainer
 import com.example.letterble.domain.model.Letter
 import com.example.letterble.domain.model.Tree
 import com.example.letterble.ui.components.CommonButton
+import com.example.letterble.ui.theme.LetterBLETheme
 
 /**
  * 受信した手紙の詳細画面。
@@ -147,7 +148,7 @@ private fun ReceivedDetailScreenContent(
 @Preview(showSystemUi = true)
 @Composable
 private fun ReceivedDetailScreenSystemUIPreview() {
-    MaterialTheme {
+    LetterBLETheme {
         Scaffold { innerPadding ->
             ReceivedDetailScreenContent(
                 detailState = ReceivedDetailUiState(

@@ -45,6 +45,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -55,6 +57,9 @@ import com.example.letterble.domain.model.Post
 import com.example.letterble.ui.components.CommonBackButton
 import com.example.letterble.ui.components.CommonButton
 import com.example.letterble.ui.components.LetterMapView
+import com.example.letterble.ui.theme.LetterBLEFontFamilies
+import com.example.letterble.ui.theme.LetterBLEFontSize
+import com.example.letterble.ui.theme.LetterBLETheme
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
@@ -259,7 +264,13 @@ private fun PostSelectScreenContent(
         )
         Text(
             text = "とうかんする場所\nを選ぶ",
-            style = MaterialTheme.typography.headlineMedium,
+            style = MaterialTheme.typography.headlineMedium.copy(
+                fontFamily = LetterBLEFontFamilies.NotoSansJp,
+                fontWeight = FontWeight.Black,
+                fontSize = LetterBLEFontSize.Headline,
+                lineHeight = LetterBLEFontSize.SectionTitle
+            ),
+            textAlign = TextAlign.End,
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(top = innerPadding.calculateTopPadding())
@@ -290,7 +301,7 @@ private fun PostSelectScreenContent(
 @Preview(showSystemUi = true)
 @Composable
 private fun PostSelectScreenSystemUIPreview() {
-    MaterialTheme {
+    LetterBLETheme {
         Scaffold { innerPadding ->
             PostSelectScreenContent(
                 uiState = PostSelectUiState(

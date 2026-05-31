@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -29,15 +30,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.letterble.navigation.Destinations
+import com.example.letterble.ui.theme.LetterBLEColors
+import com.example.letterble.ui.theme.LetterBLESizes
+import com.example.letterble.ui.theme.LetterBLESpacing
 
 /**
  * ボトムナビゲーションを内包した共通のScaffoldコンポーネント。
@@ -64,7 +65,7 @@ fun CommonBottomNavigation(
 
     Scaffold(
         modifier = modifier,
-        containerColor = Color(0xFFFFFFFA), // HomeScreenの背景色と合わせる
+        containerColor = LetterBLEColors.AppBackground,
         bottomBar = {
             CommonBottomNavigationBar(
                 currentRoute = currentRoute,
@@ -106,15 +107,20 @@ private fun CommonBottomNavigationBar(
     Surface(
         modifier = modifier
             .windowInsetsPadding(WindowInsets.navigationBars)
-            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+            .padding(
+                start = LetterBLESpacing.Large,
+                end = LetterBLESpacing.Large,
+                top = LetterBLESpacing.Small,
+                bottom = LetterBLESpacing.Small
+            )
             .fillMaxWidth(),
-        color = Color(0xFF000066), // 濃い青色
-        shape = RoundedCornerShape(16.dp)
+        color = LetterBLEColors.NavigationContainer,
+        shape = RoundedCornerShape(LetterBLESizes.BottomNavigationCorner)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(64.dp),
+                .height(LetterBLESizes.BottomNavigationHeight),
             verticalAlignment = Alignment.CenterVertically
         ) {
             val items = NavigationDestination.entries
@@ -138,14 +144,22 @@ private fun CommonBottomNavigationBar(
                         Icon(
                             imageVector = destination.icon,
                             contentDescription = null,
-                            tint = if (isSelected) Color.White else Color.White.copy(alpha = 0.6f),
-                            modifier = Modifier.size(24.dp)
+                            tint = if (isSelected) {
+                                LetterBLEColors.NavigationContent
+                            } else {
+                                LetterBLEColors.NavigationContent.copy(alpha = 0.6f)
+                            },
+                            modifier = Modifier.size(LetterBLESizes.BottomNavigationIcon)
                         )
-                        Spacer(modifier = Modifier.height(2.dp))
+                        Spacer(modifier = Modifier.height(LetterBLESpacing.Tiny))
                         Text(
                             text = destination.label,
-                            color = if (isSelected) Color.White else Color.White.copy(alpha = 0.6f),
-                            fontSize = 12.sp,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (isSelected) {
+                                LetterBLEColors.NavigationContent
+                            } else {
+                                LetterBLEColors.NavigationContent.copy(alpha = 0.6f)
+                            },
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                         )
                     }
@@ -154,9 +168,9 @@ private fun CommonBottomNavigationBar(
                 if (index < items.size - 1) {
                     Box(
                         modifier = Modifier
-                            .width(1.dp)
-                            .height(32.dp)
-                            .background(Color.White.copy(alpha = 0.5f))
+                            .width(LetterBLESizes.BottomNavigationDividerWidth)
+                            .height(LetterBLESizes.BottomNavigationDividerHeight)
+                            .background(LetterBLEColors.NavigationDivider.copy(alpha = 0.5f))
                     )
                 }
             }
