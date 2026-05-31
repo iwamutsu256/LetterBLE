@@ -124,62 +124,93 @@ private fun ReceivedScreenContent(
     innerPadding: PaddingValues,
     modifier: Modifier = Modifier
 ) {
-    Column(
+    Box(
         modifier = modifier
             .fillMaxSize()
             .padding(innerPadding)
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.Start
+            .background(LetterBLEColors.AppBackground)
     ) {
-        Text(
-            text = "受信した手紙",
-            style = MaterialTheme.typography.headlineMedium
-        )
+        ReceivedBackgroundImages()
 
-        Text(
-            modifier = Modifier.padding(top = 8.dp),
-            text = if (uiState.currentUserName.isBlank()) {
-                "ユーザー未登録"
-            } else {
-                "宛先: ${uiState.currentUserName}"
-            },
-            style = MaterialTheme.typography.bodyMedium
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.Start
+        ) {
+            Text(
+                text = "受信した手紙",
+                style = MaterialTheme.typography.headlineMedium
+            )
 
-        Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                modifier = Modifier.padding(top = 8.dp),
+                text = if (uiState.currentUserName.isBlank()) {
+                    "ユーザー未登録"
+                } else {
+                    "宛先: ${uiState.currentUserName}"
+                },
+                style = MaterialTheme.typography.bodyMedium
+            )
 
-        val errorMessage = uiState.errorMessage
+            Spacer(modifier = Modifier.height(24.dp))
 
-        when {
-            uiState.isLoading -> {
-                ReceivedLoadingContent()
+            val errorMessage = uiState.errorMessage
+
+            when {
+                uiState.isLoading -> {
+                    ReceivedLoadingContent()
+                }
+
+                errorMessage != null -> {
+                    ReceivedErrorContent(
+                        errorMessage = errorMessage,
+                        onRetryClicked = onRetryClicked
+                    )
+                }
+
+                uiState.isEmpty -> {
+                    ReceivedEmptyContent()
+                }
+
+                else -> {
+                    ReceivedLetterList(
+                        letters = uiState.receivedLetters,
+                        onLetterClicked = onLetterClicked,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
             }
 
-            errorMessage != null -> {
-                ReceivedErrorContent(
-                    errorMessage = errorMessage,
-                    onRetryClicked = onRetryClicked
-                )
-            }
-
-            uiState.isEmpty -> {
-                ReceivedEmptyContent()
-            }
-
-            else -> {
-                ReceivedLetterList(
-                    letters = uiState.receivedLetters,
-                    onLetterClicked = onLetterClicked,
-                    modifier = Modifier.weight(1f)
-                )
-            }
+            CommonButton(
+                text = "戻る",
+                modifier = Modifier.padding(top = 24.dp),
+                onClick = onBackClicked
+            )
         }
+    }
+}
 
-        CommonButton(
-            text = "戻る",
-            modifier = Modifier.padding(top = 24.dp),
-            onClick = onBackClicked
+@Composable
+private fun ReceivedBackgroundImages() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.img01),
+            contentDescription = null,
+            modifier = Modifier
+                .size(320.dp)
+                .offset(x = (-100).dp, y = (-400).dp)
+        )
+        Image(
+            painter = painterResource(id = R.drawable.img02),
+            contentDescription = null,
+            modifier = Modifier
+                .size(120.dp)
+                .offset(x = 40.dp, y = (-360).dp)
         )
     }
 }
@@ -278,25 +309,9 @@ private fun ReceivedLetterList(
     modifier: Modifier = Modifier
 ) {
     Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(LetterBLEColors.AppBackground),
+        modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.img01),
-            contentDescription = null,
-            modifier = Modifier
-                .size(320.dp)
-                .offset(x = (-100).dp, y = (-400).dp)
-        )
-        Image(
-            painter = painterResource(id = R.drawable.img02),
-            contentDescription = null,
-            modifier = Modifier
-                .size(120.dp)
-                .offset(x = 40.dp, y = (-360).dp)
-        )
         Column(
             modifier = Modifier
                 .width(700.dp)
