@@ -97,12 +97,13 @@ private fun CarryScreenContent(
         modifier = modifier
             .fillMaxSize()
             .padding(innerPadding)
-            .padding(24.dp)
     ) {
         CommonBackButton(onClick = onBackClicked)
 
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(start = 24.dp, top = 112.dp, end = 24.dp, bottom = 24.dp)
         ) {
             Text(
                 text = "運搬中の手紙",

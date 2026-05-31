@@ -137,7 +137,7 @@ private fun ReceivedScreenContent(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp),
+                .padding(horizontal = 24.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -269,8 +269,7 @@ private fun ReceivedLetterList(
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = 100.dp),
         modifier = modifier
-            .fillMaxWidth()
-            .padding(24.dp),
+            .fillMaxWidth(),
         horizontalArrangement = Arrangement.Center,
         verticalArrangement = Arrangement.spacedBy(30.dp)
     ) {
@@ -342,7 +341,7 @@ private fun ReceivedMessagesContent(
                 ReceivedLetterList(
                     letters = uiState.receivedLetters,
                     onLetterClicked = onLetterClicked,
-                    modifier = Modifier.height(220.dp)
+                    modifier = Modifier.height(280.dp)
                 )
             }
         }
