@@ -7,6 +7,8 @@
  */
 package com.example.letterble.feature.carry
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -14,10 +16,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -29,10 +34,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.example.letterble.R
 import com.example.letterble.di.AppContainer
 import com.example.letterble.ui.components.CommonBottomNavigation
 
@@ -89,43 +98,52 @@ private fun CarryScreenContent(
     innerPadding: PaddingValues,
     modifier: Modifier = Modifier
 ) {
-    Column(
+    Box(
         modifier = modifier
             .fillMaxSize()
-            .padding(innerPadding)
-            .padding(24.dp)
-    ) {
-        Text(
-            text = "運搬中の手紙",
-            style = MaterialTheme.typography.headlineMedium
-        )
-
-        Text(
-            modifier = Modifier.padding(top = 8.dp),
-            text = if (uiState.currentUserName.isBlank()) {
-                "現在のユーザー: 未登録"
-            } else {
-                "現在のユーザー: ${uiState.currentUserName}"
-            },
-            style = MaterialTheme.typography.bodyMedium
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        CarryingLetterList(
-            uiState = uiState,
-            onRetryClicked = onRetryClicked,
-            onLetterClicked = onLetterClicked,
-            modifier = Modifier.weight(1f)
-        )
-
-        OutlinedButton(
+            .padding(all = 24.dp)
+            .background(Color(0xFFFFFFFA))
+    ){
+        Image(
+            painter = painterResource(id = R.drawable.img01),
+            contentDescription = null,
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 16.dp),
-            onClick = onBackClicked
+                .size(220.dp)
+                .align(Alignment.TopCenter)
+                .offset(x = 150.dp , y = -100.dp)
+        )
+        Image(
+            painter = painterResource(id = R.drawable.img02),
+            contentDescription = null,
+            modifier = Modifier
+                .size(150.dp)
+                .align(Alignment.TopCenter)
+                .offset(x = 50.dp , y = -100.dp)
+        )
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(24.dp),
         ) {
-            Text("戻る")
+            Text(
+                text = "はいたつ",
+                modifier = Modifier
+                    .fillMaxWidth()     // ← 横幅を広げる
+                    .padding(24.dp),
+                color = Color(0xFF55433F),
+                style = MaterialTheme.typography.headlineMedium,
+                textAlign = TextAlign.Center   // ← 中央寄せ
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            CarryingLetterList(
+                uiState = uiState,
+                onRetryClicked = onRetryClicked,
+                onLetterClicked = onLetterClicked,
+                modifier = Modifier.weight(1f)
+            )
         }
     }
 }
@@ -210,15 +228,23 @@ private fun CarryingLetterList(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 4.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFE8E8E8),
+                            contentColor = Color(0xFF0F0F6D)
+                        ),
                         onClick = { onLetterClicked(letter.letterId) }
                     ) {
                         Column(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalAlignment = Alignment.Start
                         ) {
-                            Text("宛先: ${letter.toUser}")
+                            Text(
+                                "宛先: ${letter.toUser}",
+                                color = Color(0xFF0F0F6D),
+                            )
                             Text(
                                 text = "差出人: ${letter.fromUser}",
+                                color = Color(0xFF0F0F6D),
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }
