@@ -493,26 +493,33 @@ private fun PostSelectMap(
     }
     var isMapLoaded by remember { mutableStateOf(false) }
 
-    LaunchedEffect(isMapLoaded, posts, currentPosition) {
+    LaunchedEffect(isMapLoaded, currentPosition) {
         if (!isMapLoaded) {
             return@LaunchedEffect
         }
 
-        val positions = buildList {
-            currentPosition?.let(::add)
-            posts.forEach { post -> add(post.toLatLng()) }
-        }
-        if (positions.isEmpty()) {
+        if (currentPosition == null) {
             return@LaunchedEffect
         }
 
-        // 現在地と候補ピンを初期表示範囲に収め、地図上で選びやすくする。
-        val cameraUpdate = if (positions.size == 1 || positions.allSamePosition()) {
-            CameraUpdateFactory.newLatLngZoom(positions.first(), 16f)
-        } else {
-            CameraUpdateFactory.newLatLngBounds(positions.toBounds(), PostMapBoundsPadding)
+        // 検索半径の1km全体を初期表示に収め、上部のテキスト付近へピンが寄りすぎないようにする。
+        cameraPositionState.move(
+            CameraUpdateFactory.newLatLngBounds(
+                currentPosition.toRadiusBounds(PostSearchRadiusMeters),
+                PostMapBoundsPadding
+            )
+        )
+    }
+
+    LaunchedEffect(isMapLoaded, selectedPost?.id) {
+        if (!isMapLoaded || selectedPost == null) {
+            return@LaunchedEffect
         }
-        cameraPositionState.move(cameraUpdate)
+
+        cameraPositionState.animate(
+            update = CameraUpdateFactory.newLatLng(selectedPost.toLatLng()),
+            durationMs = SelectedPostCameraAnimationMillis
+        )
     }
 
     Box(
@@ -527,15 +534,19 @@ private fun PostSelectMap(
             properties = MapProperties(isMyLocationEnabled = hasFineLocationPermission),
             onMapLoaded = { isMapLoaded = true }
         ) {
-            posts.forEach { post ->
+            val (selectedPosts, unselectedPosts) = posts.partition { post ->
+                post.id == selectedPost?.id
+            }
+            (unselectedPosts + selectedPosts).forEach { post ->
                 val isSelected = post.id == selectedPost?.id
                 Marker(
                     state = MarkerState(position = post.toLatLng()),
                     title = post.name,
                     snippet = "${post.latitude}, ${post.longitude}",
                     icon = BitmapDescriptorFactory.defaultMarker(
-                        if (isSelected) BitmapDescriptorFactory.HUE_AZURE else BitmapDescriptorFactory.HUE_RED
+                        if (isSelected) BitmapDescriptorFactory.HUE_RED else BitmapDescriptorFactory.HUE_AZURE
                     ),
+                    zIndex = if (isSelected) SelectedPostMarkerZIndex else DefaultPostMarkerZIndex,
                     onClick = {
                         onPostClicked(post)
                         true
@@ -554,7 +565,11 @@ private fun PostSelectMap(
 }
 
 private val DefaultPostMapCenter = LatLng(35.681236, 139.767125)
-private const val PostMapBoundsPadding = 96
+private const val PostSearchRadiusMeters = 1_000.0
+private const val PostMapBoundsPadding = 160
+private const val SelectedPostCameraAnimationMillis = 500
+private const val DefaultPostMarkerZIndex = 0f
+private const val SelectedPostMarkerZIndex = 1f
 
 private fun PostSelectUiState.currentLatLng(): LatLng? {
     val latitude = currentLatitude ?: return null
@@ -572,10 +587,14 @@ private fun List<LatLng>.toBounds(): LatLngBounds {
     return builder.build()
 }
 
-private fun List<LatLng>.allSamePosition(): Boolean {
-    val first = first()
-    return all { position ->
-        position.latitude == first.latitude && position.longitude == first.longitude
-    }
+private fun LatLng.toRadiusBounds(radiusMeters: Double): LatLngBounds {
+    val latitudeDelta = radiusMeters / MetersPerLatitudeDegree
+    val longitudeDelta = radiusMeters / (MetersPerLatitudeDegree * kotlin.math.cos(Math.toRadians(latitude)))
+    return listOf(
+        LatLng(latitude - latitudeDelta, longitude - longitudeDelta),
+        LatLng(latitude + latitudeDelta, longitude + longitudeDelta)
+    ).toBounds()
 }
+
+private const val MetersPerLatitudeDegree = 111_320.0
 
