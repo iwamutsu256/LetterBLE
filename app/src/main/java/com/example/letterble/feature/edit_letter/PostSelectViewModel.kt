@@ -13,6 +13,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.letterble.data.datasource.local.DraftLetter
 import com.example.letterble.data.datasource.location.CurrentLocationDataSource
 import com.example.letterble.data.repository.DraftRepository
+import com.example.letterble.data.repository.NearbyPostPrefetchRepository
 import com.example.letterble.data.repository.PostRepository
 import com.example.letterble.data.repository.UserRepository
 import com.example.letterble.domain.model.Post
@@ -39,6 +40,7 @@ data class PostSelectUiState(
     val isSubmitting: Boolean = false,
     val isSubmitted: Boolean = false,
     val isLoading: Boolean = false,
+    val isPostSearchLoading: Boolean = false,
     val errorMessage: String? = null,
     val canRetryPostSearch: Boolean = false,
     val message: String? = null
@@ -58,6 +60,7 @@ sealed interface PostSelectEvent {
 class PostSelectViewModel(
     private val currentLocationDataSource: CurrentLocationDataSource,
     private val postRepository: PostRepository,
+    private val nearbyPostPrefetchRepository: NearbyPostPrefetchRepository,
     private val draftRepository: DraftRepository,
     private val userRepository: UserRepository,
     private val submitLetterUseCase: SubmitLetterUseCase
@@ -72,13 +75,15 @@ class PostSelectViewModel(
      * 現在地から1km以内のポストを読み込む。
      */
     fun loadNearbyPosts() {
-        if (_uiState.value.isLoading) {
+        if (_uiState.value.isLoading || _uiState.value.isPostSearchLoading) {
             return
         }
 
         _uiState.update {
+            val hasCurrentPosition = it.currentLatitude != null && it.currentLongitude != null
             it.copy(
-                isLoading = true,
+                isLoading = !hasCurrentPosition,
+                isPostSearchLoading = hasCurrentPosition,
                 errorMessage = null,
                 canRetryPostSearch = false,
                 message = null
@@ -86,21 +91,85 @@ class PostSelectViewModel(
         }
 
         viewModelScope.launch {
+            val cachedPrefetch = nearbyPostPrefetchRepository.cachedPrefetch.value?.takeIf { it.isFresh() }
+            if (nearbyPostPrefetchRepository.cachedPrefetch.value != null && cachedPrefetch == null) {
+                nearbyPostPrefetchRepository.clearCachedPrefetch()
+            }
+
+            if (cachedPrefetch != null) {
+                _uiState.update {
+                    it.copy(
+                        posts = cachedPrefetch.posts,
+                        selectedPost = null,
+                        currentLatitude = cachedPrefetch.latitude,
+                        currentLongitude = cachedPrefetch.longitude,
+                        isLoading = false,
+                        isPostSearchLoading = true,
+                        errorMessage = null,
+                        canRetryPostSearch = false,
+                        message = if (cachedPrefetch.posts.isEmpty()) {
+                            "1km以内にポストが見つかりませんでした"
+                        } else {
+                            null
+                        }
+                    )
+                }
+            }
+
             val currentLocation = currentLocationDataSource.getCurrentLocation()
             if (currentLocation == null) {
                 _uiState.update {
                     it.copy(
-                        posts = emptyList(),
+                        posts = cachedPrefetch?.posts ?: emptyList(),
                         selectedPost = null,
-                        currentLatitude = null,
-                        currentLongitude = null,
+                        currentLatitude = cachedPrefetch?.latitude,
+                        currentLongitude = cachedPrefetch?.longitude,
                         isLoading = false,
-                        errorMessage = "現在地を取得できませんでした",
-                        canRetryPostSearch = true,
-                        message = null
+                        isPostSearchLoading = false,
+                        errorMessage = if (cachedPrefetch == null) "現在地を取得できませんでした" else null,
+                        canRetryPostSearch = cachedPrefetch == null,
+                        message = if (cachedPrefetch != null && cachedPrefetch.posts.isEmpty()) {
+                            "1km以内にポストが見つかりませんでした"
+                        } else {
+                            null
+                        }
                     )
                 }
                 return@launch
+            }
+
+            if (
+                cachedPrefetch != null &&
+                cachedPrefetch.distanceMetersTo(currentLocation) <= NearbyPostPrefetchRepository.MAX_REUSE_DISTANCE_METERS
+            ) {
+                _uiState.update {
+                    it.copy(
+                        currentLatitude = currentLocation.latitude,
+                        currentLongitude = currentLocation.longitude,
+                        isLoading = false,
+                        isPostSearchLoading = false,
+                        errorMessage = null,
+                        canRetryPostSearch = false,
+                        message = if (cachedPrefetch.posts.isEmpty()) "1km以内にポストが見つかりませんでした" else null
+                    )
+                }
+                return@launch
+            }
+
+            nearbyPostPrefetchRepository.clearCachedPrefetch()
+
+            _uiState.update {
+                it.copy(
+                    posts = emptyList(),
+                    selectedPost = null,
+                    currentLatitude = currentLocation.latitude,
+                    currentLongitude = currentLocation.longitude,
+                    isLoading = false,
+                    isPostSearchLoading = true,
+                    errorMessage = null,
+                    canRetryPostSearch = false,
+                    message = null
+                )
             }
 
             runCatching {
@@ -116,6 +185,7 @@ class PostSelectViewModel(
                         currentLatitude = currentLocation.latitude,
                         currentLongitude = currentLocation.longitude,
                         isLoading = false,
+                        isPostSearchLoading = false,
                         errorMessage = null,
                         canRetryPostSearch = false,
                         message = if (posts.isEmpty()) "1km以内にポストが見つかりませんでした" else null
@@ -127,6 +197,7 @@ class PostSelectViewModel(
                         posts = emptyList(),
                         selectedPost = null,
                         isLoading = false,
+                        isPostSearchLoading = false,
                         errorMessage = "ポスト候補の取得に失敗しました",
                         canRetryPostSearch = true,
                         message = null
@@ -144,6 +215,15 @@ class PostSelectViewModel(
             it.copy(
                 selectedPost = post
             )
+        }
+    }
+
+    /**
+     * 地図上のピン以外が押されたら選択を解除する。
+     */
+    fun onMapClicked() {
+        _uiState.update {
+            it.copy(selectedPost = null)
         }
     }
 
@@ -167,6 +247,7 @@ class PostSelectViewModel(
                 currentLatitude = null,
                 currentLongitude = null,
                 isLoading = false,
+                isPostSearchLoading = false,
                 errorMessage = "1km以内のポスト検索には正確な位置情報の許可が必要です",
                 canRetryPostSearch = false,
                 message = null

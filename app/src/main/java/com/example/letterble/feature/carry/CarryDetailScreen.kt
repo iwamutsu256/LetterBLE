@@ -141,7 +141,7 @@ private fun CarryDetailScreenContent(
             modifier = Modifier
                 .width(100.dp)
                 .height(100.dp)
-                .offset(x = -10.dp, y = 5.dp),
+                .offset(x = (-10).dp, y = 5.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color.Transparent,
                 contentColor = Color.Unspecified

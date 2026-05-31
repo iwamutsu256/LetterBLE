@@ -17,6 +17,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,12 +27,14 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.Button
@@ -46,6 +49,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -70,11 +74,15 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.LatLngBounds
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
+import kotlin.math.PI
+import kotlin.math.ln
+import kotlin.math.log2
+import kotlin.math.min
+import kotlin.math.sin
 
 /**
  * 現在地周辺のポスト候補を表示する最小UI。
@@ -175,6 +183,7 @@ fun PostSelectScreen(
                 )
             },
             onPostClicked = viewModel::onPostSelected,
+            onMapClicked = viewModel::onMapClicked,
             onBackClicked = onBackClicked,
             onRetryPostsClicked = viewModel::loadNearbyPosts,
             onSubmitClicked = viewModel::onPostSubmitClicked,
@@ -194,6 +203,7 @@ private fun PostSelectScreenContent(
     hasFineLocationPermission: Boolean,
     onLocationPermissionRequest: () -> Unit,
     onPostClicked: (Post) -> Unit,
+    onMapClicked: () -> Unit,
     onBackClicked: () -> Unit,
     onRetryPostsClicked: () -> Unit,
     onSubmitClicked: () -> Unit,
@@ -236,6 +246,20 @@ private fun PostSelectScreenContent(
                         )
                     }
 
+                    uiState.currentLatLng() != null -> {
+                        PostSelectMap(
+                            posts = uiState.posts,
+                            currentPosition = uiState.currentLatLng(),
+                            selectedPost = uiState.selectedPost,
+                            isPostSearchLoading = uiState.isPostSearchLoading,
+                            hasFineLocationPermission = hasFineLocationPermission,
+                            onPostClicked = onPostClicked,
+                            onMapClicked = onMapClicked,
+                            modifier = Modifier
+                                .fillMaxSize()
+                        )
+                    }
+
                     errorMessage != null && uiState.canRetryPostSearch -> {
                         PostSelectStatusContent(
                             message = errorMessage,
@@ -243,18 +267,6 @@ private fun PostSelectScreenContent(
                             buttonText = "再試行",
                             modifier = Modifier.align(Alignment.Center),
                             onButtonClick = onRetryPostsClicked
-                        )
-                    }
-
-                    uiState.posts.isNotEmpty() -> {
-                        PostSelectMap(
-                            posts = uiState.posts,
-                            currentPosition = uiState.currentLatLng(),
-                            selectedPost = uiState.selectedPost,
-                            hasFineLocationPermission = hasFineLocationPermission,
-                            onPostClicked = onPostClicked,
-                            modifier = Modifier
-                                .fillMaxSize()
                         )
                     }
 
@@ -302,16 +314,41 @@ private fun PostSelectScreenContent(
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
-            // 投函ボタン (下部中央)
+            if (
+                errorMessage != null &&
+                uiState.canRetryPostSearch &&
+                hasFineLocationPermission &&
+                uiState.currentLatLng() != null
+            ) {
+                PostSelectStatusContent(
+                    message = errorMessage,
+                    isError = true,
+                    buttonText = "再試行",
+                    modifier = Modifier.align(Alignment.Center),
+                    onButtonClick = onRetryPostsClicked
+                )
+            }
+            if (message != null && uiState.currentLatLng() != null && !uiState.isPostSearchLoading) {
+                PostSelectStatusContent(
+                    message = message,
+                    isError = false,
+                    buttonText = "再検索",
+                    modifier = Modifier.align(Alignment.Center),
+                    onButtonClick = onRetryPostsClicked
+                )
+            }
             if (uiState.selectedPost != null) {
-                CommonButton(
-                    text = "ここに投函する",
+                SelectedPostBottomSheet(
+                    post = uiState.selectedPost,
+                    enabled = !uiState.isSubmitting,
+                    onSubmitClicked = onSubmitClicked,
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .padding(bottom = innerPadding.calculateBottomPadding() + 32.dp)
-                        .fillMaxWidth(0.8f),
-                    enabled = !uiState.isSubmitting,
-                    onClick = onSubmitClicked
+                        .padding(
+                            start = 16.dp,
+                            end = 16.dp,
+                            bottom = innerPadding.calculateBottomPadding() + 16.dp
+                        )
                 )
             }
         }
@@ -330,6 +367,7 @@ private fun PostSelectScreenSystemUIPreview() {
                 hasFineLocationPermission = true,
                 onLocationPermissionRequest = {},
                 onPostClicked = {},
+                onMapClicked = {},
                 onBackClicked = {},
                 onRetryPostsClicked = {},
                 onSubmitClicked = {},
@@ -353,6 +391,7 @@ private fun PostSubmittedScreenSystemUIPreview() {
                 hasFineLocationPermission = true,
                 onLocationPermissionRequest = {},
                 onPostClicked = {},
+                onMapClicked = {},
                 onBackClicked = {},
                 onRetryPostsClicked = {},
                 onSubmitClicked = {},
@@ -483,59 +522,85 @@ private fun PostSelectMap(
     posts: List<Post>,
     currentPosition: LatLng?,
     selectedPost: Post?,
+    isPostSearchLoading: Boolean,
     hasFineLocationPermission: Boolean,
     onPostClicked: (Post) -> Unit,
+    onMapClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val initialCenter = currentPosition ?: posts.firstOrNull()?.toLatLng() ?: DefaultPostMapCenter
-    val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(initialCenter, 15f)
-    }
-    var isMapLoaded by remember { mutableStateOf(false) }
-
-    LaunchedEffect(isMapLoaded, posts, currentPosition) {
-        if (!isMapLoaded) {
-            return@LaunchedEffect
-        }
-
-        val positions = buildList {
-            currentPosition?.let(::add)
-            posts.forEach { post -> add(post.toLatLng()) }
-        }
-        if (positions.isEmpty()) {
-            return@LaunchedEffect
-        }
-
-        // 現在地と候補ピンを初期表示範囲に収め、地図上で選びやすくする。
-        val cameraUpdate = if (positions.size == 1 || positions.allSamePosition()) {
-            CameraUpdateFactory.newLatLngZoom(positions.first(), 16f)
-        } else {
-            CameraUpdateFactory.newLatLngBounds(positions.toBounds(), PostMapBoundsPadding)
-        }
-        cameraPositionState.move(cameraUpdate)
-    }
-
-    Box(
+    BoxWithConstraints(
         modifier = modifier.height(420.dp),
         contentAlignment = Alignment.Center
     ) {
+        val density = LocalDensity.current
+        val mapWidthPx = with(density) { maxWidth.toPx() }
+        val mapHeightPx = with(density) { maxHeight.toPx() }
+        val boundsPaddingPx = with(density) { PostMapBoundsPadding.toPx() }
+        val initialZoom = currentPosition?.toRadiusZoom(
+            mapWidthPx = mapWidthPx,
+            mapHeightPx = mapHeightPx,
+            paddingPx = boundsPaddingPx,
+            radiusMeters = PostSearchRadiusMeters
+        ) ?: 15f
+        val cameraPositionState = rememberCameraPositionState {
+            position = CameraPosition.fromLatLngZoom(initialCenter, initialZoom)
+        }
+        var isMapLoaded by remember { mutableStateOf(false) }
+        var radiusCameraCenter by remember { mutableStateOf(initialCenter) }
+
+        LaunchedEffect(isMapLoaded, currentPosition, posts) {
+            if (!isMapLoaded || currentPosition == null || currentPosition == radiusCameraCenter) {
+                return@LaunchedEffect
+            }
+
+            radiusCameraCenter = currentPosition
+            cameraPositionState.move(
+                CameraUpdateFactory.newLatLngZoom(
+                    currentPosition,
+                    currentPosition.toRadiusZoom(
+                        mapWidthPx = mapWidthPx,
+                        mapHeightPx = mapHeightPx,
+                        paddingPx = boundsPaddingPx,
+                        radiusMeters = PostSearchRadiusMeters
+                    )
+                )
+            )
+        }
+
+        LaunchedEffect(isMapLoaded, selectedPost?.id) {
+            if (!isMapLoaded || selectedPost == null) {
+                return@LaunchedEffect
+            }
+
+            cameraPositionState.animate(
+                update = CameraUpdateFactory.newLatLng(selectedPost.toLatLng()),
+                durationMs = SelectedPostCameraAnimationMillis
+            )
+        }
+
         LetterMapView(
             modifier = Modifier.matchParentSize(),
             initialCenter = initialCenter,
-            initialZoom = 15f,
+            initialZoom = initialZoom,
             cameraPositionState = cameraPositionState,
             properties = MapProperties(isMyLocationEnabled = hasFineLocationPermission),
+            onMapClick = { onMapClicked() },
             onMapLoaded = { isMapLoaded = true }
         ) {
-            posts.forEach { post ->
+            val (selectedPosts, unselectedPosts) = posts.partition { post ->
+                post.id == selectedPost?.id
+            }
+            (unselectedPosts + selectedPosts).forEach { post ->
                 val isSelected = post.id == selectedPost?.id
                 Marker(
                     state = MarkerState(position = post.toLatLng()),
                     title = post.name,
-                    snippet = "${post.latitude}, ${post.longitude}",
+                    snippet = post.description.ifBlank { "${post.latitude}, ${post.longitude}" },
                     icon = BitmapDescriptorFactory.defaultMarker(
-                        if (isSelected) BitmapDescriptorFactory.HUE_AZURE else BitmapDescriptorFactory.HUE_RED
+                        if (isSelected) BitmapDescriptorFactory.HUE_RED else BitmapDescriptorFactory.HUE_AZURE
                     ),
+                    zIndex = if (isSelected) SelectedPostMarkerZIndex else DefaultPostMarkerZIndex,
                     onClick = {
                         onPostClicked(post)
                         true
@@ -544,17 +609,72 @@ private fun PostSelectMap(
             }
         }
 
-        if (posts.isEmpty()) {
+        when {
+            isPostSearchLoading -> {
+                PostSelectStatusContent(
+                    message = "近くのポストを検索しています",
+                    isError = false,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+
+            posts.isEmpty() -> {
+                Text(
+                    text = "地図に表示できるポストはありません",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SelectedPostBottomSheet(
+    post: Post,
+    enabled: Boolean,
+    onSubmitClicked: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier
+            .fillMaxWidth(),
+        shape = RoundedCornerShape(8.dp),
+        tonalElevation = 6.dp,
+        shadowElevation = 6.dp,
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.96f)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             Text(
-                text = "地図に表示できるポストはありません",
-                style = MaterialTheme.typography.bodyMedium
+                text = post.name.ifBlank { "郵便ポスト" },
+                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = post.description.ifBlank { "${post.latitude}, ${post.longitude}" },
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            CommonButton(
+                text = "ここに投函する",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp),
+                enabled = enabled,
+                onClick = onSubmitClicked
             )
         }
     }
 }
 
 private val DefaultPostMapCenter = LatLng(35.681236, 139.767125)
-private const val PostMapBoundsPadding = 96
+private const val PostSearchRadiusMeters = 1_000.0
+private val PostMapBoundsPadding = 160.dp
+private const val SelectedPostCameraAnimationMillis = 500
+private const val DefaultPostMarkerZIndex = 0f
+private const val SelectedPostMarkerZIndex = 1f
 
 private fun PostSelectUiState.currentLatLng(): LatLng? {
     val latitude = currentLatitude ?: return null
@@ -566,16 +686,36 @@ private fun Post.toLatLng(): LatLng {
     return LatLng(latitude, longitude)
 }
 
-private fun List<LatLng>.toBounds(): LatLngBounds {
-    val builder = LatLngBounds.Builder()
-    forEach { position -> builder.include(position) }
-    return builder.build()
+private fun LatLng.toRadiusZoom(
+    mapWidthPx: Float,
+    mapHeightPx: Float,
+    paddingPx: Float,
+    radiusMeters: Double
+): Float {
+    val latitudeDelta = radiusMeters / MetersPerLatitudeDegree
+    val longitudeDelta = radiusMeters / (MetersPerLatitudeDegree * kotlin.math.cos(Math.toRadians(latitude)))
+    val south = latitude - latitudeDelta
+    val north = latitude + latitudeDelta
+    val west = longitude - longitudeDelta
+    val east = longitude + longitudeDelta
+    val usableWidth = (mapWidthPx - paddingPx * 2).coerceAtLeast(MinMapUsableSizePx)
+    val usableHeight = (mapHeightPx - paddingPx * 2).coerceAtLeast(MinMapUsableSizePx)
+    val latFraction = (mercatorLatitude(north) - mercatorLatitude(south)).coerceAtLeast(MinMapFraction)
+    val lngFraction = ((east - west) / 360.0).coerceAtLeast(MinMapFraction)
+    val latZoom = log2(usableHeight / WorldTileSizePx / latFraction).toFloat()
+    val lngZoom = log2(usableWidth / WorldTileSizePx / lngFraction).toFloat()
+    return min(latZoom, lngZoom).coerceIn(MinPostMapZoom, MaxPostMapZoom)
 }
 
-private fun List<LatLng>.allSamePosition(): Boolean {
-    val first = first()
-    return all { position ->
-        position.latitude == first.latitude && position.longitude == first.longitude
-    }
+private fun mercatorLatitude(latitude: Double): Double {
+    val sinLatitude = sin(Math.toRadians(latitude.coerceIn(-85.0, 85.0)))
+    return 0.5 - ln((1 + sinLatitude) / (1 - sinLatitude)) / (4 * PI)
 }
+
+private const val MetersPerLatitudeDegree = 111_320.0
+private const val WorldTileSizePx = 256.0
+private const val MinMapUsableSizePx = 1f
+private const val MinMapFraction = 1.0e-9
+private const val MinPostMapZoom = 3f
+private const val MaxPostMapZoom = 18f
 

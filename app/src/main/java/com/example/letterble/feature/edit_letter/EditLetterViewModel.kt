@@ -19,6 +19,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.letterble.data.datasource.local.DraftLetter
 import com.example.letterble.data.repository.DraftRepository
+import com.example.letterble.data.repository.NearbyPostPrefetchRepository
 import com.example.letterble.data.repository.UserRepository
 import com.example.letterble.domain.usecase.SubmitLetterUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -62,7 +63,8 @@ sealed interface EditLetterEvent {
 class EditLetterViewModel(
     private val draftRepository: DraftRepository,
     private val userRepository: UserRepository,
-    private val submitLetterUseCase: SubmitLetterUseCase
+    private val submitLetterUseCase: SubmitLetterUseCase,
+    private val nearbyPostPrefetchRepository: NearbyPostPrefetchRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(EditLetterUiState())
     val uiState: StateFlow<EditLetterUiState> = _uiState.asStateFlow()
@@ -72,6 +74,7 @@ class EditLetterViewModel(
 
     init {
         loadDraft()
+        prefetchNearbyPosts()
     }
 
     /**
@@ -198,6 +201,14 @@ class EditLetterViewModel(
             sentence = draft.sentence,
             isDraftSaved = draft.toUser.isNotBlank() || draft.sentence.isNotBlank()
         )
+    }
+
+    private fun prefetchNearbyPosts() {
+        viewModelScope.launch {
+            runCatching {
+                nearbyPostPrefetchRepository.prefetchNearbyPosts()
+            }
+        }
     }
 
 }
