@@ -109,6 +109,7 @@ class OverpassPostDataSource(
             [out:json][timeout:15];
             (
               nwr(around:$radiusMeters,$latitude,$longitude)["amenity"~"^(post_box|post_office)$"];
+              nwr(around:$radiusMeters,$latitude,$longitude)["post_office"="post_partner"];
             );
             out body center;
         """.trimIndent()
@@ -134,14 +135,20 @@ class OverpassPostDataSource(
 
                 val tags = element.optJSONObject("tags")
                 val amenity = tags?.optString("amenity").orEmpty()
-                val defaultName = if (amenity == "post_office") "郵便局" else "郵便ポスト"
+                val isPostPartner = tags.tag("post_office") == "post_partner"
+                val defaultName = when {
+                    amenity == "post_office" || isPostPartner -> "郵便局"
+                    else -> "郵便ポスト"
+                }
                 val name = tags?.optString("name")?.takeIf { it.isNotBlank() } ?: defaultName
+                val description = tags.toPostDescription(defaultName)
                 add(
                     Post(
                         id = "$type/$id",
                         name = name,
                         latitude = latitude,
-                        longitude = longitude
+                        longitude = longitude,
+                        description = description
                     )
                 )
             }
@@ -166,6 +173,39 @@ class OverpassPostDataSource(
             cos(fromLatRad) * cos(toLatRad) * sin(lonDelta / 2).pow(2)
         val c = 2 * atan2(sqrt(a), sqrt(1 - a))
         return EarthRadiusMeters * c
+    }
+
+    private fun JSONObject?.toPostDescription(defaultName: String): String {
+        if (this == null) {
+            return defaultName
+        }
+
+        return listOfNotNull(
+            addressText(),
+            tag("operator")?.let { operator -> "運営: $operator" },
+            tag("collection_times")?.let { collectionTimes -> "集荷: $collectionTimes" },
+            tag("ref")?.let { ref -> "番号: $ref" }
+        ).joinToString("\n").ifBlank { defaultName }
+    }
+
+    private fun JSONObject.addressText(): String? {
+        tag("addr:full")?.let { return it }
+
+        val addressParts = listOfNotNull(
+            tag("addr:province"),
+            tag("addr:city"),
+            tag("addr:ward"),
+            tag("addr:suburb"),
+            tag("addr:quarter"),
+            tag("addr:neighbourhood"),
+            tag("addr:block_number"),
+            tag("addr:housenumber")
+        )
+        return addressParts.joinToString("").takeIf { it.isNotBlank() }
+    }
+
+    private fun JSONObject?.tag(key: String): String? {
+        return this?.optString(key)?.takeIf { it.isNotBlank() }
     }
 
     private companion object {

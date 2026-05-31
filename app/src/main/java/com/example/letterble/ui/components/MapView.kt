@@ -59,6 +59,7 @@ fun LetterMapView(
     cameraPositionState: CameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(initialCenter, initialZoom)
     },
+    onMapClick: (LatLng) -> Unit = {},
     onMapLoaded: () -> Unit = {},
     content: @Composable () -> Unit = {}
 ) {
@@ -67,6 +68,7 @@ fun LetterMapView(
         cameraPositionState = cameraPositionState,
         properties = properties,
         uiSettings = uiSettings,
+        onMapClick = onMapClick,
         onMapLoaded = onMapLoaded,
         content = content
     )

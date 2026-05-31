@@ -175,6 +175,7 @@ fun PostSelectScreen(
                 )
             },
             onPostClicked = viewModel::onPostSelected,
+            onMapClicked = viewModel::onMapClicked,
             onBackClicked = onBackClicked,
             onRetryPostsClicked = viewModel::loadNearbyPosts,
             onSubmitClicked = viewModel::onPostSubmitClicked,
@@ -194,6 +195,7 @@ private fun PostSelectScreenContent(
     hasFineLocationPermission: Boolean,
     onLocationPermissionRequest: () -> Unit,
     onPostClicked: (Post) -> Unit,
+    onMapClicked: () -> Unit,
     onBackClicked: () -> Unit,
     onRetryPostsClicked: () -> Unit,
     onSubmitClicked: () -> Unit,
@@ -236,6 +238,20 @@ private fun PostSelectScreenContent(
                         )
                     }
 
+                    uiState.currentLatLng() != null -> {
+                        PostSelectMap(
+                            posts = uiState.posts,
+                            currentPosition = uiState.currentLatLng(),
+                            selectedPost = uiState.selectedPost,
+                            isPostSearchLoading = uiState.isPostSearchLoading,
+                            hasFineLocationPermission = hasFineLocationPermission,
+                            onPostClicked = onPostClicked,
+                            onMapClicked = onMapClicked,
+                            modifier = Modifier
+                                .fillMaxSize()
+                        )
+                    }
+
                     errorMessage != null && uiState.canRetryPostSearch -> {
                         PostSelectStatusContent(
                             message = errorMessage,
@@ -243,18 +259,6 @@ private fun PostSelectScreenContent(
                             buttonText = "再試行",
                             modifier = Modifier.align(Alignment.Center),
                             onButtonClick = onRetryPostsClicked
-                        )
-                    }
-
-                    uiState.posts.isNotEmpty() -> {
-                        PostSelectMap(
-                            posts = uiState.posts,
-                            currentPosition = uiState.currentLatLng(),
-                            selectedPost = uiState.selectedPost,
-                            hasFineLocationPermission = hasFineLocationPermission,
-                            onPostClicked = onPostClicked,
-                            modifier = Modifier
-                                .fillMaxSize()
                         )
                     }
 
@@ -302,6 +306,29 @@ private fun PostSelectScreenContent(
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
+            if (
+                errorMessage != null &&
+                uiState.canRetryPostSearch &&
+                hasFineLocationPermission &&
+                uiState.currentLatLng() != null
+            ) {
+                PostSelectStatusContent(
+                    message = errorMessage,
+                    isError = true,
+                    buttonText = "再試行",
+                    modifier = Modifier.align(Alignment.Center),
+                    onButtonClick = onRetryPostsClicked
+                )
+            }
+            if (message != null && uiState.currentLatLng() != null && !uiState.isPostSearchLoading) {
+                PostSelectStatusContent(
+                    message = message,
+                    isError = false,
+                    buttonText = "再検索",
+                    modifier = Modifier.align(Alignment.Center),
+                    onButtonClick = onRetryPostsClicked
+                )
+            }
             // 投函ボタン (下部中央)
             if (uiState.selectedPost != null) {
                 CommonButton(
@@ -330,6 +357,7 @@ private fun PostSelectScreenSystemUIPreview() {
                 hasFineLocationPermission = true,
                 onLocationPermissionRequest = {},
                 onPostClicked = {},
+                onMapClicked = {},
                 onBackClicked = {},
                 onRetryPostsClicked = {},
                 onSubmitClicked = {},
@@ -353,6 +381,7 @@ private fun PostSubmittedScreenSystemUIPreview() {
                 hasFineLocationPermission = true,
                 onLocationPermissionRequest = {},
                 onPostClicked = {},
+                onMapClicked = {},
                 onBackClicked = {},
                 onRetryPostsClicked = {},
                 onSubmitClicked = {},
@@ -483,8 +512,10 @@ private fun PostSelectMap(
     posts: List<Post>,
     currentPosition: LatLng?,
     selectedPost: Post?,
+    isPostSearchLoading: Boolean,
     hasFineLocationPermission: Boolean,
     onPostClicked: (Post) -> Unit,
+    onMapClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val initialCenter = currentPosition ?: posts.firstOrNull()?.toLatLng() ?: DefaultPostMapCenter
@@ -532,6 +563,7 @@ private fun PostSelectMap(
             initialZoom = 15f,
             cameraPositionState = cameraPositionState,
             properties = MapProperties(isMyLocationEnabled = hasFineLocationPermission),
+            onMapClick = { onMapClicked() },
             onMapLoaded = { isMapLoaded = true }
         ) {
             val (selectedPosts, unselectedPosts) = posts.partition { post ->
@@ -542,24 +574,34 @@ private fun PostSelectMap(
                 Marker(
                     state = MarkerState(position = post.toLatLng()),
                     title = post.name,
-                    snippet = "${post.latitude}, ${post.longitude}",
+                    snippet = post.description.ifBlank { "${post.latitude}, ${post.longitude}" },
                     icon = BitmapDescriptorFactory.defaultMarker(
                         if (isSelected) BitmapDescriptorFactory.HUE_RED else BitmapDescriptorFactory.HUE_AZURE
                     ),
                     zIndex = if (isSelected) SelectedPostMarkerZIndex else DefaultPostMarkerZIndex,
                     onClick = {
                         onPostClicked(post)
-                        true
+                        false
                     }
                 )
             }
         }
 
-        if (posts.isEmpty()) {
-            Text(
-                text = "地図に表示できるポストはありません",
-                style = MaterialTheme.typography.bodyMedium
-            )
+        when {
+            isPostSearchLoading -> {
+                PostSelectStatusContent(
+                    message = "近くのポストを検索しています",
+                    isError = false,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+
+            posts.isEmpty() -> {
+                Text(
+                    text = "地図に表示できるポストはありません",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
         }
     }
 }

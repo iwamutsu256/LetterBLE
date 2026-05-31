@@ -39,6 +39,7 @@ data class PostSelectUiState(
     val isSubmitting: Boolean = false,
     val isSubmitted: Boolean = false,
     val isLoading: Boolean = false,
+    val isPostSearchLoading: Boolean = false,
     val errorMessage: String? = null,
     val canRetryPostSearch: Boolean = false,
     val message: String? = null
@@ -72,13 +73,15 @@ class PostSelectViewModel(
      * 現在地から1km以内のポストを読み込む。
      */
     fun loadNearbyPosts() {
-        if (_uiState.value.isLoading) {
+        if (_uiState.value.isLoading || _uiState.value.isPostSearchLoading) {
             return
         }
 
         _uiState.update {
+            val hasCurrentPosition = it.currentLatitude != null && it.currentLongitude != null
             it.copy(
-                isLoading = true,
+                isLoading = !hasCurrentPosition,
+                isPostSearchLoading = hasCurrentPosition,
                 errorMessage = null,
                 canRetryPostSearch = false,
                 message = null
@@ -95,12 +98,27 @@ class PostSelectViewModel(
                         currentLatitude = null,
                         currentLongitude = null,
                         isLoading = false,
+                        isPostSearchLoading = false,
                         errorMessage = "現在地を取得できませんでした",
                         canRetryPostSearch = true,
                         message = null
                     )
                 }
                 return@launch
+            }
+
+            _uiState.update {
+                it.copy(
+                    posts = emptyList(),
+                    selectedPost = null,
+                    currentLatitude = currentLocation.latitude,
+                    currentLongitude = currentLocation.longitude,
+                    isLoading = false,
+                    isPostSearchLoading = true,
+                    errorMessage = null,
+                    canRetryPostSearch = false,
+                    message = null
+                )
             }
 
             runCatching {
@@ -116,6 +134,7 @@ class PostSelectViewModel(
                         currentLatitude = currentLocation.latitude,
                         currentLongitude = currentLocation.longitude,
                         isLoading = false,
+                        isPostSearchLoading = false,
                         errorMessage = null,
                         canRetryPostSearch = false,
                         message = if (posts.isEmpty()) "1km以内にポストが見つかりませんでした" else null
@@ -127,6 +146,7 @@ class PostSelectViewModel(
                         posts = emptyList(),
                         selectedPost = null,
                         isLoading = false,
+                        isPostSearchLoading = false,
                         errorMessage = "ポスト候補の取得に失敗しました",
                         canRetryPostSearch = true,
                         message = null
@@ -144,6 +164,15 @@ class PostSelectViewModel(
             it.copy(
                 selectedPost = post
             )
+        }
+    }
+
+    /**
+     * 地図上のピン以外が押されたら選択を解除する。
+     */
+    fun onMapClicked() {
+        _uiState.update {
+            it.copy(selectedPost = null)
         }
     }
 
@@ -167,6 +196,7 @@ class PostSelectViewModel(
                 currentLatitude = null,
                 currentLongitude = null,
                 isLoading = false,
+                isPostSearchLoading = false,
                 errorMessage = "1km以内のポスト検索には正確な位置情報の許可が必要です",
                 canRetryPostSearch = false,
                 message = null
