@@ -7,6 +7,7 @@
  */
 package com.example.letterble.feature.received
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -98,6 +99,10 @@ fun ReceivedScreen(
      */
     LaunchedEffect(viewModel) {
         viewModel.loadReceivedLetters()
+    }
+
+    BackHandler {
+        onBackClicked()
     }
 
     CommonBottomNavigation(navController = navController) { innerPadding ->

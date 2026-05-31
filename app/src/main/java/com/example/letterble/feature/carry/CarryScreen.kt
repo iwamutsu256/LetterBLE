@@ -7,6 +7,7 @@
  */
 package com.example.letterble.feature.carry
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -64,6 +65,10 @@ fun CarryScreen(
     // 画面が開かれたタイミングで、現在ユーザーが運搬中の手紙を読み込む。
     LaunchedEffect(Unit) {
         viewModel.loadCarryingLetters()
+    }
+
+    BackHandler {
+        onBackClicked()
     }
 
     CommonBottomNavigation(navController = navController) { innerPadding ->

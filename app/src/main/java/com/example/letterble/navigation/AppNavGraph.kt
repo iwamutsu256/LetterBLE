@@ -49,6 +49,13 @@ fun AppNavGraph(
             }
         }
     }
+    val navigateHome = {
+        if (!navController.popBackStack(Destinations.HOME, inclusive = false)) {
+            navController.navigate(Destinations.HOME) {
+                launchSingleTop = true
+            }
+        }
+    }
     val startDestination = if (
         appContainer.userRepository.getCurrentUserName().isNullOrBlank()
     ) {
@@ -134,7 +141,7 @@ fun AppNavGraph(
                         launchSingleTop = true
                     }
                 },
-                onBackClicked = navigateBackOrHome
+                onBackClicked = navigateHome
             )
         }
 
@@ -158,7 +165,7 @@ fun AppNavGraph(
                         launchSingleTop = true
                     }
                 },
-                onBackClicked = navigateBackOrHome
+                onBackClicked = navigateHome
             )
         }
 
