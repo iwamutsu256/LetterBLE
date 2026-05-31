@@ -48,7 +48,6 @@ private val LightColorScheme = lightColorScheme(
     onSurface = Color(0xFF1C1B1F),
     */
 )
-
 @Composable
 fun LetterBLETheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
