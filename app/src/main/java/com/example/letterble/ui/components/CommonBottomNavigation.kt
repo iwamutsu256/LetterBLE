@@ -71,8 +71,8 @@ fun CommonBottomNavigation(
                 currentRoute = currentRoute,
                 onNavigate = { route ->
                     navController.navigate(route) {
-                        // ホーム画面をスタックの基点にし、画面の重複を防ぐ設定
-                        popUpTo(navController.graph.startDestinationId) {
+                        // BottomNavigation の各画面はホームを親として扱う。
+                        popUpTo(Destinations.HOME) {
                             saveState = true
                         }
                         launchSingleTop = true
