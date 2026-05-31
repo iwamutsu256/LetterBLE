@@ -293,7 +293,7 @@ private fun PostSelectScreenContent(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(top = innerPadding.calculateTopPadding())
-                    .offset((-24).dp, 40.dp)
+                    .offset((-24).dp, 14.dp)
             )
             if (errorMessage != null && !uiState.canRetryPostSearch && hasFineLocationPermission) {
                 PostSelectStatusContent(
