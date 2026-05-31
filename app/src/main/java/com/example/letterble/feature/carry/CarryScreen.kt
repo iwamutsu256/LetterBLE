@@ -11,10 +11,8 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -22,7 +20,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -35,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.letterble.di.AppContainer
+import com.example.letterble.ui.components.CommonBackButton
 import com.example.letterble.ui.components.CommonBottomNavigation
 import com.example.letterble.ui.theme.LetterBLETheme
 
@@ -95,43 +93,40 @@ private fun CarryScreenContent(
     innerPadding: PaddingValues,
     modifier: Modifier = Modifier
 ) {
-    Column(
+    Box(
         modifier = modifier
             .fillMaxSize()
             .padding(innerPadding)
             .padding(24.dp)
     ) {
-        Text(
-            text = "運搬中の手紙",
-            style = MaterialTheme.typography.headlineMedium
-        )
+        CommonBackButton(onClick = onBackClicked)
 
-        Text(
-            modifier = Modifier.padding(top = 8.dp),
-            text = if (uiState.currentUserName.isBlank()) {
-                "現在のユーザー: 未登録"
-            } else {
-                "現在のユーザー: ${uiState.currentUserName}"
-            },
-            style = MaterialTheme.typography.bodyMedium
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        CarryingLetterList(
-            uiState = uiState,
-            onRetryClicked = onRetryClicked,
-            onLetterClicked = onLetterClicked,
-            modifier = Modifier.weight(1f)
-        )
-
-        OutlinedButton(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 16.dp),
-            onClick = onBackClicked
+        Column(
+            modifier = Modifier.fillMaxSize()
         ) {
-            Text("戻る")
+            Text(
+                text = "運搬中の手紙",
+                style = MaterialTheme.typography.headlineMedium
+            )
+
+            Text(
+                modifier = Modifier.padding(top = 8.dp),
+                text = if (uiState.currentUserName.isBlank()) {
+                    "現在のユーザー: 未登録"
+                } else {
+                    "現在のユーザー: ${uiState.currentUserName}"
+                },
+                style = MaterialTheme.typography.bodyMedium
+            )
+
+            CarryingLetterList(
+                uiState = uiState,
+                onRetryClicked = onRetryClicked,
+                onLetterClicked = onLetterClicked,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(top = 16.dp)
+            )
         }
     }
 }

@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,17 +23,13 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -42,7 +37,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -53,6 +47,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.letterble.di.AppContainer
 import com.example.letterble.ui.components.CommonBottomNavigation
+import com.example.letterble.ui.components.CommonBackButton
 import com.example.letterble.ui.components.CommonButton
 import com.example.letterble.R
 import com.example.letterble.ui.theme.LetterBLEColors
@@ -137,61 +132,19 @@ private fun ReceivedScreenContent(
     ) {
         ReceivedBackgroundImages()
 
+        CommonBackButton(onClick = onBackClicked)
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(24.dp),
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.Start
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = "受信した手紙",
-                style = MaterialTheme.typography.headlineMedium
-            )
-
-            Text(
-                modifier = Modifier.padding(top = 8.dp),
-                text = if (uiState.currentUserName.isBlank()) {
-                    "ユーザー未登録"
-                } else {
-                    "宛先: ${uiState.currentUserName}"
-                },
-                style = MaterialTheme.typography.bodyMedium
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            val errorMessage = uiState.errorMessage
-
-            when {
-                uiState.isLoading -> {
-                    ReceivedLoadingContent()
-                }
-
-                errorMessage != null -> {
-                    ReceivedErrorContent(
-                        errorMessage = errorMessage,
-                        onRetryClicked = onRetryClicked
-                    )
-                }
-
-                uiState.isEmpty -> {
-                    ReceivedEmptyContent()
-                }
-
-                else -> {
-                    ReceivedLetterList(
-                        letters = uiState.receivedLetters,
-                        onLetterClicked = onLetterClicked,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-            }
-
-            CommonButton(
-                text = "戻る",
-                modifier = Modifier.padding(top = 24.dp),
-                onClick = onBackClicked
+            ReceivedMessagesContent(
+                uiState = uiState,
+                onLetterClicked = onLetterClicked,
+                onRetryClicked = onRetryClicked
             )
         }
     }
@@ -313,55 +266,84 @@ private fun ReceivedLetterList(
     onLetterClicked: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+    LazyVerticalGrid(
+        columns = GridCells.Adaptive(minSize = 100.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(24.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.spacedBy(30.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .width(700.dp)
-                .padding(25.dp),
-            verticalArrangement = Arrangement.Bottom,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "受け取ったメッセージ",
-                color = LetterBLEColors.TextPrimary,
-                style = MaterialTheme.typography.titleMedium,
-                textAlign = TextAlign.Center,
+        items(
+            count = letters.size,
+            key = { index -> letters[index].letterId }
+        ) { index ->
+
+            val letter = letters[index]
+
+            val imageRes = if (!letter.isDelivered) {
+                R.drawable.letter01
+            } else {
+                R.drawable.letter02
+            }
+            Image(
+                painter = painterResource(id = imageRes),
+                contentDescription = null,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 50.dp)
+                    .size(75.dp)
+                    .clickable { onLetterClicked(letter.letterId) }
             )
+        }
+    }
+}
 
-            LazyVerticalGrid(
-                columns = GridCells.Adaptive(minSize = 100.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalArrangement = Arrangement.spacedBy(30.dp)
-            ) {
-                items(
-                    count = letters.size,
-                    key = { index -> letters[index].letterId }
-                ) { index ->
+@Composable
+private fun ReceivedMessagesContent(
+    uiState: ReceivedUiState,
+    onLetterClicked: (String) -> Unit,
+    onRetryClicked: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .width(700.dp)
+            .padding(25.dp),
+        verticalArrangement = Arrangement.Bottom,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "受け取ったメッセージ",
+            color = LetterBLEColors.TextPrimary,
+            style = MaterialTheme.typography.titleMedium,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 50.dp)
+        )
 
-                    val letter = letters[index]
+        val errorMessage = uiState.errorMessage
+        when {
+            uiState.isLoading -> {
+                ReceivedLoadingContent()
+            }
 
-                    val imageRes = if (!letter.isDelivered) {
-                        R.drawable.letter01
-                    } else {
-                        R.drawable.letter02
-                    }
-                    Image(
-                        painter = painterResource(id = imageRes),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(75.dp)
-                            .clickable { onLetterClicked(letter.letterId) }
-                    )
-                }
+            errorMessage != null -> {
+                ReceivedErrorContent(
+                    errorMessage = errorMessage,
+                    onRetryClicked = onRetryClicked
+                )
+            }
+
+            uiState.isEmpty -> {
+                ReceivedEmptyContent()
+            }
+
+            else -> {
+                ReceivedLetterList(
+                    letters = uiState.receivedLetters,
+                    onLetterClicked = onLetterClicked,
+                    modifier = Modifier.height(220.dp)
+                )
             }
         }
     }

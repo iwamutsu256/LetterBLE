@@ -26,7 +26,7 @@ fun CommonBackButton(
     enabled: Boolean = true
 ) {
     IconButton(
-        modifier = Modifier
+        modifier = modifier
             .width(48.dp)
             .height(48.dp)
             .offset(24.dp,48.dp),
