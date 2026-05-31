@@ -17,6 +17,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -48,6 +49,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -72,11 +74,15 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.LatLngBounds
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
+import kotlin.math.PI
+import kotlin.math.ln
+import kotlin.math.log2
+import kotlin.math.min
+import kotlin.math.sin
 
 /**
  * 現在地周辺のポスト候補を表示する最小UI。
@@ -523,48 +529,40 @@ private fun PostSelectMap(
     modifier: Modifier = Modifier
 ) {
     val initialCenter = currentPosition ?: posts.firstOrNull()?.toLatLng() ?: DefaultPostMapCenter
-    val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(initialCenter, 15f)
-    }
-    var isMapLoaded by remember { mutableStateOf(false) }
-
-    LaunchedEffect(isMapLoaded, currentPosition) {
-        if (!isMapLoaded) {
-            return@LaunchedEffect
-        }
-
-        if (currentPosition == null) {
-            return@LaunchedEffect
-        }
-
-        // 検索半径の1km全体を初期表示に収め、上部のテキスト付近へピンが寄りすぎないようにする。
-        cameraPositionState.move(
-            CameraUpdateFactory.newLatLngBounds(
-                currentPosition.toRadiusBounds(PostSearchRadiusMeters),
-                PostMapBoundsPadding
-            )
-        )
-    }
-
-    LaunchedEffect(isMapLoaded, selectedPost?.id) {
-        if (!isMapLoaded || selectedPost == null) {
-            return@LaunchedEffect
-        }
-
-        cameraPositionState.animate(
-            update = CameraUpdateFactory.newLatLng(selectedPost.toLatLng()),
-            durationMs = SelectedPostCameraAnimationMillis
-        )
-    }
-
-    Box(
+    BoxWithConstraints(
         modifier = modifier.height(420.dp),
         contentAlignment = Alignment.Center
     ) {
+        val density = LocalDensity.current
+        val mapWidthPx = with(density) { maxWidth.toPx() }
+        val mapHeightPx = with(density) { maxHeight.toPx() }
+        val boundsPaddingPx = with(density) { PostMapBoundsPadding.toPx() }
+        val initialZoom = currentPosition?.toRadiusZoom(
+            mapWidthPx = mapWidthPx,
+            mapHeightPx = mapHeightPx,
+            paddingPx = boundsPaddingPx,
+            radiusMeters = PostSearchRadiusMeters
+        ) ?: 15f
+        val cameraPositionState = rememberCameraPositionState {
+            position = CameraPosition.fromLatLngZoom(initialCenter, initialZoom)
+        }
+        var isMapLoaded by remember { mutableStateOf(false) }
+
+        LaunchedEffect(isMapLoaded, selectedPost?.id) {
+            if (!isMapLoaded || selectedPost == null) {
+                return@LaunchedEffect
+            }
+
+            cameraPositionState.animate(
+                update = CameraUpdateFactory.newLatLng(selectedPost.toLatLng()),
+                durationMs = SelectedPostCameraAnimationMillis
+            )
+        }
+
         LetterMapView(
             modifier = Modifier.matchParentSize(),
             initialCenter = initialCenter,
-            initialZoom = 15f,
+            initialZoom = initialZoom,
             cameraPositionState = cameraPositionState,
             properties = MapProperties(isMyLocationEnabled = hasFineLocationPermission),
             onMapClick = { onMapClicked() },
@@ -653,7 +651,7 @@ private fun SelectedPostBottomSheet(
 
 private val DefaultPostMapCenter = LatLng(35.681236, 139.767125)
 private const val PostSearchRadiusMeters = 1_000.0
-private const val PostMapBoundsPadding = 160
+private val PostMapBoundsPadding = 160.dp
 private const val SelectedPostCameraAnimationMillis = 500
 private const val DefaultPostMarkerZIndex = 0f
 private const val SelectedPostMarkerZIndex = 1f
@@ -668,20 +666,36 @@ private fun Post.toLatLng(): LatLng {
     return LatLng(latitude, longitude)
 }
 
-private fun List<LatLng>.toBounds(): LatLngBounds {
-    val builder = LatLngBounds.Builder()
-    forEach { position -> builder.include(position) }
-    return builder.build()
-}
-
-private fun LatLng.toRadiusBounds(radiusMeters: Double): LatLngBounds {
+private fun LatLng.toRadiusZoom(
+    mapWidthPx: Float,
+    mapHeightPx: Float,
+    paddingPx: Float,
+    radiusMeters: Double
+): Float {
     val latitudeDelta = radiusMeters / MetersPerLatitudeDegree
     val longitudeDelta = radiusMeters / (MetersPerLatitudeDegree * kotlin.math.cos(Math.toRadians(latitude)))
-    return listOf(
-        LatLng(latitude - latitudeDelta, longitude - longitudeDelta),
-        LatLng(latitude + latitudeDelta, longitude + longitudeDelta)
-    ).toBounds()
+    val south = latitude - latitudeDelta
+    val north = latitude + latitudeDelta
+    val west = longitude - longitudeDelta
+    val east = longitude + longitudeDelta
+    val usableWidth = (mapWidthPx - paddingPx * 2).coerceAtLeast(MinMapUsableSizePx)
+    val usableHeight = (mapHeightPx - paddingPx * 2).coerceAtLeast(MinMapUsableSizePx)
+    val latFraction = (mercatorLatitude(north) - mercatorLatitude(south)).coerceAtLeast(MinMapFraction)
+    val lngFraction = ((east - west) / 360.0).coerceAtLeast(MinMapFraction)
+    val latZoom = log2(usableHeight / WorldTileSizePx / latFraction).toFloat()
+    val lngZoom = log2(usableWidth / WorldTileSizePx / lngFraction).toFloat()
+    return min(latZoom, lngZoom).coerceIn(MinPostMapZoom, MaxPostMapZoom)
+}
+
+private fun mercatorLatitude(latitude: Double): Double {
+    val sinLatitude = sin(Math.toRadians(latitude.coerceIn(-85.0, 85.0)))
+    return 0.5 - ln((1 + sinLatitude) / (1 - sinLatitude)) / (4 * PI)
 }
 
 private const val MetersPerLatitudeDegree = 111_320.0
+private const val WorldTileSizePx = 256.0
+private const val MinMapUsableSizePx = 1f
+private const val MinMapFraction = 1.0e-9
+private const val MinPostMapZoom = 3f
+private const val MaxPostMapZoom = 18f
 
