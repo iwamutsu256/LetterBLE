@@ -21,6 +21,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -132,19 +133,22 @@ private fun CarryScreenContent(
 @Preview(showSystemUi = true)
 @Composable
 private fun CarryScreenSystemUIPreview() {
+    val navController = androidx.navigation.compose.rememberNavController()
     MaterialTheme {
-        CarryScreenContent(
-            uiState = CarryUiState(
-                currentUserName = "sample-user",
-                carryingLetters = listOf(
-                    CarryLetterListItem("1", "Alice", "Bob")
-                )
-            ),
-            onLetterClicked = {},
-            onBackClicked = {},
-            onRetryClicked = {},
-            innerPadding = PaddingValues(0.dp)
-        )
+        CommonBottomNavigation(navController = navController) { innerPadding ->
+            CarryScreenContent(
+                uiState = CarryUiState(
+                    currentUserName = "sample-user",
+                    carryingLetters = listOf(
+                        CarryLetterListItem("1", "Alice", "Bob")
+                    )
+                ),
+                onLetterClicked = {},
+                onBackClicked = {},
+                onRetryClicked = {},
+                innerPadding = innerPadding
+            )
+        }
     }
 }
 

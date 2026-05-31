@@ -33,6 +33,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -293,7 +294,7 @@ private fun ReceivedLetterList(
             contentDescription = null,
             modifier = Modifier
                 .size(120.dp)
-                .offset(x = 40.dp, y = -360.dp)
+                .offset(x = 40.dp, y = (-360).dp)
         )
         Column(
             modifier = Modifier
@@ -346,54 +347,25 @@ private fun ReceivedLetterList(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun ReceivedLetterListPreview() {
-    val sampleLetters = listOf(
-        ReceivedLetterListItem(
-            letterId = "1",
-            fromUser = "Alice",
-            toUser = "ken",
-            sentencePreview = "こんにちは！元気？",
-            isDelivered = false
-        ),
-        ReceivedLetterListItem(
-            letterId = "2",
-            fromUser = "Alice",
-            toUser = "ken",
-            sentencePreview = "こんにちは！元気？",
-            isDelivered = false
-        ),
-        ReceivedLetterListItem(
-            letterId = "3",
-            fromUser = "Bob",
-            toUser = "ken",
-            sentencePreview = "今日の予定どうする？",
-            isDelivered = true
-        )
-    )
-
-    ReceivedLetterList(
-        letters = sampleLetters,
-        onLetterClicked = {}
-    )
-}
 @Preview(showSystemUi = true)
 @Composable
 private fun ReceivedScreenSystemUIPreview() {
+    val navController = androidx.navigation.compose.rememberNavController()
     MaterialTheme {
-        ReceivedScreenContent(
-            uiState = ReceivedUiState(
-                currentUserName = "sample-user",
-                receivedLetters = listOf(
-                    ReceivedLetterListItem("1", "Alice", "sample-user", "Hello!", false)
-                )
-            ),
-            onLetterClicked = {},
-            onBackClicked = {},
-            onRetryClicked = {},
-            innerPadding = PaddingValues(0.dp)
-        )
+        CommonBottomNavigation(navController = navController) { innerPadding ->
+            ReceivedScreenContent(
+                uiState = ReceivedUiState(
+                    currentUserName = "sample-user",
+                    receivedLetters = listOf(
+                        ReceivedLetterListItem("1", "Alice", "sample-user", "Hello!", false)
+                    )
+                ),
+                onLetterClicked = {},
+                onBackClicked = {},
+                onRetryClicked = {},
+                innerPadding = innerPadding
+            )
+        }
     }
 }
 
