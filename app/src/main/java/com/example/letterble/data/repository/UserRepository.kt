@@ -15,6 +15,7 @@ import com.example.letterble.data.datasource.local.UserLocalDataSource
 // アプリ内で使うユーザーデータの型。
 import com.example.letterble.domain.model.User
 import com.example.letterble.domain.usecase.RelayUserRepository
+import kotlin.random.Random
 
 /**
  * ユーザー情報を扱う Repository。
@@ -47,6 +48,36 @@ class UserRepository(
     }
 
     /**
+     * ユーザー名登録と BLE 通信用IDの用意をまとめて行う。
+     *
+     * すでに同じユーザー名が登録されている場合は USERS を上書きせず、
+     * 既存の carrying_letter_ids を保持したままログインできるようにする。
+     */
+    suspend fun registerUser(userName: String): UserRegistrationResult {
+        val existingUser = getUser(userName)
+        val savedAsNewUser = if (existingUser == null) {
+            userFirestoreDataSource.saveUserIfAbsent(
+                User(
+                    userName = userName,
+                    carryingLetterIds = emptyList()
+                )
+            )
+        } else {
+            false
+        }
+
+        val userId = userFirestoreDataSource.getUserIdByUserName(userName)
+            ?: createUniqueUserId(userName)
+        userFirestoreDataSource.backfillUserIdByUserName(userId, userName)
+
+        return UserRegistrationResult(
+            userName = userName,
+            userId = userId,
+            isNewUser = savedAsNewUser
+        )
+    }
+
+    /**
      * 指定されたユーザー名の User を Firestore から取得する。
      *
      * 見つからない場合は null が返る。
@@ -74,6 +105,13 @@ class UserRepository(
     }
 
     /**
+     * この端末で BLE 通信に使う現在ユーザーIDを保存する。
+     */
+    fun saveCurrentUserId(userId: String) {
+        userLocalDataSource.saveCurrentUserId(userId)
+    }
+
+    /**
      * この端末に保存されている現在ユーザー名を取得する。
      *
      * 未登録なら null が返る。
@@ -81,6 +119,20 @@ class UserRepository(
     fun getCurrentUserName(): String? {
         // ローカル保存用 DataSource に取得処理を任せる。
         return userLocalDataSource.getCurrentUserName()
+    }
+
+    /**
+     * この端末に保存されている BLE 通信用ユーザーIDを取得する。
+     */
+    fun getCurrentUserId(): String? {
+        return userLocalDataSource.getCurrentUserId()
+    }
+
+    /**
+     * BLE で受け取った userId を既存処理用の userName に変換する。
+     */
+    suspend fun getUserNameByUserId(userId: String): String? {
+        return userFirestoreDataSource.getUserNameByUserId(userId)
     }
 
     /**
@@ -92,4 +144,35 @@ class UserRepository(
         // ローカル保存用 DataSource に削除処理を任せる。
         userLocalDataSource.clearCurrentUserName()
     }
+
+    private suspend fun createUniqueUserId(userName: String): String {
+        repeat(USER_ID_GENERATION_RETRY_COUNT) {
+            val userId = generateUserId()
+            userFirestoreDataSource
+                .saveUserIdForUserNameIfAbsent(userId, userName)
+                ?.let { savedUserId -> return savedUserId }
+        }
+
+        throw IllegalStateException("ユニークなユーザーIDを作成できませんでした")
+    }
+
+    private fun generateUserId(): String {
+        return buildString(USER_ID_LENGTH) {
+            repeat(USER_ID_LENGTH) {
+                append(USER_ID_CHARS[Random.nextInt(USER_ID_CHARS.length)])
+            }
+        }
+    }
+
+    private companion object {
+        const val USER_ID_LENGTH = 12
+        const val USER_ID_GENERATION_RETRY_COUNT = 10
+        const val USER_ID_CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+    }
 }
+
+data class UserRegistrationResult(
+    val userName: String,
+    val userId: String,
+    val isNewUser: Boolean
+)
