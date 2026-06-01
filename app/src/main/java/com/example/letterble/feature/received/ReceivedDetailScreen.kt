@@ -7,15 +7,21 @@
  */
 package com.example.letterble.feature.received
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -29,14 +35,18 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.letterble.di.AppContainer
 import com.example.letterble.domain.model.Letter
 import com.example.letterble.domain.model.Tree
+import com.example.letterble.ui.components.CommonBackButton
 import com.example.letterble.ui.components.CommonButton
+import com.example.letterble.ui.theme.LetterBLEColors
 import com.example.letterble.ui.theme.LetterBLETheme
 
 /**
@@ -73,8 +83,10 @@ fun ReceivedDetailScreen(
         viewModel.loadLetterDetail(letterId)
     }
 
-    Scaffold { innerPadding ->
-        ReceivedDetailScreenContent(
+    Scaffold(
+        containerColor = LetterBLEColors.AppBackground
+    ) { innerPadding ->
+    ReceivedDetailScreenContent(
             detailState = detailState,
             letterId = letterId,
             onBackClicked = onBackClicked,
@@ -97,51 +109,60 @@ private fun ReceivedDetailScreenContent(
     innerPadding: PaddingValues,
     modifier: Modifier = Modifier
 ) {
-    Column(
+    Box(
         modifier = modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(innerPadding)
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.Start
+            .background(LetterBLEColors.AppBackground)
+            .padding(16.dp)
+            .padding(bottom = innerPadding.calculateBottomPadding())
     ) {
-        Text(
-            text = "受信詳細",
-            style = MaterialTheme.typography.headlineMedium
-        )
+        CommonBackButton(onClick = onBackClicked)
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(innerPadding)
+                .padding(24.dp),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.Start
+        ) {
+            Text(
+                text = "手紙とルート",
+                modifier = modifier
+                    .fillMaxSize()
+                    .padding(top = 56.dp),
+                textAlign = TextAlign.Center,
+                color = LetterBLEColors.TextPrimary,
+                style = MaterialTheme.typography.headlineMedium
+            )
 
-        Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-        when {
-            detailState.isLoading -> {
-                ReceivedDetailLoadingContent()
-            }
+            when {
+                detailState.isLoading -> {
+                    ReceivedDetailLoadingContent()
+                }
 
-            detailState.errorMessage != null -> {
-                ReceivedDetailErrorContent(
-                    errorMessage = detailState.errorMessage,
-                    onRetryClicked = onRetryClicked
-                )
-            }
+                detailState.errorMessage != null -> {
+                    ReceivedDetailErrorContent(
+                        errorMessage = detailState.errorMessage,
+                        onRetryClicked = onRetryClicked
+                    )
+                }
 
-            detailState.detail != null -> {
-                ReceivedDetailContent(detail = detailState.detail)
-            }
+                detailState.detail != null -> {
+                    ReceivedDetailContent(detail = detailState.detail)
+                }
 
-            else -> {
-                Text(
-                    text = "手紙の詳細を読み込んでいます",
-                    style = MaterialTheme.typography.bodyMedium
-                )
+                else -> {
+                    Text(
+                        text = "手紙の詳細を読み込んでいます",
+                        color = LetterBLEColors.TextPrimary,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
             }
         }
-
-        CommonButton(
-            text = "戻る",
-            modifier = Modifier.padding(top = 24.dp),
-            onClick = onBackClicked
-        )
     }
 }
 
@@ -149,7 +170,9 @@ private fun ReceivedDetailScreenContent(
 @Composable
 private fun ReceivedDetailScreenSystemUIPreview() {
     LetterBLETheme {
-        Scaffold { innerPadding ->
+        Scaffold(
+            containerColor = LetterBLEColors.AppBackground
+        ) { innerPadding ->
             ReceivedDetailScreenContent(
                 detailState = ReceivedDetailUiState(
                     detail = ReceivedLetterDetail(
@@ -186,6 +209,7 @@ private fun ReceivedDetailLoadingContent() {
         Text(
             modifier = Modifier.padding(top = 12.dp),
             text = "読み込み中",
+            color = LetterBLEColors.TextPrimary,
             style = MaterialTheme.typography.bodyMedium
         )
     }
@@ -228,13 +252,45 @@ private fun ReceivedDetailContent(
     val letter = detail.letter
 
     Column(
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier = Modifier
+            .fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        DetailCard(title = "差出人", value = letter.fromUser.ifBlank { "不明" })
-        DetailCard(title = "宛先", value = letter.toUser.ifBlank { "不明" })
-        DetailCard(title = "本文", value = letter.sentence.ifBlank { "本文なし" })
-        DetailCard(title = "経路概要", value = detail.routeSummary)
-        RouteMapScreen(tree = detail.tree)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Color(0xFFF5F3E4),
+                    shape = RoundedCornerShape(16.dp)
+                )
+                .padding(8.dp),
+            verticalArrangement = Arrangement.spacedBy(0.dp)
+        ) {
+            DetailCard(
+                title = "宛先",
+                modifier = Modifier
+                    .height(16.dp),
+                containerColor = Color.Transparent,
+                value = letter.toUser.ifBlank { "不明" }
+            )
+            DetailCard(
+                title = "本文",
+                containerColor = Color.Transparent,
+                textAlign = TextAlign.Center,
+                value = letter.sentence.ifBlank { "本文なし" }
+            )
+            DetailCard(
+                title = "差出人",
+                containerColor = Color.Transparent,
+                textAlign = TextAlign.End,
+                value = letter.fromUser.ifBlank { "不明" },
+            )
+        }
+        RouteMapScreen(
+            tree = detail.tree,
+            modifier = Modifier
+                .fillMaxWidth(),
+        )
         ReceivedRouteContent(detail = detail)
     }
 }
@@ -255,25 +311,30 @@ private fun ReceivedRouteContent(
     val hasRoute = tree.nodes.isNotEmpty() || tree.edges.isNotEmpty() || locations.isNotEmpty()
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .width(285.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor = Color(0xFFEEEBFF)
         )
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier
+                .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
                 text = "経路",
                 style = MaterialTheme.typography.labelMedium,
+                color = LetterBLEColors.TextPrimary,
                 fontWeight = FontWeight.Bold
             )
 
             if (!hasRoute) {
                 Text(
                     text = "経路情報はありません",
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = LetterBLEColors.TextPrimary,
+                    fontWeight = FontWeight.Normal
                 )
                 return@Column
             }
@@ -351,7 +412,10 @@ private fun RouteLocationsContent(
     val locations = detail.locations
 
     if (locations.isEmpty()) {
-        RouteSection(title = "位置履歴", lines = listOf("位置履歴はありません"))
+        RouteSection(
+            title = "位置履歴",
+            lines = listOf("位置履歴はありません")
+        )
         return
     }
 
@@ -397,29 +461,49 @@ private fun RouteSection(
  * Textを縦に並べるだけでも表示できるが、項目ごとにCardへ分けると、
  * 本文・差出人・経路概要のまとまりが読み取りやすい。
  */
+
+
 @Composable
 private fun DetailCard(
     title: String,
-    value: String
+    value: String,
+    modifier: Modifier = Modifier,
+    alignEnd: Boolean = false,
+    containerColor: Color = MaterialTheme.colorScheme.surfaceVariant,
+    textAlign: TextAlign = TextAlign.Start
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
+            containerColor = containerColor
+        ),
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            horizontalAlignment = if (alignEnd) Alignment.End else Alignment.Start
         ) {
             Text(
                 text = title,
+                modifier = Modifier.fillMaxWidth(),
                 style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold
+                color = LetterBLEColors.TextPrimary,
+                fontWeight = FontWeight.Bold,
+                textAlign = when (title) {
+                    "本文" -> TextAlign.Center
+                    "差出人" -> TextAlign.End
+                    else -> TextAlign.Start
+                }
             )
             Text(
-                modifier = Modifier.padding(top = 8.dp),
                 text = value,
-                style = MaterialTheme.typography.bodyLarge
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 2.dp),
+                style = MaterialTheme.typography.bodyLarge,
+                color = LetterBLEColors.TextPrimary,
+                fontWeight = FontWeight.Normal,
+                textAlign = textAlign
             )
         }
     }
