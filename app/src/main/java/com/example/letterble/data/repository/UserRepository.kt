@@ -68,6 +68,7 @@ class UserRepository(
 
         val userId = userFirestoreDataSource.getUserIdByUserName(userName)
             ?: createUniqueUserId(userName)
+        userFirestoreDataSource.backfillUserIdByUserName(userId, userName)
 
         return UserRegistrationResult(
             userName = userName,
@@ -147,9 +148,9 @@ class UserRepository(
     private suspend fun createUniqueUserId(userName: String): String {
         repeat(USER_ID_GENERATION_RETRY_COUNT) {
             val userId = generateUserId()
-            if (userFirestoreDataSource.saveUserIdIfAbsent(userId, userName)) {
-                return userId
-            }
+            userFirestoreDataSource
+                .saveUserIdForUserNameIfAbsent(userId, userName)
+                ?.let { savedUserId -> return savedUserId }
         }
 
         throw IllegalStateException("ユニークなユーザーIDを作成できませんでした")

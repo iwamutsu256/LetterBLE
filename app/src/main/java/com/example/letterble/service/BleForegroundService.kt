@@ -65,7 +65,13 @@ class BleForegroundService : Service() {
             return
         }
 
-        if (!appContainer.bleRepository.startBle()) {
+        val started = appContainer.bleRepository.startBle(
+            onPreparationFailure = {
+                Log.w(TAG, "BLE foreground service could not prepare current user id.")
+                stopSelf()
+            }
+        )
+        if (!started) {
             Log.w(TAG, "BLE foreground service started, but BLE could not be started.")
             stopSelf()
         }

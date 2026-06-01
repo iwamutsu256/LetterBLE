@@ -23,10 +23,12 @@ class BleRepository(
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 ) {
     private var isPreparingCurrentUserId = false
+    private var shouldRunBle = false
 
-    fun startBle(): Boolean {
+    fun startBle(onPreparationFailure: () -> Unit = {}): Boolean {
         val myUserName = userRepository.getCurrentUserName()?.takeIf { it.isNotBlank() }
             ?: return false
+        shouldRunBle = true
 
         if (bleController.isRunning) {
             notificationHelper.showBleRunningNotification(myUserName)
@@ -35,7 +37,7 @@ class BleRepository(
 
         val myUserId = userRepository.getCurrentUserId()?.takeIf { it.isNotBlank() }
         if (myUserId == null) {
-            prepareCurrentUserIdAndStartBle(myUserName)
+            prepareCurrentUserIdAndStartBle(myUserName, onPreparationFailure)
             return true
         }
 
@@ -51,11 +53,16 @@ class BleRepository(
         )
         if (started) {
             notificationHelper.showBleRunningNotification(myUserName)
+        } else {
+            shouldRunBle = false
         }
         return started
     }
 
-    private fun prepareCurrentUserIdAndStartBle(myUserName: String) {
+    private fun prepareCurrentUserIdAndStartBle(
+        myUserName: String,
+        onPreparationFailure: () -> Unit
+    ) {
         if (isPreparingCurrentUserId) {
             return
         }
@@ -65,10 +72,14 @@ class BleRepository(
             try {
                 val registration = userRepository.registerUser(myUserName)
                 userRepository.saveCurrentUserId(registration.userId)
-                startBle()
+                if (shouldRunBle) {
+                    startBle(onPreparationFailure)
+                }
             } catch (exception: Exception) {
                 Log.e(TAG, "Failed to prepare BLE user id: $myUserName", exception)
+                shouldRunBle = false
                 notificationHelper.hideBleRunningNotification()
+                onPreparationFailure()
             } finally {
                 isPreparingCurrentUserId = false
             }
@@ -76,6 +87,7 @@ class BleRepository(
     }
 
     fun stopBle() {
+        shouldRunBle = false
         bleController.stop()
         notificationHelper.hideBleRunningNotification()
     }

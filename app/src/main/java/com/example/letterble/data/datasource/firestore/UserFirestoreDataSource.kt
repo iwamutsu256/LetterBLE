@@ -38,6 +38,9 @@ class UserFirestoreDataSource(
     // BLE 通信用IDとユーザー名を対応付ける USER_IDS コレクションへの参照。
     private val userIdsCollection = firestore.collection(FirestoreCollections.USER_IDS)
 
+    // ユーザー名から BLE 通信用IDを一意に引けるようにするコレクションへの参照。
+    private val userIdByNamesCollection = firestore.collection(FirestoreCollections.USER_ID_BY_NAMES)
+
     /**
      * User を Firestore の USERS コレクションに保存する。
      *
@@ -130,13 +133,26 @@ class UserFirestoreDataSource(
      * USER_IDS から、指定したユーザー名に対応する BLE 通信用IDを取得する。
      */
     suspend fun getUserIdByUserName(userName: String): String? {
-        val snapshot = userIdsCollection
+        val document = userIdByNamesCollection
+            .document(userName)
+            .get()
+            .awaitResult()
+
+        val userId = document
+            .takeIf { it.exists() }
+            ?.getString(FirestoreFields.UserId.USER_ID)
+
+        if (!userId.isNullOrBlank()) {
+            return userId
+        }
+
+        val legacySnapshot = userIdsCollection
             .whereEqualTo(FirestoreFields.UserId.USER_NAME, userName)
             .limit(1)
             .get()
             .awaitResult()
 
-        return snapshot.documents
+        return legacySnapshot.documents
             .firstOrNull()
             ?.getString(FirestoreFields.UserId.USER_ID)
     }
@@ -156,23 +172,51 @@ class UserFirestoreDataSource(
     }
 
     /**
-     * USER_IDS/{userId} が未使用の場合だけ userId と userName の対応を作る。
+     * userName と userId の対応を transaction で作る。
+     *
+     * 同じ userName の同時登録では先に保存された userId を返す。
+     * 生成した userId が別ユーザーに使われていた場合は null を返す。
      */
-    suspend fun saveUserIdIfAbsent(userId: String, userName: String): Boolean {
+    suspend fun saveUserIdForUserNameIfAbsent(userId: String, userName: String): String? {
+        val userNameDocument = userIdByNamesCollection.document(userName)
         val userIdDocument = userIdsCollection.document(userId)
         return firestore.runTransaction { transaction ->
-            val snapshot = transaction.get(userIdDocument)
-            if (snapshot.exists()) {
-                false
-            } else {
+            val userNameSnapshot = transaction.get(userNameDocument)
+            val existingUserId = userNameSnapshot.getString(FirestoreFields.UserId.USER_ID)
+            if (!existingUserId.isNullOrBlank()) {
+                return@runTransaction existingUserId
+            }
+
+            val userIdSnapshot = transaction.get(userIdDocument)
+            if (userIdSnapshot.exists()) {
+                return@runTransaction null
+            }
+
+            val data = mapOf(
+                FirestoreFields.UserId.USER_ID to userId,
+                FirestoreFields.UserId.USER_NAME to userName
+            )
+            transaction.set(userNameDocument, data)
+            transaction.set(userIdDocument, data)
+            userId
+        }.awaitResult()
+    }
+
+    /**
+     * 旧実装で USER_IDS/{userId} だけに保存された対応を userName 側にも補完する。
+     */
+    suspend fun backfillUserIdByUserName(userId: String, userName: String) {
+        val userNameDocument = userIdByNamesCollection.document(userName)
+        firestore.runTransaction { transaction ->
+            val userNameSnapshot = transaction.get(userNameDocument)
+            if (!userNameSnapshot.exists()) {
                 transaction.set(
-                    userIdDocument,
+                    userNameDocument,
                     mapOf(
                         FirestoreFields.UserId.USER_ID to userId,
                         FirestoreFields.UserId.USER_NAME to userName
                     )
                 )
-                true
             }
         }.awaitResult()
     }
