@@ -36,6 +36,7 @@ class BleRepository(
         shouldRunBle = true
 
         if (bleController.isRunning) {
+            bleStatusRepository.setBleRunning(true)
             notificationHelper.showBleRunningNotification(myUserName)
             return true
         }
@@ -53,13 +54,16 @@ class BleRepository(
             },
             onStartFailure = { errorMessage ->
                 Log.e(TAG, "BLE start failed: $errorMessage")
+                bleStatusRepository.setBleRunning(false)
                 notificationHelper.hideBleRunningNotification()
             }
         )
         if (started) {
+            bleStatusRepository.setBleRunning(true)
             notificationHelper.showBleRunningNotification(myUserName)
         } else {
             shouldRunBle = false
+            bleStatusRepository.setBleRunning(false)
         }
         return started
     }
@@ -86,6 +90,7 @@ class BleRepository(
             } catch (exception: Exception) {
                 Log.e(TAG, "Failed to prepare BLE user id: $myUserName", exception)
                 shouldRunBle = false
+                bleStatusRepository.setBleRunning(false)
                 notificationHelper.hideBleRunningNotification()
                 onPreparationFailure()
             } finally {
@@ -100,6 +105,7 @@ class BleRepository(
             bleStatusRepository.setBleEnabled(false)
         }
         bleController.stop()
+        bleStatusRepository.setBleRunning(false)
         notificationHelper.hideBleRunningNotification()
     }
 

@@ -6,23 +6,26 @@
  */
 package com.example.letterble.feature.home
 
+import android.os.Build
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -53,6 +56,7 @@ fun HomeScreen(
     appContainer: AppContainer,
     blePermissionErrorMessage: String?,
     onOpenAppSettingsClicked: () -> Unit,
+    onRequestAddBleTileClicked: () -> Unit,
     onReceivedClicked: () -> Unit,
     onCarryClicked: () -> Unit,
     onCreateLetterClicked: () -> Unit,
@@ -61,7 +65,8 @@ fun HomeScreen(
     val viewModel: HomeViewModel = viewModel(
         factory = HomeViewModelFactory(
             userRepository = appContainer.userRepository,
-            letterRepository = appContainer.letterRepository
+            letterRepository = appContainer.letterRepository,
+            bleStatusRepository = appContainer.bleStatusRepository
         )
     )
     val uiState by viewModel.uiState.collectAsState()
@@ -77,14 +82,23 @@ fun HomeScreen(
     }
 
     CommonBottomNavigation(navController = navController) { innerPadding ->
+        val canRequestAddBleTile = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
         HomeScreenContent(
             currentUserName = uiState.currentUserName,
             isReceivedStatusLoading = uiState.isReceivedStatusLoading,
             receivedStatusErrorMessage = uiState.receivedStatusErrorMessage,
             hasReceivedLetters = uiState.hasReceivedLetters,
             receivedLetterCount = uiState.receivedLetterCount,
+            isBleEnabled = uiState.isBleEnabled,
+            isBleRunning = uiState.isBleRunning,
+            shouldShowBleTilePrompt = uiState.shouldShowBleTilePrompt && canRequestAddBleTile,
             blePermissionErrorMessage = blePermissionErrorMessage,
             onOpenAppSettingsClicked = onOpenAppSettingsClicked,
+            onRequestAddBleTileClicked = {
+                viewModel.onBleTilePromptHandled()
+                onRequestAddBleTileClicked()
+            },
+            onDismissBleTilePrompt = viewModel::onBleTilePromptDeferred,
             onReceivedClicked = viewModel::onReceivedClicked,
             onHomeClicked = {},
             onCarryClicked = viewModel::onCarryClicked,
@@ -102,8 +116,13 @@ fun HomeScreenContent(
     receivedStatusErrorMessage: String?,
     hasReceivedLetters: Boolean,
     receivedLetterCount: Int,
+    isBleEnabled: Boolean,
+    isBleRunning: Boolean,
+    shouldShowBleTilePrompt: Boolean,
     blePermissionErrorMessage: String?,
     onOpenAppSettingsClicked: () -> Unit,
+    onRequestAddBleTileClicked: () -> Unit,
+    onDismissBleTilePrompt: () -> Unit,
     onReceivedClicked: () -> Unit,
     onHomeClicked: () -> Unit,
     onCarryClicked: () -> Unit,
@@ -137,6 +156,14 @@ fun HomeScreenContent(
                 style = MaterialTheme.typography.titleLarge
             )
         }
+
+        BleStatusIndicator(
+            isBleEnabled = isBleEnabled,
+            isBleRunning = isBleRunning,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = 38.dp, end = 24.dp)
+        )
 
         Image(
             painter = painterResource(id = R.drawable.post),
@@ -197,6 +224,59 @@ fun HomeScreenContent(
                 }
             )
         }
+
+        if (shouldShowBleTilePrompt && blePermissionErrorMessage == null) {
+            AlertDialog(
+                onDismissRequest = onDismissBleTilePrompt,
+                title = { Text("BLE通信をタイルで切り替えますか？") },
+                text = {
+                    Text("クイック設定に Letter BLE を追加すると、画面上からいつでも通信のON/OFFを切り替えられます。")
+                },
+                confirmButton = {
+                    TextButton(onClick = onRequestAddBleTileClicked) {
+                        Text("追加する")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = onDismissBleTilePrompt) {
+                        Text("あとで")
+                    }
+                }
+            )
+        }
+    }
+}
+
+@Composable
+private fun BleStatusIndicator(
+    isBleEnabled: Boolean,
+    isBleRunning: Boolean,
+    modifier: Modifier = Modifier
+) {
+    val isActive = isBleEnabled && isBleRunning
+    val label = if (isActive) "BLE ON" else "BLE OFF"
+    val indicatorColor = if (isActive) Color(0xFF2E7D32) else Color(0xFF8A817C)
+
+    Row(
+        modifier = modifier
+            .background(
+                color = LetterBLEColors.AppBackground.copy(alpha = 0.9f),
+                shape = CircleShape
+            )
+            .padding(horizontal = 10.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(8.dp)
+                .background(indicatorColor, CircleShape)
+        )
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(
+            text = label,
+            color = LetterBLEColors.TextPrimary,
+            style = MaterialTheme.typography.labelSmall
+        )
     }
 }
 
@@ -213,8 +293,13 @@ private fun HomeScreenSystemUIPreview() {
                 receivedStatusErrorMessage = null,
                 hasReceivedLetters = true,
                 receivedLetterCount = 2,
+                isBleEnabled = true,
+                isBleRunning = true,
+                shouldShowBleTilePrompt = false,
                 blePermissionErrorMessage = null,
                 onOpenAppSettingsClicked = {},
+                onRequestAddBleTileClicked = {},
+                onDismissBleTilePrompt = {},
                 onReceivedClicked = {},
                 onHomeClicked = {},
                 onCarryClicked = {},

@@ -40,7 +40,8 @@ fun AppNavGraph(
     navController: NavHostController,
     appContainer: AppContainer,
     blePermissionErrorMessage: String? = null,
-    onOpenAppSettingsClicked: () -> Unit = {}
+    onOpenAppSettingsClicked: () -> Unit = {},
+    onRequestAddBleTileClicked: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val navigateBackOrHome = {
@@ -90,6 +91,7 @@ fun AppNavGraph(
                 appContainer = appContainer,
                 blePermissionErrorMessage = blePermissionErrorMessage,
                 onOpenAppSettingsClicked = onOpenAppSettingsClicked,
+                onRequestAddBleTileClicked = onRequestAddBleTileClicked,
                 onReceivedClicked = {
                     navController.navigate(Destinations.RECEIVED) {
                         launchSingleTop = true

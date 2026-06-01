@@ -15,8 +15,11 @@
 package com.example.letterble
 
 import android.Manifest
+import android.app.StatusBarManager
+import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.drawable.Icon
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -32,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.navigation.compose.rememberNavController
 import com.example.letterble.navigation.AppNavGraph
 import com.example.letterble.service.BleForegroundService
+import com.example.letterble.service.BleQuickSettingsTileService
 import com.example.letterble.ui.theme.LetterBLETheme
 
 class MainActivity : ComponentActivity() {
@@ -60,7 +64,8 @@ class MainActivity : ComponentActivity() {
                     navController = navController,
                     appContainer = appContainer,
                     blePermissionErrorMessage = blePermissionErrorMessage,
-                    onOpenAppSettingsClicked = ::openAppSettings
+                    onOpenAppSettingsClicked = ::openAppSettings,
+                    onRequestAddBleTileClicked = ::requestAddBleTile
                 )
             }
         }
@@ -105,6 +110,25 @@ class MainActivity : ComponentActivity() {
             Uri.fromParts("package", packageName, null)
         )
         startActivity(intent)
+    }
+
+    private fun requestAddBleTile() {
+        val appContainer = (application as LetterBleApplication).appContainer
+        appContainer.bleStatusRepository.markTilePromptShown()
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            return
+        }
+
+        val statusBarManager = getSystemService(StatusBarManager::class.java) ?: return
+        statusBarManager.requestAddTileService(
+            ComponentName(this, BleQuickSettingsTileService::class.java),
+            getString(R.string.ble_tile_label),
+            Icon.createWithResource(this, R.drawable.ic_notification_small),
+            mainExecutor
+        ) {
+            // 結果に関わらず、同じ案内を何度も表示しない。
+        }
     }
 
     private fun startBleServiceIfReady() {
