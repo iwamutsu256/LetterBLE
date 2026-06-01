@@ -94,7 +94,7 @@ class BleRepository(
         }
     }
 
-    fun stopBle(disableByUser: Boolean = true) {
+    fun stopBle(disableByUser: Boolean = false) {
         shouldRunBle = false
         if (disableByUser) {
             bleStatusRepository.setBleEnabled(false)
