@@ -36,6 +36,7 @@ import kotlinx.coroutines.launch
  */
 data class EditLetterUiState(
     val toUser: String = "",
+    val fromUser: String = "",
     val sentence: String = "",
     val message: String? = null,
     val isDraftSaved: Boolean = false,
@@ -94,6 +95,8 @@ class EditLetterViewModel(
      * 本文入力を画面状態へ反映する。
      */
     fun onSentenceChanged(sentence: String) {
+        if (sentence.length > MAX_SENTENCE_LENGTH) return
+
         _uiState.update {
             it.copy(
                 sentence = sentence,
@@ -127,7 +130,12 @@ class EditLetterViewModel(
      */
     fun onClearDraftClicked() {
         draftRepository.clearDraft()
-        _uiState.value = EditLetterUiState(message = "下書きを削除しました")
+        _uiState.update {
+            EditLetterUiState(
+                fromUser = it.fromUser,
+                message = "下書きを削除しました"
+            )
+        }
     }
 
     /**
@@ -196,8 +204,10 @@ class EditLetterViewModel(
      */
     private fun loadDraft() {
         val draft = draftRepository.loadDraft()
+        val fromUser = userRepository.getCurrentUserName() ?: ""
         _uiState.value = EditLetterUiState(
             toUser = draft.toUser,
+            fromUser = fromUser,
             sentence = draft.sentence,
             isDraftSaved = draft.toUser.isNotBlank() || draft.sentence.isNotBlank()
         )
@@ -211,4 +221,7 @@ class EditLetterViewModel(
         }
     }
 
+    companion object {
+        const val MAX_SENTENCE_LENGTH = 200
+    }
 }
