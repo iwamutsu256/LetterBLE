@@ -24,6 +24,7 @@ object Destinations {
     const val LETTER_ID_ARG = "letterId"
 
     const val RECEIVED_DETAIL = "received/{$LETTER_ID_ARG}"
+    const val RECEIVED_MAP_DETAIL = "received/{$LETTER_ID_ARG}/map"
     const val CARRY_DETAIL = "carry/{$LETTER_ID_ARG}"
 
     /**
@@ -32,6 +33,13 @@ object Destinations {
      * @param letterId 詳細表示する手紙ID
      */
     fun receivedDetail(letterId: String): String = "received/${Uri.encode(letterId)}"
+
+    /**
+     * 受信手紙の経路地図詳細画面へ遷移するための実 route を作成する。
+     *
+     * @param letterId 経路を表示する手紙ID
+     */
+    fun receivedMapDetail(letterId: String): String = "received/${Uri.encode(letterId)}/map"
 
     /**
      * 運搬中手紙の詳細画面へ遷移するための実 route を作成する。
