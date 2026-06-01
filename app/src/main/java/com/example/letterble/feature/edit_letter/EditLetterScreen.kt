@@ -10,6 +10,10 @@
  */
 package com.example.letterble.feature.edit_letter
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import android.view.WindowManager
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -41,6 +45,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -56,6 +61,7 @@ import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -88,8 +94,21 @@ fun EditLetterScreen(
         factory = appContainer.editLetterViewModelFactory()
     )
 ) {
+    val view = LocalView.current
     val uiState by viewModel.uiState.collectAsState()
     var showBackConfirmDialog by remember { mutableStateOf(false) }
+
+    DisposableEffect(view) {
+        val window = view.context.findActivity()?.window
+        val previousSoftInputMode = window?.attributes?.softInputMode
+        window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING)
+
+        onDispose {
+            if (window != null && previousSoftInputMode != null) {
+                window.setSoftInputMode(previousSoftInputMode)
+            }
+        }
+    }
 
     fun requestBack() {
         if (uiState.hasInput) {
@@ -144,9 +163,7 @@ fun EditLetterScreen(
         )
     }
 
-    Scaffold(
-        contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0)
-    ) { innerPadding ->
+    Scaffold { innerPadding ->
         EditLetterScreenContent(
             uiState = uiState,
             onToUserChanged = viewModel::onToUserChanged,
@@ -250,7 +267,7 @@ private fun EditLetterScreenContent(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .verticalScroll(scrollState, enabled = false)
+                    .verticalScroll(scrollState)
                     .padding(top = 72.dp, bottom = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
@@ -426,6 +443,14 @@ private fun EditLetterScreenContent(
                 )
             }
         }
+    }
+}
+
+private tailrec fun Context.findActivity(): Activity? {
+    return when (this) {
+        is Activity -> this
+        is ContextWrapper -> baseContext.findActivity()
+        else -> null
     }
 }
 
