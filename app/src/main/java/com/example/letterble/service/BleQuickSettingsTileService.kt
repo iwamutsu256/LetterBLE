@@ -4,14 +4,35 @@ import android.os.Build
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import com.example.letterble.LetterBleApplication
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
 class BleQuickSettingsTileService : TileService() {
+    private var listeningScope: CoroutineScope? = null
+
     private val appContainer
         get() = (application as LetterBleApplication).appContainer
 
     override fun onStartListening() {
         super.onStartListening()
+        listeningScope?.cancel()
+        listeningScope = CoroutineScope(Job() + Dispatchers.Main.immediate).also { scope ->
+            scope.launch {
+                appContainer.bleStatusRepository.statusState.collect {
+                    updateTile()
+                }
+            }
+        }
         updateTile()
+    }
+
+    override fun onStopListening() {
+        listeningScope?.cancel()
+        listeningScope = null
+        super.onStopListening()
     }
 
     override fun onClick() {

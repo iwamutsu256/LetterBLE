@@ -44,13 +44,17 @@ data class HomeUiState(
     val receivedStatusErrorMessage: String? = null,
     val isBleEnabled: Boolean = true,
     val isBleRunning: Boolean = false,
-    val hasShownBleTilePrompt: Boolean = false
+    val hasShownBleTilePrompt: Boolean = false,
+    val hasDeferredBleTilePrompt: Boolean = false
 ) {
     val hasReceivedLetters: Boolean
         get() = receivedLetterCount > 0
 
     val shouldShowBleTilePrompt: Boolean
-        get() = currentUserName.isNotBlank() && isBleEnabled && !hasShownBleTilePrompt
+        get() = currentUserName.isNotBlank() &&
+            isBleEnabled &&
+            !hasShownBleTilePrompt &&
+            !hasDeferredBleTilePrompt
 }
 
 /**
@@ -114,6 +118,10 @@ class HomeViewModel(
 
     fun onBleTilePromptHandled() {
         bleStatusRepository.markTilePromptShown()
+    }
+
+    fun onBleTilePromptDeferred() {
+        _uiState.value = _uiState.value.copy(hasDeferredBleTilePrompt = true)
     }
 
     private fun loadReceivedStatus(currentUserName: String) {

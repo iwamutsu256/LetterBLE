@@ -98,7 +98,7 @@ fun HomeScreen(
                 viewModel.onBleTilePromptHandled()
                 onRequestAddBleTileClicked()
             },
-            onDismissBleTilePrompt = viewModel::onBleTilePromptHandled,
+            onDismissBleTilePrompt = viewModel::onBleTilePromptDeferred,
             onReceivedClicked = viewModel::onReceivedClicked,
             onHomeClicked = {},
             onCarryClicked = viewModel::onCarryClicked,
