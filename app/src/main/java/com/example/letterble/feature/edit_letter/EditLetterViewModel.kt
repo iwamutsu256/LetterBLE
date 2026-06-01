@@ -36,6 +36,7 @@ import kotlinx.coroutines.launch
  */
 data class EditLetterUiState(
     val toUser: String = "",
+    val fromUser: String = "",
     val sentence: String = "",
     val message: String? = null,
     val isDraftSaved: Boolean = false,
@@ -94,6 +95,8 @@ class EditLetterViewModel(
      * 本文入力を画面状態へ反映する。
      */
     fun onSentenceChanged(sentence: String) {
+        if (sentence.length > MAX_SENTENCE_LENGTH) return
+
         _uiState.update {
             it.copy(
                 sentence = sentence,
@@ -108,14 +111,16 @@ class EditLetterViewModel(
      */
     fun onSaveDraftClicked() {
         val state = _uiState.value
+        val sentence = state.sentence.take(MAX_SENTENCE_LENGTH)
         draftRepository.saveDraft(
             DraftLetter(
                 toUser = state.toUser,
-                sentence = state.sentence
+                sentence = sentence
             )
         )
         _uiState.update {
             it.copy(
+                sentence = sentence,
                 message = "下書きを保存しました",
                 isDraftSaved = true
             )
@@ -127,7 +132,12 @@ class EditLetterViewModel(
      */
     fun onClearDraftClicked() {
         draftRepository.clearDraft()
-        _uiState.value = EditLetterUiState(message = "下書きを削除しました")
+        _uiState.update {
+            EditLetterUiState(
+                fromUser = it.fromUser,
+                message = "下書きを削除しました"
+            )
+        }
     }
 
     /**
@@ -161,17 +171,20 @@ class EditLetterViewModel(
             return
         }
 
+        val sentence = state.sentence.take(MAX_SENTENCE_LENGTH)
+
         // ポスト選択画面から投函できるよう、入力内容を下書きとして保存してから遷移する。
         draftRepository.saveDraft(
             DraftLetter(
                 toUser = state.toUser,
-                sentence = state.sentence
+                sentence = sentence
             )
         )
 
         // 遷移イベント処理前の連打で post_select が複数積まれないよう、遷移中として扱う。
         _uiState.update {
             it.copy(
+                sentence = sentence,
                 message = null,
                 isNavigatingToPostSelect = true
             )
@@ -196,10 +209,13 @@ class EditLetterViewModel(
      */
     private fun loadDraft() {
         val draft = draftRepository.loadDraft()
+        val fromUser = userRepository.getCurrentUserName() ?: ""
+        val sentence = draft.sentence.take(MAX_SENTENCE_LENGTH)
         _uiState.value = EditLetterUiState(
             toUser = draft.toUser,
-            sentence = draft.sentence,
-            isDraftSaved = draft.toUser.isNotBlank() || draft.sentence.isNotBlank()
+            fromUser = fromUser,
+            sentence = sentence,
+            isDraftSaved = draft.toUser.isNotBlank() || sentence.isNotBlank()
         )
     }
 
@@ -211,4 +227,7 @@ class EditLetterViewModel(
         }
     }
 
+    companion object {
+        const val MAX_SENTENCE_LENGTH = 200
+    }
 }
