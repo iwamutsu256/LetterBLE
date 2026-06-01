@@ -70,9 +70,11 @@ class LetterRepository(
      * 指定ユーザーが運搬中の未到達手紙一覧を取得する。
      *
      * Relay 処理側では「相手が carried している手紙」として使う。
+     * 到達済みの手紙は拡散を止めるため、isSurvival == true のものだけを返す。
      */
     override suspend fun getCarriedLetters(userName: String): List<Letter> {
         return letterFirestoreDataSource.getCarriedLetters(userName)
+            .filter { it.isSurvival }
     }
 
     /**
