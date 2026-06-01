@@ -56,7 +56,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
@@ -71,6 +70,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.letterble.di.AppContainer
 import com.example.letterble.ui.components.CommonBackButton
+import com.example.letterble.ui.components.LetterPaper
 import com.example.letterble.ui.theme.LetterBLEColors
 import com.example.letterble.ui.theme.LetterBLETheme
 import com.example.letterble.ui.theme.NotoSansJpFontFamily
@@ -174,55 +174,6 @@ fun EditLetterScreen(
             innerPadding = innerPadding,
             modifier = modifier
         )
-    }
-}
-
-/**
- * 手紙風の背景を表示するコンポーネント。
- */
-@Composable
-private fun LetterPaper(
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit
-) {
-    Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp),
-        color = Color(0xFFF9F6EF),
-        shadowElevation = 2.dp,
-        shape = RoundedCornerShape(4.dp)
-    ) {
-        Box(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            // 背景の点線枠。matchParentSize を使うことで、Surface の大きさに完全に追従する
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .padding(12.dp)
-                    .drawBehind {
-                        val stroke = Stroke(
-                            width = 1.dp.toPx(),
-                            pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
-                        )
-                        drawRect(
-                            color = Color.Gray.copy(alpha = 0.3f),
-                            style = stroke
-                        )
-                    }
-            )
-
-            // 実際のコンテンツ。
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(12.dp)
-                    .padding(16.dp)
-            ) {
-                content()
-            }
-        }
     }
 }
 

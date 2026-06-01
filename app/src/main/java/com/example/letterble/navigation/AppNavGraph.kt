@@ -26,6 +26,7 @@ import com.example.letterble.feature.edit_letter.EditLetterScreen
 import com.example.letterble.feature.edit_letter.PostSelectScreen
 import com.example.letterble.feature.home.HomeScreen
 import com.example.letterble.feature.received.ReceivedDetailScreen
+import com.example.letterble.feature.received.ReceivedMapDetailScreen
 import com.example.letterble.feature.received.ReceivedScreen
 import com.example.letterble.feature.register.RegisterScreen
 import com.example.letterble.service.BleForegroundService
@@ -149,10 +150,25 @@ fun AppNavGraph(
             route = Destinations.RECEIVED_DETAIL,
             arguments = listOf(navArgument(Destinations.LETTER_ID_ARG) { type = NavType.StringType })
         ) { backStackEntry ->
+            val letterId = backStackEntry.arguments?.getString(Destinations.LETTER_ID_ARG).orEmpty()
             ReceivedDetailScreen(
                 appContainer = appContainer,
+                letterId = letterId,
+                onBackClicked = navigateBackOrHome,
+                onMapClicked = {
+                    navController.navigate(Destinations.receivedMapDetail(letterId))
+                }
+            )
+        }
+
+        composable(
+            route = Destinations.RECEIVED_MAP_DETAIL,
+            arguments = listOf(navArgument(Destinations.LETTER_ID_ARG) { type = NavType.StringType })
+        ) { backStackEntry ->
+            ReceivedMapDetailScreen(
+                appContainer = appContainer,
                 letterId = backStackEntry.arguments?.getString(Destinations.LETTER_ID_ARG).orEmpty(),
-                onBackClicked = navigateBackOrHome
+                onBackClicked = { navController.popBackStack() }
             )
         }
 

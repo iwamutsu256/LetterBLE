@@ -88,7 +88,16 @@ fun LetterTreeMapView(
     routeLineColor: androidx.compose.ui.graphics.Color = LetterBLEColors.RouteLine,
     highlightedRouteLineColor: androidx.compose.ui.graphics.Color = LetterBLEColors.HighlightedRouteLine,
     markerHue: Float = BitmapDescriptorFactory.HUE_AZURE,
-    highlightedMarkerHue: Float = BitmapDescriptorFactory.HUE_RED
+    highlightedMarkerHue: Float = BitmapDescriptorFactory.HUE_RED,
+    uiSettings: MapUiSettings = remember {
+        MapUiSettings(
+            compassEnabled = true,
+            mapToolbarEnabled = false,
+            myLocationButtonEnabled = false,
+            zoomControlsEnabled = false
+        )
+    },
+    onMapClick: (LatLng) -> Unit = {}
 ) {
     val nodePositions = remember(tree.nodes) { tree.nodes.map { node -> node.toLatLng() } }
     val firstNodePosition = nodePositions.firstOrNull()
@@ -119,6 +128,8 @@ fun LetterTreeMapView(
         initialCenter = firstNodePosition ?: DefaultMapCenter,
         initialZoom = if (firstNodePosition == null) DefaultMapZoom else 14f,
         cameraPositionState = cameraPositionState,
+        uiSettings = uiSettings,
+        onMapClick = onMapClick,
         onMapLoaded = { isMapLoaded = true }
     ) {
         TreeEdges(
