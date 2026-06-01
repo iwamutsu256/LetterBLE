@@ -85,7 +85,7 @@ class BleForegroundService : Service() {
     }
 
     private fun stopBleAndSelf() {
-        appContainer.bleRepository.stopBle()
+        appContainer.bleRepository.stopBle(disableByUser = true)
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
