@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Letter BLE</string>
+    <string name="ble_tile_label">Letter BLE</string>
 </resources>

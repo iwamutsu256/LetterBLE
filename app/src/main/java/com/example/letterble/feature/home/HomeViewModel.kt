@@ -14,6 +14,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 // ViewModel の中で coroutine を起動するために使う。
 import androidx.lifecycle.viewModelScope
+import com.example.letterble.data.repository.BleStatusRepository
 import com.example.letterble.data.repository.LetterRepository
 // ユーザー情報の保存・取得をまとめて扱う Repository。
 import com.example.letterble.data.repository.UserRepository
@@ -40,10 +41,16 @@ data class HomeUiState(
     val currentUserName: String = "",
     val receivedLetterCount: Int = 0,
     val isReceivedStatusLoading: Boolean = false,
-    val receivedStatusErrorMessage: String? = null
+    val receivedStatusErrorMessage: String? = null,
+    val isBleEnabled: Boolean = true,
+    val isBleRunning: Boolean = false,
+    val hasShownBleTilePrompt: Boolean = false
 ) {
     val hasReceivedLetters: Boolean
         get() = receivedLetterCount > 0
+
+    val shouldShowBleTilePrompt: Boolean
+        get() = currentUserName.isNotBlank() && isBleEnabled && !hasShownBleTilePrompt
 }
 
 /**
@@ -52,7 +59,8 @@ data class HomeUiState(
 class HomeViewModel(
     // 現在ユーザー名を取得するための Repository。
     private val userRepository: UserRepository,
-    private val letterRepository: LetterRepository
+    private val letterRepository: LetterRepository,
+    private val bleStatusRepository: BleStatusRepository
 ) : ViewModel() {
     // ViewModel 内部で更新するホーム画面の状態。
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -70,6 +78,7 @@ class HomeViewModel(
     init {
         // 端末内に保存されているユーザー名を uiState に反映する。
         loadCurrentUserName()
+        observeBleStatus()
     }
 
     /**
@@ -89,6 +98,22 @@ class HomeViewModel(
 
     fun refreshReceivedStatus() {
         loadReceivedStatus(_uiState.value.currentUserName)
+    }
+
+    private fun observeBleStatus() {
+        viewModelScope.launch {
+            bleStatusRepository.statusState.collect { status ->
+                _uiState.value = _uiState.value.copy(
+                    isBleEnabled = status.isBleEnabled,
+                    isBleRunning = status.isBleRunning,
+                    hasShownBleTilePrompt = status.hasShownTilePrompt
+                )
+            }
+        }
+    }
+
+    fun onBleTilePromptHandled() {
+        bleStatusRepository.markTilePromptShown()
     }
 
     private fun loadReceivedStatus(currentUserName: String) {
@@ -170,7 +195,8 @@ class HomeViewModel(
 class HomeViewModelFactory(
     // AppContainer で組み立て済みの Repository を受け取る。
     private val userRepository: UserRepository,
-    private val letterRepository: LetterRepository
+    private val letterRepository: LetterRepository,
+    private val bleStatusRepository: BleStatusRepository
 ) : ViewModelProvider.Factory {
     // ViewModelProvider.Factory の create 関数を実装する。
     @Suppress("UNCHECKED_CAST")
@@ -178,7 +204,7 @@ class HomeViewModelFactory(
         // 作ろうとしている ViewModel が HomeViewModel か確認する。
         if (modelClass.isAssignableFrom(HomeViewModel::class.java)) {
             // AppContainer から受け取った Repository を渡して HomeViewModel を作る。
-            return HomeViewModel(userRepository, letterRepository) as T
+            return HomeViewModel(userRepository, letterRepository, bleStatusRepository) as T
         }
 
         // HomeViewModel 以外を作ろうとした場合はエラーにする。
