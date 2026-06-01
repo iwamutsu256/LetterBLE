@@ -22,14 +22,20 @@ class BleRepository(
     private val notificationHelper: BleNotificationHelper,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 ) {
+    private var isPreparingCurrentUserId = false
+
     fun startBle(): Boolean {
         val myUserName = userRepository.getCurrentUserName()?.takeIf { it.isNotBlank() }
             ?: return false
-        val myUserId = userRepository.getCurrentUserId()?.takeIf { it.isNotBlank() }
-            ?: myUserName
 
         if (bleController.isRunning) {
             notificationHelper.showBleRunningNotification(myUserName)
+            return true
+        }
+
+        val myUserId = userRepository.getCurrentUserId()?.takeIf { it.isNotBlank() }
+        if (myUserId == null) {
+            prepareCurrentUserIdAndStartBle(myUserName)
             return true
         }
 
@@ -47,6 +53,26 @@ class BleRepository(
             notificationHelper.showBleRunningNotification(myUserName)
         }
         return started
+    }
+
+    private fun prepareCurrentUserIdAndStartBle(myUserName: String) {
+        if (isPreparingCurrentUserId) {
+            return
+        }
+
+        isPreparingCurrentUserId = true
+        scope.launch {
+            try {
+                val registration = userRepository.registerUser(myUserName)
+                userRepository.saveCurrentUserId(registration.userId)
+                startBle()
+            } catch (exception: Exception) {
+                Log.e(TAG, "Failed to prepare BLE user id: $myUserName", exception)
+                notificationHelper.hideBleRunningNotification()
+            } finally {
+                isPreparingCurrentUserId = false
+            }
+        }
     }
 
     fun stopBle() {
