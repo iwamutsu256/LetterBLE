@@ -13,6 +13,7 @@ package com.example.letterble.data.datasource.firestore
  */
 internal object FirestoreCollections {
     const val USERS = "USERS"
+    const val USER_IDS = "USER_IDS"
     const val LETTERS = "LETTERS"
     const val LOCATIONS = "LOCATIONS"
     const val ENCOUNTERS = "ENCOUNTERS"
@@ -28,6 +29,11 @@ internal object FirestoreFields {
     object User {
         const val USER_NAME = "user_name"
         const val CARRYING_LETTER_IDS = "carrying_letter_ids"
+    }
+
+    object UserId {
+        const val USER_ID = "user_id"
+        const val USER_NAME = "user_name"
     }
 
     object Letter {

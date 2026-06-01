@@ -2,7 +2,7 @@
  * UserLocalDataSource.kt
  *
  * 端末内にユーザー関連の小さな情報を保存するファイル。
- * 今回は「現在使っているユーザー名」だけを SharedPreferences に保存する。
+ * 今回は「現在使っているユーザー名」と BLE 通信用ユーザーIDを SharedPreferences に保存する。
  */
 
 // このファイルがローカル保存用 DataSource の置き場所にあることを示す。
@@ -45,6 +45,16 @@ class UserLocalDataSource(
     }
 
     /**
+     * 現在ユーザーの BLE 通信用IDを端末内に保存する。
+     */
+    fun saveCurrentUserId(userId: String) {
+        sharedPreferences
+            .edit()
+            .putString(KEY_CURRENT_USER_ID, userId)
+            .apply()
+    }
+
+    /**
      * 端末内に保存されている現在ユーザー名を取得する。
      *
      * まだ登録していない場合は null を返す。
@@ -52,6 +62,13 @@ class UserLocalDataSource(
     fun getCurrentUserName(): String? {
         // current_user_name というキーの文字列を取得する。なければ null を返す。
         return sharedPreferences.getString(KEY_CURRENT_USER_NAME, null)
+    }
+
+    /**
+     * 端末内に保存されている現在ユーザーの BLE 通信用IDを取得する。
+     */
+    fun getCurrentUserId(): String? {
+        return sharedPreferences.getString(KEY_CURRENT_USER_ID, null)
     }
 
     /**
@@ -66,6 +83,7 @@ class UserLocalDataSource(
             .edit()
             // current_user_name というキーの値を削除する。
             .remove(KEY_CURRENT_USER_NAME)
+            .remove(KEY_CURRENT_USER_ID)
             // 非同期で削除を反映する。
             .apply()
     }
@@ -79,5 +97,8 @@ class UserLocalDataSource(
 
         // 現在ユーザー名を保存するときのキー名。
         const val KEY_CURRENT_USER_NAME = "current_user_name"
+
+        // 現在ユーザーの BLE 通信用IDを保存するときのキー名。
+        const val KEY_CURRENT_USER_ID = "current_user_id"
     }
 }

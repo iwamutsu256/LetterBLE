@@ -35,6 +35,9 @@ class UserFirestoreDataSource(
     // USERS コレクションへの参照を先に作っておく。
     private val usersCollection = firestore.collection(FirestoreCollections.USERS)
 
+    // BLE 通信用IDとユーザー名を対応付ける USER_IDS コレクションへの参照。
+    private val userIdsCollection = firestore.collection(FirestoreCollections.USER_IDS)
+
     /**
      * User を Firestore の USERS コレクションに保存する。
      *
@@ -58,6 +61,31 @@ class UserFirestoreDataSource(
             .set(data)
             // Firebase の非同期保存が終わるまで待つ。
             .awaitResult()
+    }
+
+    /**
+     * User が未登録の場合だけ USERS に保存する。
+     *
+     * 既存ユーザー名でログインしたときに carrying_letter_ids を空で上書きしないため、
+     * 既存ドキュメントがある場合は何もせず false を返す。
+     */
+    suspend fun saveUserIfAbsent(user: User): Boolean {
+        val userDocument = usersCollection.document(user.userName)
+        return firestore.runTransaction { transaction ->
+            val snapshot = transaction.get(userDocument)
+            if (snapshot.exists()) {
+                false
+            } else {
+                transaction.set(
+                    userDocument,
+                    mapOf(
+                        FirestoreFields.User.USER_NAME to user.userName,
+                        FirestoreFields.User.CARRYING_LETTER_IDS to user.carryingLetterIds
+                    )
+                )
+                true
+            }
+        }.awaitResult()
     }
 
     /**
@@ -96,6 +124,57 @@ class UserFirestoreDataSource(
                 ?.filterIsInstance<String>()
                 ?: emptyList()
         )
+    }
+
+    /**
+     * USER_IDS から、指定したユーザー名に対応する BLE 通信用IDを取得する。
+     */
+    suspend fun getUserIdByUserName(userName: String): String? {
+        val snapshot = userIdsCollection
+            .whereEqualTo(FirestoreFields.UserId.USER_NAME, userName)
+            .limit(1)
+            .get()
+            .awaitResult()
+
+        return snapshot.documents
+            .firstOrNull()
+            ?.getString(FirestoreFields.UserId.USER_ID)
+    }
+
+    /**
+     * USER_IDS/{userId} からユーザー名を取得する。
+     */
+    suspend fun getUserNameByUserId(userId: String): String? {
+        val document = userIdsCollection
+            .document(userId)
+            .get()
+            .awaitResult()
+
+        return document
+            .takeIf { it.exists() }
+            ?.getString(FirestoreFields.UserId.USER_NAME)
+    }
+
+    /**
+     * USER_IDS/{userId} が未使用の場合だけ userId と userName の対応を作る。
+     */
+    suspend fun saveUserIdIfAbsent(userId: String, userName: String): Boolean {
+        val userIdDocument = userIdsCollection.document(userId)
+        return firestore.runTransaction { transaction ->
+            val snapshot = transaction.get(userIdDocument)
+            if (snapshot.exists()) {
+                false
+            } else {
+                transaction.set(
+                    userIdDocument,
+                    mapOf(
+                        FirestoreFields.UserId.USER_ID to userId,
+                        FirestoreFields.UserId.USER_NAME to userName
+                    )
+                )
+                true
+            }
+        }.awaitResult()
     }
 
     /**

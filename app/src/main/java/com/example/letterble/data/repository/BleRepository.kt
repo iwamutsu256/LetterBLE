@@ -25,6 +25,8 @@ class BleRepository(
     fun startBle(): Boolean {
         val myUserName = userRepository.getCurrentUserName()?.takeIf { it.isNotBlank() }
             ?: return false
+        val myUserId = userRepository.getCurrentUserId()?.takeIf { it.isNotBlank() }
+            ?: myUserName
 
         if (bleController.isRunning) {
             notificationHelper.showBleRunningNotification(myUserName)
@@ -32,9 +34,9 @@ class BleRepository(
         }
 
         val started = bleController.start(
-            myUserName,
-            onUserFound = { foundUserName ->
-                onEncounter(foundUserName)
+            myUserId,
+            onUserFound = { foundUserId ->
+                onEncounter(foundUserId)
             },
             onStartFailure = { errorMessage ->
                 Log.e(TAG, "BLE start failed: $errorMessage")
@@ -52,32 +54,42 @@ class BleRepository(
         notificationHelper.hideBleRunningNotification()
     }
 
-    fun onEncounter(targetUserName: String) {
+    fun onEncounter(targetUserId: String) {
         val myUserName = userRepository.getCurrentUserName()?.takeIf { it.isNotBlank() }
             ?: return
+        val myUserId = userRepository.getCurrentUserId()?.takeIf { it.isNotBlank() }
+            ?: myUserName
 
-        if (targetUserName.isBlank() || targetUserName == myUserName) {
+        if (targetUserId.isBlank() || targetUserId == myUserId) {
             return
         }
 
         scope.launch {
+            var resolvedTargetUserName = targetUserId
             try {
+                resolvedTargetUserName = userRepository.getUserNameByUserId(targetUserId)
+                    ?: targetUserId
+
+                if (resolvedTargetUserName.isBlank() || resolvedTargetUserName == myUserName) {
+                    return@launch
+                }
+
                 val relayed = relayLetterUseCase.execute(
                     myUserName = myUserName,
-                    targetUserName = targetUserName
+                    targetUserName = resolvedTargetUserName
                 )
                 if (relayed) {
-                    notificationHelper.showEncounterNotification(targetUserName)
+                    notificationHelper.showEncounterNotification(resolvedTargetUserName)
                 } else {
                     Log.d(
                         TAG,
-                        "BLE encounter detected, but no letters were relayed: $myUserName -> $targetUserName"
+                        "BLE encounter detected, but no letters were relayed: $myUserName -> $resolvedTargetUserName"
                     )
                 }
             } catch (exception: Exception) {
                 Log.e(
                     TAG,
-                    "Failed to relay letters after BLE encounter: $myUserName -> $targetUserName",
+                    "Failed to relay letters after BLE encounter: $myUserName -> $resolvedTargetUserName",
                     exception
                 )
             }
