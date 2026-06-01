@@ -61,6 +61,7 @@ import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -244,6 +245,7 @@ private fun EditLetterScreenContent(
     val sentenceBringIntoViewRequester = remember { BringIntoViewRequester() }
     var isSentenceFocused by remember { mutableStateOf(false) }
     var sentenceLineCount by remember { mutableIntStateOf(1) }
+    val density = LocalDensity.current
 
     LaunchedEffect(uiState.sentence, sentenceLineCount, isSentenceFocused) {
         if (isSentenceFocused) {
@@ -261,7 +263,8 @@ private fun EditLetterScreenContent(
                 .padding(innerPadding)
                 .imePadding()
         ) {
-            val sentenceHeight = (sentenceLineCount * 32).dp
+            val sentenceLineHeight = with(density) { 28.sp.toDp() }
+            val sentenceHeight = sentenceLineHeight * sentenceLineCount
             val paperHeight = 180.dp + sentenceHeight
 
             Column(
@@ -431,6 +434,7 @@ private fun EditLetterScreenContent(
             Surface(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
+                    .imePadding()
                     .padding(bottom = 32.dp),
                 color = Color.Black.copy(alpha = 0.7f),
                 shape = RoundedCornerShape(24.dp)
