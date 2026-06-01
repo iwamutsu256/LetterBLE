@@ -104,10 +104,10 @@ class LetterFirestoreDataSource(
     }
 
     /**
-     * 指定ユーザーが運搬中の、まだ到達していない手紙一覧を取得する。
+     * 指定ユーザーが運搬中の手紙一覧（到達済みを含む）を取得する。
      *
      * USERS/{userName}.carrying_letter_ids から手紙IDを読み、
-     * そのIDごとに LETTERS を取得して isSurvival == true のものだけ返す。
+     * そのIDごとに LETTERS を取得して返す。
      */
     suspend fun getCarriedLetters(userName: String): List<Letter> {
         val userDocument = usersCollection
@@ -122,7 +122,6 @@ class LetterFirestoreDataSource(
         return carryingLetterIds
             ?.filterIsInstance<String>()
             ?.mapNotNull { letterId -> getLetter(letterId) }
-            ?.filter { letter -> letter.isSurvival }
             ?: emptyList()
     }
 

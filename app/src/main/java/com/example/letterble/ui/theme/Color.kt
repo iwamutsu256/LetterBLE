@@ -38,4 +38,9 @@ object LetterBLEColors {
 
     val RouteLine = Color(0xFF4F46E5)
     val HighlightedRouteLine = Color(0xFFDC2626)
+
+    // 配達画面用
+    val CarrySurvival = Color(0xFFCBFF9B)
+    val CarryDelivered = Color(0xFFEEEEF5)
+    val CarryItemText = Color(0xFF2D2D2D)
 }

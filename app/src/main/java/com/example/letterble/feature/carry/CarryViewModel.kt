@@ -44,7 +44,8 @@ data class CarryUiState(
 data class CarryLetterListItem(
     val letterId: String,
     val toUser: String,
-    val fromUser: String
+    val fromUser: String,
+    val isSurvival: Boolean
 )
 
 /**
@@ -174,7 +175,8 @@ private fun Letter.toCarryListItem(): CarryLetterListItem {
     return CarryLetterListItem(
         letterId = letterId,
         toUser = toUser,
-        fromUser = fromUser
+        fromUser = fromUser,
+        isSurvival = isSurvival
     )
 }
 
@@ -197,7 +199,7 @@ private fun CarryLetterListItem.toCarryDetailInfo(): CarryLetterDetailInfo {
         letterId = letterId,
         toUser = toUser,
         fromUser = fromUser,
-        isSurvival = true,
+        isSurvival = isSurvival,
         routeNodeCount = 0,
         routeEdgeCount = 0,
         tree = Tree()
