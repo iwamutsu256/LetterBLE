@@ -106,10 +106,7 @@ class CarryViewModel(
                 // USERS の carrying_letter_ids を基点に運搬中の手紙だけを取得する。
                 val letters = letterRepository.getCarryingLetters(currentUserName)
                 _uiState.value = _uiState.value.copy(
-                    carryingLetters = letters
-                        // 投函直後の差出人は内部的には運搬者だが、運搬一覧には表示しない。
-                        .filter { letter -> letter.fromUser != currentUserName }
-                        .map { letter -> letter.toCarryListItem() },
+                    carryingLetters = letters.toCarryListItemsForUser(currentUserName),
                     isLoading = false
                 )
             } catch (exception: Exception) {
@@ -168,6 +165,13 @@ class CarryViewModel(
             }
         }
     }
+}
+
+internal fun List<Letter>.toCarryListItemsForUser(currentUserName: String): List<CarryLetterListItem> {
+    return filter { letter ->
+        // 投函直後の差出人と受信一覧に出る自分宛ての手紙は、配達一覧には表示しない。
+        letter.fromUser != currentUserName && letter.toUser != currentUserName
+    }.map { letter -> letter.toCarryListItem() }
 }
 
 // Repository から受け取った Letter から、一覧表示に必要な情報だけを抜き出す。
