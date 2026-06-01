@@ -6,6 +6,7 @@
  */
 package com.example.letterble.feature.home
 
+import android.os.Build
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -81,6 +82,7 @@ fun HomeScreen(
     }
 
     CommonBottomNavigation(navController = navController) { innerPadding ->
+        val canRequestAddBleTile = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
         HomeScreenContent(
             currentUserName = uiState.currentUserName,
             isReceivedStatusLoading = uiState.isReceivedStatusLoading,
@@ -89,7 +91,7 @@ fun HomeScreen(
             receivedLetterCount = uiState.receivedLetterCount,
             isBleEnabled = uiState.isBleEnabled,
             isBleRunning = uiState.isBleRunning,
-            shouldShowBleTilePrompt = uiState.shouldShowBleTilePrompt,
+            shouldShowBleTilePrompt = uiState.shouldShowBleTilePrompt && canRequestAddBleTile,
             blePermissionErrorMessage = blePermissionErrorMessage,
             onOpenAppSettingsClicked = onOpenAppSettingsClicked,
             onRequestAddBleTileClicked = {

@@ -18,7 +18,9 @@ class BleQuickSettingsTileService : TileService() {
         super.onClick()
 
         val bleStatusRepository = appContainer.bleStatusRepository
-        if (bleStatusRepository.isBleEnabled()) {
+        val state = bleStatusRepository.statusState.value
+        val isBleActive = state.isBleEnabled && state.isBleRunning
+        if (isBleActive) {
             bleStatusRepository.setBleEnabled(false)
             BleForegroundService.stop(this)
         } else {
@@ -35,10 +37,11 @@ class BleQuickSettingsTileService : TileService() {
     private fun updateTile() {
         val tile = qsTile ?: return
         val state = appContainer.bleStatusRepository.statusState.value
-        tile.state = if (state.isBleEnabled) Tile.STATE_ACTIVE else Tile.STATE_INACTIVE
+        val isBleActive = state.isBleEnabled && state.isBleRunning
+        tile.state = if (isBleActive) Tile.STATE_ACTIVE else Tile.STATE_INACTIVE
         tile.label = "Letter BLE"
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            tile.subtitle = if (state.isBleEnabled) "通信 ON" else "通信 OFF"
+            tile.subtitle = if (isBleActive) "通信 ON" else "通信 OFF"
         }
         tile.updateTile()
     }
