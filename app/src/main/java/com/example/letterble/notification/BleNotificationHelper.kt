@@ -7,6 +7,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Build
 import android.util.Log
@@ -14,6 +15,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.example.letterble.R
+import kotlin.math.roundToInt
 
 /**
  * BLE の状態とすれ違い検知をユーザーへ知らせる通知ヘルパー。
@@ -22,6 +24,7 @@ class BleNotificationHelper(
     private val context: Context
 ) {
     private val notificationManager = NotificationManagerCompat.from(context)
+    private val largeIcon: Bitmap by lazy { createLargeIcon() }
 
     init {
         createChannels()
@@ -29,8 +32,8 @@ class BleNotificationHelper(
 
     fun createBleRunningNotification(userName: String): Notification {
         return NotificationCompat.Builder(context, BLE_STATUS_CHANNEL_ID)
-            .setSmallIcon(R.drawable.icon)
-            .setLargeIcon(appIconBitmap())
+            .setSmallIcon(R.drawable.ic_notification_small)
+            .setLargeIcon(largeIcon)
             .setContentTitle("BLE通信中")
             .setContentText("$userName として周囲のユーザーを探しています")
             .setContentIntent(openAppPendingIntent())
@@ -65,8 +68,8 @@ class BleNotificationHelper(
         notifyIfAllowed(
             notificationId = targetUserName.notificationId(),
             notification = NotificationCompat.Builder(context, BLE_EVENT_CHANNEL_ID)
-                .setSmallIcon(R.drawable.icon)
-                .setLargeIcon(appIconBitmap())
+                .setSmallIcon(R.drawable.ic_notification_small)
+                .setLargeIcon(largeIcon)
                 .setContentTitle("すれ違いました")
                 .setContentText("$targetUserName さんを検知しました")
                 .setContentIntent(openAppPendingIntent())
@@ -129,7 +132,26 @@ class BleNotificationHelper(
         return PendingIntent.getActivity(context, OPEN_APP_REQUEST_CODE, intent, flags)
     }
 
-    private fun appIconBitmap() = BitmapFactory.decodeResource(context.resources, R.drawable.icon)
+    private fun createLargeIcon(): Bitmap {
+        val source = BitmapFactory.decodeResource(
+            context.resources,
+            R.drawable.icon,
+            BitmapFactory.Options().apply { inScaled = false }
+        )
+        val scale = NOTIFICATION_LARGE_ICON_SIZE_PX.toFloat() / maxOf(source.width, source.height)
+        val width = (source.width * scale).roundToInt()
+        val height = (source.height * scale).roundToInt()
+        return Bitmap.createScaledBitmap(
+            source,
+            width,
+            height,
+            true
+        ).also {
+            if (it != source) {
+                source.recycle()
+            }
+        }
+    }
 
     private fun String.notificationId(): Int {
         return ENCOUNTER_NOTIFICATION_ID_BASE + hashCode().let { hash ->
@@ -145,6 +167,7 @@ class BleNotificationHelper(
         private const val ENCOUNTER_NOTIFICATION_ID_BASE = 2000
         private const val ENCOUNTER_NOTIFICATION_ID_RANGE = 100_000
         private const val OPEN_APP_REQUEST_CODE = 3001
+        private const val NOTIFICATION_LARGE_ICON_SIZE_PX = 128
         private const val TAG = "BleNotificationHelper"
     }
 }
