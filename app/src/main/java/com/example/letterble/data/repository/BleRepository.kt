@@ -73,7 +73,10 @@ class BleRepository(
                 val registration = userRepository.registerUser(myUserName)
                 userRepository.saveCurrentUserId(registration.userId)
                 if (shouldRunBle) {
-                    startBle(onPreparationFailure)
+                    val started = startBle(onPreparationFailure)
+                    if (!started) {
+                        onPreparationFailure()
+                    }
                 }
             } catch (exception: Exception) {
                 Log.e(TAG, "Failed to prepare BLE user id: $myUserName", exception)
