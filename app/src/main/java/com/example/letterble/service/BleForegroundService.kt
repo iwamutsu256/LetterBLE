@@ -11,6 +11,7 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.content.ContextCompat
 import com.example.letterble.LetterBleApplication
+import com.example.letterble.data.repository.BleStatusRepository
 import com.example.letterble.notification.BleNotificationHelper
 
 /**
@@ -36,11 +37,17 @@ class BleForegroundService : Service() {
     }
 
     override fun onDestroy() {
-        appContainer.bleRepository.stopBle()
+        appContainer.bleRepository.stopBle(disableByUser = false)
         super.onDestroy()
     }
 
     private fun startBleInForeground() {
+        if (!appContainer.bleStatusRepository.isBleEnabled()) {
+            Log.w(TAG, "Cannot start BLE foreground service while BLE is disabled by user.")
+            stopSelf()
+            return
+        }
+
         val userName = appContainer.userRepository.getCurrentUserName()?.takeIf { it.isNotBlank() }
         if (userName == null) {
             Log.w(TAG, "Cannot start BLE foreground service without registered user name.")
@@ -78,7 +85,7 @@ class BleForegroundService : Service() {
     }
 
     private fun stopBleAndSelf() {
-        appContainer.bleRepository.stopBle()
+        appContainer.bleRepository.stopBle(disableByUser = true)
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
@@ -91,6 +98,10 @@ class BleForegroundService : Service() {
         fun startIfReady(context: Context, userName: String?) {
             if (userName.isNullOrBlank()) {
                 Log.w(TAG, "Skip starting BLE foreground service: user is not registered.")
+                return
+            }
+            if (!BleStatusRepository(context).isBleEnabled()) {
+                Log.w(TAG, "Skip starting BLE foreground service: BLE is disabled by user.")
                 return
             }
             if (!hasRequiredRuntimePermissions(context)) {
