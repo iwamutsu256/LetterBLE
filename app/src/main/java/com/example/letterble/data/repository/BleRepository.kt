@@ -20,12 +20,17 @@ class BleRepository(
     private val userRepository: UserRepository,
     private val relayLetterUseCase: RelayLetterUseCase,
     private val notificationHelper: BleNotificationHelper,
+    private val bleStatusRepository: BleStatusRepository,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 ) {
     private var isPreparingCurrentUserId = false
     private var shouldRunBle = false
 
     fun startBle(onPreparationFailure: () -> Unit = {}): Boolean {
+        if (!bleStatusRepository.isBleEnabled()) {
+            return false
+        }
+
         val myUserName = userRepository.getCurrentUserName()?.takeIf { it.isNotBlank() }
             ?: return false
         shouldRunBle = true
@@ -89,8 +94,11 @@ class BleRepository(
         }
     }
 
-    fun stopBle() {
+    fun stopBle(disableByUser: Boolean = true) {
         shouldRunBle = false
+        if (disableByUser) {
+            bleStatusRepository.setBleEnabled(false)
+        }
         bleController.stop()
         notificationHelper.hideBleRunningNotification()
     }

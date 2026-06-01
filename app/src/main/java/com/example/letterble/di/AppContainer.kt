@@ -22,6 +22,7 @@ import com.example.letterble.data.repository.NearbyPostPrefetchRepository
 import com.example.letterble.data.repository.PostRepository
 import com.example.letterble.data.repository.TreeRepository
 import com.example.letterble.data.repository.UserRepository
+import com.example.letterble.data.repository.BleStatusRepository
 import com.example.letterble.domain.usecase.BuildRouteTreeUseCase
 import com.example.letterble.domain.usecase.RelayLetterUseCase
 import com.example.letterble.domain.usecase.SubmitLetterUseCase
@@ -58,6 +59,8 @@ interface AppContainer {
     val treeRepository: TreeRepository
 
     val bleRepository: BleRepository
+
+    val bleStatusRepository: BleStatusRepository
 
     // 保存済み Tree と Location 履歴から表示用 Tree を決める UseCase。
     val buildRouteTreeUseCase: BuildRouteTreeUseCase
@@ -117,6 +120,7 @@ class DefaultAppContainer(
     )
     override val treeRepository = TreeRepository(treeFirestoreDataSource)
     override val buildRouteTreeUseCase = BuildRouteTreeUseCase()
+    override val bleStatusRepository = BleStatusRepository(applicationContext)
 
     private val relayLetterUseCase = RelayLetterUseCase(
         encounterRepository = encounterRepository,
@@ -131,7 +135,8 @@ class DefaultAppContainer(
         bleController = bleManager,
         userRepository = userRepository,
         relayLetterUseCase = relayLetterUseCase,
-        notificationHelper = bleNotificationHelper
+        notificationHelper = bleNotificationHelper,
+        bleStatusRepository = bleStatusRepository
     )
 
     private val submitLetterUseCase = SubmitLetterUseCase(
