@@ -9,9 +9,11 @@ package com.example.letterble.feature.carry
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -34,6 +36,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -111,7 +114,7 @@ private fun CarryDetailScreenContent(
             contentDescription = null,
             modifier = Modifier
                 .size(200.dp)
-                .offset(x = 220.dp, y = -70.dp),
+                .offset(x = 240.dp, y = -70.dp),
 
         )
         Image(
@@ -119,7 +122,7 @@ private fun CarryDetailScreenContent(
             contentDescription = null,
             modifier = Modifier
                 .size(250.dp)
-                .offset(x = -20.dp, y = 720.dp),
+                .offset(x = -20.dp, y = 750.dp),
 
             )
         Image(
@@ -127,7 +130,7 @@ private fun CarryDetailScreenContent(
             contentDescription = null,
             modifier = Modifier
                 .size(240.dp)
-                .offset(x = 180.dp, y = 740.dp),
+                .offset(x = 180.dp, y = 780.dp),
 
             )
         Image(
@@ -135,7 +138,7 @@ private fun CarryDetailScreenContent(
             contentDescription = null,
             modifier = Modifier
                 .size(60.dp)
-                .offset(x = 160.dp, y = 790.dp),
+                .offset(x = 160.dp, y = 825.dp),
 
             )
         // 戻るボタン
@@ -258,24 +261,42 @@ private fun CarryLetterDetail(
 ) {
     Column(
         modifier = modifier
-            .fillMaxWidth()
             .padding(24.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        Text(
-            "差出人: ${letter.fromUser}",
-            color = LetterBLEColors.TextPrimary,
-        )
-        Text(
-            modifier = Modifier.padding(top = 8.dp),
-            text = "宛先: ${letter.toUser}",
-            color = LetterBLEColors.TextPrimary
-        )
-        Text(
-            modifier = Modifier.padding(top = 8.dp),
-            text = if (letter.isSurvival) "到達状態: 運搬中" else "到達状態: 到達済み",
-            color = LetterBLEColors.TextPrimary
-        )
+        Column{
+            Row (
+                horizontalArrangement = Arrangement.spacedBy(24.dp)
+            ){
+                Column{
+                    Text("差出人")
+                    Text(
+                        "宛先",
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                    Text(
+                        "到達状態",
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
+                Column{
+                    Text(
+                        "${letter.fromUser}",
+                        color = LetterBLEColors.TextPrimary
+                    )
+                    Text(
+                        "${letter.toUser}",
+                        modifier = Modifier.padding(top = 8.dp),
+                        color = LetterBLEColors.TextPrimary
+                    )
+                    Text(
+                        text = if (letter.isSurvival) "運搬中" else "到達済み",
+                        modifier = Modifier.padding(top = 8.dp),
+                        color = LetterBLEColors.TextPrimary
+                    )
+                }
+            }
+        }
         CarryMapScreen(
             tree = letter.tree,
             currentUserName = currentUserName,
