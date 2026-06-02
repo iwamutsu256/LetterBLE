@@ -42,6 +42,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.letterble.R
 import com.example.letterble.di.AppContainer
 import com.example.letterble.domain.model.Tree
+import com.example.letterble.ui.components.CommonBackButton
 import com.example.letterble.ui.theme.LetterBLEColors
 import com.example.letterble.ui.theme.LetterBLETheme
 
@@ -102,7 +103,7 @@ private fun CarryDetailScreenContent(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .padding(all = 40.dp)
+            .padding(all = 16.dp)
             .background(LetterBLEColors.AppBackground)
     ){
         Image(
@@ -110,7 +111,7 @@ private fun CarryDetailScreenContent(
             contentDescription = null,
             modifier = Modifier
                 .size(200.dp)
-                .offset(x = 150.dp, y = -50.dp),
+                .offset(x = 200.dp, y = -100.dp),
 
         )
         Image(
@@ -118,15 +119,15 @@ private fun CarryDetailScreenContent(
             contentDescription = null,
             modifier = Modifier
                 .size(230.dp)
-                .offset(x = -20.dp, y = 600.dp),
+                .offset(x = -30.dp, y = 680.dp),
 
             )
         Image(
             painter = painterResource(id = R.drawable.img03),
             contentDescription = null,
             modifier = Modifier
-                .size(220.dp)
-                .offset(x = 130.dp, y = 640.dp),
+                .size(210.dp)
+                .offset(x = 170.dp, y = 700.dp),
 
             )
         Image(
@@ -134,38 +135,26 @@ private fun CarryDetailScreenContent(
             contentDescription = null,
             modifier = Modifier
                 .size(60.dp)
-                .offset(x = 110.dp, y = 670.dp),
+                .offset(x = 140.dp, y = 750.dp),
 
             )
-        OutlinedButton(
+        // 戻るボタン
+        CommonBackButton(
             modifier = Modifier
-                .width(100.dp)
-                .height(100.dp)
-                .offset(x = (-10).dp, y = 5.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Transparent,
-                contentColor = Color.Unspecified
-            ),
+                .align(Alignment.TopStart)
+                .padding(start = 140.dp, top = 670.dp),
             onClick = onBackClicked
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.back_button),
-                contentDescription = "戻る",
-                modifier = Modifier
-                    .fillMaxWidth()
-            )
-        }
+        )
         Column(
             modifier = modifier
-                .fillMaxSize()
-                .padding(24.dp),
+                .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = "運んだルート",
                 color = LetterBLEColors.TextPrimary,
                 modifier = modifier
-                    .padding(top = 56.dp),
+                    .padding(top = 96.dp),
                 style = MaterialTheme.typography.headlineMedium
             )
             Spacer(modifier = Modifier.height(24.dp))
@@ -272,10 +261,13 @@ private fun CarryLetterDetail(
     Column(
         modifier = modifier
             .fillMaxWidth()
+            .padding(24.dp)
             .verticalScroll(rememberScrollState())
     ) {
         Text(
-            "差出人: ${letter.fromUser}",
+            modifier = Modifier
+                .padding(top = 8.dp),
+            text = "差出人: ${letter.fromUser}",
             color = LetterBLEColors.TextPrimary,
         )
         Text(
@@ -293,7 +285,8 @@ private fun CarryLetterDetail(
             currentUserName = currentUserName,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 36.dp)
+                .height(400.dp)
+                .padding(top = 24.dp)
         )
     }
 }
