@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
 import com.example.letterble.domain.model.Tree
 import com.example.letterble.ui.components.LetterTreeMapView
 import com.example.letterble.ui.theme.LetterBLETheme
@@ -90,6 +91,7 @@ fun RouteMapScreen(
                 text = "タップして拡大",
                 color = Color.White,
                 fontSize = 22.sp,
+                fontWeight = FontWeight(600)
             )
         }
     }
