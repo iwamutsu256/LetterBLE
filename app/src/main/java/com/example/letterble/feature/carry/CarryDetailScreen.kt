@@ -45,6 +45,7 @@ import com.example.letterble.domain.model.Tree
 import com.example.letterble.ui.components.CommonBackButton
 import com.example.letterble.ui.theme.LetterBLEColors
 import com.example.letterble.ui.theme.LetterBLETheme
+import androidx.compose.ui.tooling.preview.Devices
 
 /**
  * 運搬中の手紙の詳細画面を表示する。
@@ -168,7 +169,7 @@ private fun CarryDetailScreenContent(
     }
 }
 
-@Preview(showSystemUi = true)
+@Preview(showSystemUi = true, device = Devices.PIXEL_8A)
 @Composable
 private fun CarryDetailScreenSystemUIPreview() {
     LetterBLETheme {
