@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.letterble.domain.model.Tree
 import com.example.letterble.ui.components.LetterTreeMapView
 import com.example.letterble.ui.theme.LetterBLETheme
@@ -82,8 +83,15 @@ fun RouteMapScreen(
                     indication = null // 地図上での波紋エフェクトが不要な場合は null、必要な場合はデフォルト（無指定）にする
                 ) {
                     onMapClicked()
-                }
-        )
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "タップして拡大",
+                color = Color.White,
+                fontSize = 22.sp,
+            )
+        }
     }
 }
 
