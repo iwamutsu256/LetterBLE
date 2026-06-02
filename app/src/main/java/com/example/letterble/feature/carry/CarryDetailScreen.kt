@@ -111,14 +111,14 @@ private fun CarryDetailScreenContent(
             contentDescription = null,
             modifier = Modifier
                 .size(200.dp)
-                .offset(x = 220.dp, y = -100.dp),
+                .offset(x = 240.dp, y = -100.dp),
         )
         Image(
             painter = painterResource(id = R.drawable.img02),
             contentDescription = null,
             modifier = Modifier
                 .size(250.dp)
-                .offset(x = -20.dp, y = 740.dp),
+                .offset(x = -20.dp, y = 800.dp),
 
             )
         Image(
@@ -126,7 +126,7 @@ private fun CarryDetailScreenContent(
             contentDescription = null,
             modifier = Modifier
                 .size(230.dp)
-                .offset(x = 200.dp, y = 780.dp),
+                .offset(x = 200.dp, y = 830.dp),
 
             )
         Image(
@@ -134,7 +134,7 @@ private fun CarryDetailScreenContent(
             contentDescription = null,
             modifier = Modifier
                 .size(60.dp)
-                .offset(x = 170.dp, y = 830.dp),
+                .offset(x = 170.dp, y = 880.dp),
 
             )
         // 戻るボタン
