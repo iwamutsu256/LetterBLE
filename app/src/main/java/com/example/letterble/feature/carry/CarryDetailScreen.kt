@@ -103,7 +103,6 @@ private fun CarryDetailScreenContent(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .padding(all = 16.dp)
             .background(LetterBLEColors.AppBackground)
     ){
         Image(
@@ -111,23 +110,22 @@ private fun CarryDetailScreenContent(
             contentDescription = null,
             modifier = Modifier
                 .size(200.dp)
-                .offset(x = 200.dp, y = -100.dp),
-
+                .offset(x = 220.dp, y = -100.dp),
         )
         Image(
             painter = painterResource(id = R.drawable.img02),
             contentDescription = null,
             modifier = Modifier
-                .size(230.dp)
-                .offset(x = -30.dp, y = 680.dp),
+                .size(250.dp)
+                .offset(x = -20.dp, y = 740.dp),
 
             )
         Image(
             painter = painterResource(id = R.drawable.img03),
             contentDescription = null,
             modifier = Modifier
-                .size(210.dp)
-                .offset(x = 170.dp, y = 700.dp),
+                .size(230.dp)
+                .offset(x = 200.dp, y = 780.dp),
 
             )
         Image(
@@ -135,7 +133,7 @@ private fun CarryDetailScreenContent(
             contentDescription = null,
             modifier = Modifier
                 .size(60.dp)
-                .offset(x = 140.dp, y = 750.dp),
+                .offset(x = 170.dp, y = 830.dp),
 
             )
         // 戻るボタン
