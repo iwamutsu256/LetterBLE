@@ -225,9 +225,12 @@ private fun TreeEdges(
 ) {
     val nodesById = tree.nodes.associateBy { node -> node.id }
     val defaultEndCap = remember { ButtCap() }
-    val routeArrowCap = remember(routeLineColor) { routeLineColor.toArrowCap() }
-    val highlightedRouteArrowCap = remember(highlightedRouteLineColor) {
-        highlightedRouteLineColor.toArrowCap()
+    val arrowCapReferenceWidth = routeLineWidth.toArrowCapReferenceWidth()
+    val routeArrowCap = remember(routeLineColor, arrowCapReferenceWidth) {
+        routeLineColor.toArrowCap(arrowCapReferenceWidth)
+    }
+    val highlightedRouteArrowCap = remember(highlightedRouteLineColor, arrowCapReferenceWidth) {
+        highlightedRouteLineColor.toArrowCap(arrowCapReferenceWidth)
     }
 
     tree.edges.forEach { edge ->
@@ -268,7 +271,11 @@ private fun List<LatLng>.allSamePosition(): Boolean {
     }
 }
 
-private fun androidx.compose.ui.graphics.Color.toArrowCap(): Cap {
+private fun Float.toArrowCapReferenceWidth(): Float {
+    return ArrowCapReferenceWidth * this / DefaultRouteLineWidth
+}
+
+private fun androidx.compose.ui.graphics.Color.toArrowCap(referenceWidth: Float): Cap {
     val bitmap = Bitmap.createBitmap(
         ArrowCapBitmapSizePx,
         ArrowCapBitmapSizePx,
@@ -291,6 +298,6 @@ private fun androidx.compose.ui.graphics.Color.toArrowCap(): Cap {
 
     return CustomCap(
         BitmapDescriptorFactory.fromBitmap(bitmap),
-        ArrowCapReferenceWidth
+        referenceWidth
     )
 }
