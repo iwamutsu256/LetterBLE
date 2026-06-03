@@ -102,6 +102,7 @@ fun LetterTreeMapView(
     showEdgeArrows: Boolean = false,
     markerMinimumZoom: Float? = null,
     alwaysVisibleMarkerNodeIds: Set<String> = emptySet(),
+    routeLineWidth: Float = DefaultRouteLineWidth,
     routeLineColor: androidx.compose.ui.graphics.Color = LetterBLEColors.RouteLine,
     highlightedRouteLineColor: androidx.compose.ui.graphics.Color = LetterBLEColors.HighlightedRouteLine,
     markerHue: Float = BitmapDescriptorFactory.HUE_AZURE,
@@ -161,6 +162,7 @@ fun LetterTreeMapView(
             highlightedEdgeFromNodeIds = highlightedEdgeFromNodeIds,
             highlightedEdges = highlightedEdges,
             showEdgeArrows = showEdgeArrows,
+            routeLineWidth = routeLineWidth,
             routeLineColor = routeLineColor,
             highlightedRouteLineColor = highlightedRouteLineColor
         )
@@ -217,6 +219,7 @@ private fun TreeEdges(
     highlightedEdgeFromNodeIds: Set<String>,
     highlightedEdges: Set<Edge>,
     showEdgeArrows: Boolean,
+    routeLineWidth: Float,
     routeLineColor: androidx.compose.ui.graphics.Color,
     highlightedRouteLineColor: androidx.compose.ui.graphics.Color
 ) {
@@ -242,7 +245,7 @@ private fun TreeEdges(
             points = listOf(fromNode.toLatLng(), toNode.toLatLng()),
             color = if (isHighlighted) highlightedRouteLineColor else routeLineColor,
             endCap = endCap,
-            width = DefaultRouteLineWidth,
+            width = routeLineWidth,
             zIndex = if (isHighlighted) HighlightedRouteZIndex else DefaultRouteZIndex
         )
     }
