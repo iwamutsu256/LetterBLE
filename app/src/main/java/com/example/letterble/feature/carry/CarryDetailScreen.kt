@@ -9,9 +9,11 @@ package com.example.letterble.feature.carry
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -34,6 +36,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -42,8 +45,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.letterble.R
 import com.example.letterble.di.AppContainer
 import com.example.letterble.domain.model.Tree
+import com.example.letterble.ui.components.CommonBackButton
 import com.example.letterble.ui.theme.LetterBLEColors
 import com.example.letterble.ui.theme.LetterBLETheme
+import androidx.compose.ui.tooling.preview.Devices
 
 /**
  * 運搬中の手紙の詳細画面を表示する。
@@ -102,7 +107,6 @@ private fun CarryDetailScreenContent(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .padding(all = 40.dp)
             .background(LetterBLEColors.AppBackground)
     ){
         Image(
@@ -110,23 +114,23 @@ private fun CarryDetailScreenContent(
             contentDescription = null,
             modifier = Modifier
                 .size(200.dp)
-                .offset(x = 150.dp, y = -50.dp),
+                .offset(x = 240.dp, y = -70.dp),
 
         )
         Image(
             painter = painterResource(id = R.drawable.img02),
             contentDescription = null,
             modifier = Modifier
-                .size(230.dp)
-                .offset(x = -20.dp, y = 600.dp),
+                .size(250.dp)
+                .offset(x = -20.dp, y = 750.dp),
 
             )
         Image(
             painter = painterResource(id = R.drawable.img03),
             contentDescription = null,
             modifier = Modifier
-                .size(220.dp)
-                .offset(x = 130.dp, y = 640.dp),
+                .size(240.dp)
+                .offset(x = 180.dp, y = 780.dp),
 
             )
         Image(
@@ -134,38 +138,24 @@ private fun CarryDetailScreenContent(
             contentDescription = null,
             modifier = Modifier
                 .size(60.dp)
-                .offset(x = 110.dp, y = 670.dp),
+                .offset(x = 160.dp, y = 825.dp),
 
             )
-        OutlinedButton(
-            modifier = Modifier
-                .width(100.dp)
-                .height(100.dp)
-                .offset(x = (-10).dp, y = 5.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Transparent,
-                contentColor = Color.Unspecified
-            ),
+        // 戻るボタン
+        CommonBackButton(
+            modifier = Modifier.padding(top = innerPadding.calculateTopPadding()),
             onClick = onBackClicked
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.back_button),
-                contentDescription = "戻る",
-                modifier = Modifier
-                    .fillMaxWidth()
-            )
-        }
+        )
         Column(
             modifier = modifier
-                .fillMaxSize()
-                .padding(24.dp),
+                .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = "運んだルート",
                 color = LetterBLEColors.TextPrimary,
                 modifier = modifier
-                    .padding(top = 56.dp),
+                    .padding(top = 96.dp),
                 style = MaterialTheme.typography.headlineMedium
             )
             Spacer(modifier = Modifier.height(24.dp))
@@ -181,7 +171,7 @@ private fun CarryDetailScreenContent(
     }
 }
 
-@Preview(showSystemUi = true)
+@Preview(showSystemUi = true, device = Devices.PIXEL_8A)
 @Composable
 private fun CarryDetailScreenSystemUIPreview() {
     LetterBLETheme {
@@ -271,28 +261,48 @@ private fun CarryLetterDetail(
 ) {
     Column(
         modifier = modifier
-            .fillMaxWidth()
+            .padding(24.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        Text(
-            "差出人: ${letter.fromUser}",
-            color = LetterBLEColors.TextPrimary,
-        )
-        Text(
-            modifier = Modifier.padding(top = 8.dp),
-            text = "宛先: ${letter.toUser}",
-            color = LetterBLEColors.TextPrimary
-        )
-        Text(
-            modifier = Modifier.padding(top = 8.dp),
-            text = if (letter.isSurvival) "到達状態: 運搬中" else "到達状態: 到達済み",
-            color = LetterBLEColors.TextPrimary
-        )
+        Column{
+            Row (
+                horizontalArrangement = Arrangement.spacedBy(24.dp)
+            ){
+                Column{
+                    Text("差出人")
+                    Text(
+                        "宛先",
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                    Text(
+                        "到達状態",
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
+                Column{
+                    Text(
+                        "${letter.fromUser}",
+                        color = LetterBLEColors.TextPrimary
+                    )
+                    Text(
+                        "${letter.toUser}",
+                        modifier = Modifier.padding(top = 8.dp),
+                        color = LetterBLEColors.TextPrimary
+                    )
+                    Text(
+                        text = if (letter.isSurvival) "運搬中" else "到達済み",
+                        modifier = Modifier.padding(top = 8.dp),
+                        color = LetterBLEColors.TextPrimary
+                    )
+                }
+            }
+        }
         CarryMapScreen(
             tree = letter.tree,
             currentUserName = currentUserName,
             modifier = Modifier
                 .fillMaxWidth()
+                .height(400.dp)
                 .padding(top = 36.dp)
         )
     }
