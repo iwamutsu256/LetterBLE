@@ -7,6 +7,10 @@
  */
 package com.example.letterble.ui.components
 
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.Path
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -15,12 +19,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
+import com.example.letterble.domain.model.Edge
 import com.example.letterble.domain.model.Node
 import com.example.letterble.domain.model.Tree
 import com.example.letterble.ui.theme.LetterBLEColors
 import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.ButtCap
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.Cap
+import com.google.android.gms.maps.model.CustomCap
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.maps.android.compose.CameraPositionState
@@ -36,6 +45,10 @@ private val DefaultMapCenter = LatLng(35.681236, 139.767125)
 private const val DefaultMapZoom = 12f
 private const val DefaultRouteLineWidth = 8f
 private const val RouteBoundsPadding = 96
+private const val DefaultRouteZIndex = 0f
+private const val HighlightedRouteZIndex = 1f
+private const val ArrowCapBitmapSizePx = 48
+private const val ArrowCapReferenceWidth = 12f
 
 /**
  * Google Maps SDK を Compose から扱うための共通 Map コンポーネント。
@@ -85,6 +98,11 @@ fun LetterTreeMapView(
     modifier: Modifier = Modifier,
     highlightedNodeIds: Set<String> = emptySet(),
     highlightedEdgeFromNodeIds: Set<String> = emptySet(),
+    highlightedEdges: Set<Edge> = emptySet(),
+    showEdgeArrows: Boolean = false,
+    markerMinimumZoom: Float? = null,
+    alwaysVisibleMarkerNodeIds: Set<String> = emptySet(),
+    routeLineWidth: Float = DefaultRouteLineWidth,
     routeLineColor: androidx.compose.ui.graphics.Color = LetterBLEColors.RouteLine,
     highlightedRouteLineColor: androidx.compose.ui.graphics.Color = LetterBLEColors.HighlightedRouteLine,
     markerHue: Float = BitmapDescriptorFactory.HUE_AZURE,
@@ -108,6 +126,13 @@ fun LetterTreeMapView(
         )
     }
     var isMapLoaded by remember { mutableStateOf(false) }
+    val shouldShowMarkers = markerMinimumZoom == null ||
+        cameraPositionState.position.zoom >= markerMinimumZoom
+    val visibleMarkerNodeIds = if (shouldShowMarkers) {
+        null
+    } else {
+        alwaysVisibleMarkerNodeIds
+    }
 
     LaunchedEffect(isMapLoaded, nodePositions) {
         if (!isMapLoaded || nodePositions.isEmpty()) {
@@ -135,15 +160,21 @@ fun LetterTreeMapView(
         TreeEdges(
             tree = tree,
             highlightedEdgeFromNodeIds = highlightedEdgeFromNodeIds,
+            highlightedEdges = highlightedEdges,
+            showEdgeArrows = showEdgeArrows,
+            routeLineWidth = routeLineWidth,
             routeLineColor = routeLineColor,
             highlightedRouteLineColor = highlightedRouteLineColor
         )
-        TreeMarkers(
-            tree = tree,
-            highlightedNodeIds = highlightedNodeIds,
-            markerHue = markerHue,
-            highlightedMarkerHue = highlightedMarkerHue
-        )
+        if (visibleMarkerNodeIds == null || visibleMarkerNodeIds.isNotEmpty()) {
+            TreeMarkers(
+                tree = tree,
+                highlightedNodeIds = highlightedNodeIds,
+                visibleNodeIds = visibleMarkerNodeIds,
+                markerHue = markerHue,
+                highlightedMarkerHue = highlightedMarkerHue
+            )
+        }
     }
 }
 
@@ -154,10 +185,17 @@ fun LetterTreeMapView(
 private fun TreeMarkers(
     tree: Tree,
     highlightedNodeIds: Set<String>,
+    visibleNodeIds: Set<String>?,
     markerHue: Float,
     highlightedMarkerHue: Float
 ) {
-    tree.nodes.forEach { node ->
+    val visibleNodes = if (visibleNodeIds == null) {
+        tree.nodes
+    } else {
+        tree.nodes.filter { node -> node.id in visibleNodeIds }
+    }
+
+    visibleNodes.forEach { node ->
         val isHighlighted = node.id in highlightedNodeIds
         Marker(
             state = MarkerState(position = node.toLatLng()),
@@ -179,21 +217,39 @@ private fun TreeMarkers(
 private fun TreeEdges(
     tree: Tree,
     highlightedEdgeFromNodeIds: Set<String>,
+    highlightedEdges: Set<Edge>,
+    showEdgeArrows: Boolean,
+    routeLineWidth: Float,
     routeLineColor: androidx.compose.ui.graphics.Color,
     highlightedRouteLineColor: androidx.compose.ui.graphics.Color
 ) {
     val nodesById = tree.nodes.associateBy { node -> node.id }
+    val defaultEndCap = remember { ButtCap() }
+    val arrowCapReferenceWidth = routeLineWidth.toArrowCapReferenceWidth()
+    val routeArrowCap = remember(routeLineColor, arrowCapReferenceWidth) {
+        routeLineColor.toArrowCap(arrowCapReferenceWidth)
+    }
+    val highlightedRouteArrowCap = remember(highlightedRouteLineColor, arrowCapReferenceWidth) {
+        highlightedRouteLineColor.toArrowCap(arrowCapReferenceWidth)
+    }
 
     tree.edges.forEach { edge ->
         val fromNode = nodesById[edge.fromNodeId] ?: return@forEach
         val toNode = nodesById[edge.toNodeId] ?: return@forEach
         // 運搬画面の仕様では「自分から伸びる edge」だけを強調する。
-        val isHighlighted = edge.fromNodeId in highlightedEdgeFromNodeIds
+        val isHighlighted = edge.fromNodeId in highlightedEdgeFromNodeIds || edge in highlightedEdges
+        val endCap = when {
+            !showEdgeArrows -> defaultEndCap
+            isHighlighted -> highlightedRouteArrowCap
+            else -> routeArrowCap
+        }
 
         Polyline(
             points = listOf(fromNode.toLatLng(), toNode.toLatLng()),
             color = if (isHighlighted) highlightedRouteLineColor else routeLineColor,
-            width = if (isHighlighted) DefaultRouteLineWidth * 1.5f else DefaultRouteLineWidth
+            endCap = endCap,
+            width = routeLineWidth,
+            zIndex = if (isHighlighted) HighlightedRouteZIndex else DefaultRouteZIndex
         )
     }
 }
@@ -213,4 +269,35 @@ private fun List<LatLng>.allSamePosition(): Boolean {
     return all { position ->
         position.latitude == first.latitude && position.longitude == first.longitude
     }
+}
+
+private fun Float.toArrowCapReferenceWidth(): Float {
+    return ArrowCapReferenceWidth * this / DefaultRouteLineWidth
+}
+
+private fun androidx.compose.ui.graphics.Color.toArrowCap(referenceWidth: Float): Cap {
+    val bitmap = Bitmap.createBitmap(
+        ArrowCapBitmapSizePx,
+        ArrowCapBitmapSizePx,
+        Bitmap.Config.ARGB_8888
+    )
+    val center = ArrowCapBitmapSizePx / 2f
+    val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = toArgb()
+        style = Paint.Style.FILL
+    }
+    val path = Path().apply {
+        moveTo(center, center)
+        lineTo(ArrowCapBitmapSizePx - 4f, ArrowCapBitmapSizePx - 4f)
+        lineTo(center, ArrowCapBitmapSizePx * 0.78f)
+        lineTo(4f, ArrowCapBitmapSizePx - 4f)
+        close()
+    }
+
+    Canvas(bitmap).drawPath(path, paint)
+
+    return CustomCap(
+        BitmapDescriptorFactory.fromBitmap(bitmap),
+        referenceWidth
+    )
 }

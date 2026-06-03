@@ -24,6 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.FontWeight
+import com.example.letterble.domain.model.Letter
 import com.example.letterble.domain.model.Tree
 import com.example.letterble.ui.components.LetterTreeMapView
 import com.example.letterble.ui.theme.LetterBLETheme
@@ -36,10 +37,18 @@ import com.google.maps.android.compose.MapUiSettings
  */
 @Composable
 fun RouteMapScreen(
+    letter: Letter,
     tree: Tree,
     onMapClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val routeHighlight = remember(letter.fromUser, letter.toUser, tree) {
+        tree.shortestDirectedRouteHighlight(
+            fromUser = letter.fromUser,
+            toUser = letter.toUser
+        )
+    }
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -57,6 +66,12 @@ fun RouteMapScreen(
         // 地図本体（ジェスチャーをすべて無効化）
         LetterTreeMapView(
             tree = tree,
+            highlightedNodeIds = routeHighlight.nodeIds,
+            highlightedEdges = routeHighlight.edges,
+            showEdgeArrows = true,
+            markerMinimumZoom = ReceivedRouteMarkerMinimumZoom,
+            alwaysVisibleMarkerNodeIds = routeHighlight.endpointNodeIds,
+            routeLineWidth = ReceivedRouteLineWidth,
             modifier = Modifier.matchParentSize(),
             uiSettings = remember {
                 MapUiSettings(
@@ -101,6 +116,9 @@ fun RouteMapScreen(
 @Composable
 private fun RouteMapScreenPreview() {
     LetterBLETheme {
-        RouteMapScreen(tree = Tree(), onMapClicked = {})
+        RouteMapScreen(letter = Letter(), tree = Tree(), onMapClicked = {})
     }
 }
+
+private const val ReceivedRouteMarkerMinimumZoom = 7f
+private const val ReceivedRouteLineWidth = 5f
