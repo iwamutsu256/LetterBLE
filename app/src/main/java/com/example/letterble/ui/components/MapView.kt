@@ -263,9 +263,9 @@ private fun androidx.compose.ui.graphics.Color.toArrowCap(): Cap {
         style = Paint.Style.FILL
     }
     val path = Path().apply {
-        moveTo(center, 2f)
+        moveTo(center, center)
         lineTo(ArrowCapBitmapSizePx - 4f, ArrowCapBitmapSizePx - 4f)
-        lineTo(center, ArrowCapBitmapSizePx * 0.72f)
+        lineTo(center, ArrowCapBitmapSizePx * 0.78f)
         lineTo(4f, ArrowCapBitmapSizePx - 4f)
         close()
     }
