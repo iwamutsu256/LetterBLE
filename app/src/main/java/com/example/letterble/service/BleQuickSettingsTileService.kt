@@ -1,5 +1,6 @@
 package com.example.letterble.service
 
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.os.Build
 import android.service.quicksettings.Tile
@@ -64,6 +65,7 @@ class BleQuickSettingsTileService : TileService() {
         updateTile()
     }
 
+    @SuppressLint("StartActivityAndCollapseDeprecated")
     private fun openBleSetupScreen() {
         val intent = MainActivity.createBleSetupIntent(this)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
