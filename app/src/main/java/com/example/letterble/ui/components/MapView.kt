@@ -15,6 +15,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.example.letterble.domain.model.Edge
 import com.example.letterble.domain.model.Node
 import com.example.letterble.domain.model.Tree
 import com.example.letterble.ui.theme.LetterBLEColors
@@ -31,11 +32,18 @@ import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.hypot
+import kotlin.math.min
+import kotlin.math.sin
 
 private val DefaultMapCenter = LatLng(35.681236, 139.767125)
 private const val DefaultMapZoom = 12f
 private const val DefaultRouteLineWidth = 8f
 private const val RouteBoundsPadding = 96
+private const val DefaultRouteZIndex = 0f
+private const val HighlightedRouteZIndex = 1f
 
 /**
  * Google Maps SDK を Compose から扱うための共通 Map コンポーネント。
@@ -85,6 +93,8 @@ fun LetterTreeMapView(
     modifier: Modifier = Modifier,
     highlightedNodeIds: Set<String> = emptySet(),
     highlightedEdgeFromNodeIds: Set<String> = emptySet(),
+    highlightedEdges: Set<Edge> = emptySet(),
+    showEdgeArrows: Boolean = false,
     routeLineColor: androidx.compose.ui.graphics.Color = LetterBLEColors.RouteLine,
     highlightedRouteLineColor: androidx.compose.ui.graphics.Color = LetterBLEColors.HighlightedRouteLine,
     markerHue: Float = BitmapDescriptorFactory.HUE_AZURE,
@@ -135,6 +145,8 @@ fun LetterTreeMapView(
         TreeEdges(
             tree = tree,
             highlightedEdgeFromNodeIds = highlightedEdgeFromNodeIds,
+            highlightedEdges = highlightedEdges,
+            showEdgeArrows = showEdgeArrows,
             routeLineColor = routeLineColor,
             highlightedRouteLineColor = highlightedRouteLineColor
         )
@@ -179,6 +191,8 @@ private fun TreeMarkers(
 private fun TreeEdges(
     tree: Tree,
     highlightedEdgeFromNodeIds: Set<String>,
+    highlightedEdges: Set<Edge>,
+    showEdgeArrows: Boolean,
     routeLineColor: androidx.compose.ui.graphics.Color,
     highlightedRouteLineColor: androidx.compose.ui.graphics.Color
 ) {
@@ -188,13 +202,26 @@ private fun TreeEdges(
         val fromNode = nodesById[edge.fromNodeId] ?: return@forEach
         val toNode = nodesById[edge.toNodeId] ?: return@forEach
         // 運搬画面の仕様では「自分から伸びる edge」だけを強調する。
-        val isHighlighted = edge.fromNodeId in highlightedEdgeFromNodeIds
+        val isHighlighted = edge.fromNodeId in highlightedEdgeFromNodeIds || edge in highlightedEdges
 
         Polyline(
             points = listOf(fromNode.toLatLng(), toNode.toLatLng()),
             color = if (isHighlighted) highlightedRouteLineColor else routeLineColor,
-            width = if (isHighlighted) DefaultRouteLineWidth * 1.5f else DefaultRouteLineWidth
+            width = if (isHighlighted) DefaultRouteLineWidth * 1.5f else DefaultRouteLineWidth,
+            zIndex = if (isHighlighted) HighlightedRouteZIndex else DefaultRouteZIndex
         )
+
+        if (showEdgeArrows) {
+            val edgeColor = if (isHighlighted) highlightedRouteLineColor else routeLineColor
+            edgeArrowHeadPoints(fromNode.toLatLng(), toNode.toLatLng()).forEach { arrowLine ->
+                Polyline(
+                    points = arrowLine,
+                    color = edgeColor,
+                    width = if (isHighlighted) DefaultRouteLineWidth * 1.5f else DefaultRouteLineWidth,
+                    zIndex = if (isHighlighted) HighlightedRouteZIndex else DefaultRouteZIndex
+                )
+            }
+        }
     }
 }
 
@@ -214,3 +241,61 @@ private fun List<LatLng>.allSamePosition(): Boolean {
         position.latitude == first.latitude && position.longitude == first.longitude
     }
 }
+
+private fun edgeArrowHeadPoints(from: LatLng, to: LatLng): List<List<LatLng>> {
+    val meanLatitudeRadians = ((from.latitude + to.latitude) / 2.0) * PI / 180.0
+    val longitudeScale = cos(meanLatitudeRadians).takeIf { scale -> scale != 0.0 } ?: 1.0
+    val dx = (to.longitude - from.longitude) * longitudeScale
+    val dy = to.latitude - from.latitude
+    val distance = hypot(dx, dy)
+
+    if (distance == 0.0) {
+        return emptyList()
+    }
+
+    val unitX = dx / distance
+    val unitY = dy / distance
+    val arrowLength = min(distance * ArrowHeadLengthRatio, MaxArrowHeadLengthDegrees)
+
+    val left = arrowPoint(
+        to = to,
+        unitX = unitX,
+        unitY = unitY,
+        longitudeScale = longitudeScale,
+        arrowLength = arrowLength,
+        angleRadians = ArrowHeadAngleRadians
+    )
+    val right = arrowPoint(
+        to = to,
+        unitX = unitX,
+        unitY = unitY,
+        longitudeScale = longitudeScale,
+        arrowLength = arrowLength,
+        angleRadians = -ArrowHeadAngleRadians
+    )
+
+    return listOf(listOf(to, left), listOf(to, right))
+}
+
+private fun arrowPoint(
+    to: LatLng,
+    unitX: Double,
+    unitY: Double,
+    longitudeScale: Double,
+    arrowLength: Double,
+    angleRadians: Double
+): LatLng {
+    val backX = -unitX
+    val backY = -unitY
+    val rotatedX = backX * cos(angleRadians) - backY * sin(angleRadians)
+    val rotatedY = backX * sin(angleRadians) + backY * cos(angleRadians)
+
+    return LatLng(
+        to.latitude + rotatedY * arrowLength,
+        to.longitude + rotatedX * arrowLength / longitudeScale
+    )
+}
+
+private const val ArrowHeadLengthRatio = 0.2
+private const val MaxArrowHeadLengthDegrees = 0.00035
+private const val ArrowHeadAngleRadians = PI / 6.0

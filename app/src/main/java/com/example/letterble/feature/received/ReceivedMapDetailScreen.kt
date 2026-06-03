@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -80,8 +81,19 @@ private fun ReceivedMapDetailContent(
                 )
             }
             detailState.detail != null -> {
+                val detail = detailState.detail
+                val routeHighlight = remember(detail.letter.fromUser, detail.letter.toUser, detail.tree) {
+                    detail.tree.shortestDirectedRouteHighlight(
+                        fromUser = detail.letter.fromUser,
+                        toUser = detail.letter.toUser
+                    )
+                }
+
                 LetterTreeMapView(
-                    tree = detailState.detail.tree,
+                    tree = detail.tree,
+                    highlightedNodeIds = routeHighlight.nodeIds,
+                    highlightedEdges = routeHighlight.edges,
+                    showEdgeArrows = true,
                     modifier = Modifier.fillMaxSize()
                 )
             }

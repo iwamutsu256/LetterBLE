@@ -317,6 +317,7 @@ private fun ReceivedDetailContent(
 
         // 経路地図
         RouteMapScreen(
+            letter = letter,
             tree = detail.tree,
             onMapClicked = onMapClicked,
             modifier = Modifier.padding(horizontal = 24.dp)
