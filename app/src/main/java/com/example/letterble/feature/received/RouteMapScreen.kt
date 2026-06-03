@@ -70,6 +70,7 @@ fun RouteMapScreen(
             highlightedEdges = routeHighlight.edges,
             showEdgeArrows = true,
             markerMinimumZoom = ReceivedRouteMarkerMinimumZoom,
+            alwaysVisibleMarkerNodeIds = routeHighlight.endpointNodeIds,
             modifier = Modifier.matchParentSize(),
             uiSettings = remember {
                 MapUiSettings(
@@ -118,4 +119,4 @@ private fun RouteMapScreenPreview() {
     }
 }
 
-private const val ReceivedRouteMarkerMinimumZoom = 12f
+private const val ReceivedRouteMarkerMinimumZoom = 10f

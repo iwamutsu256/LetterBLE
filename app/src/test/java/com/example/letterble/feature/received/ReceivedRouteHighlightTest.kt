@@ -28,6 +28,7 @@ class ReceivedRouteHighlightTest {
         val highlight = tree.shortestDirectedRouteHighlight(fromUser = "Alice", toUser = "Bob")
 
         assertEquals(setOf("bob", "relay-2", "relay-1", "alice"), highlight.nodeIds)
+        assertEquals(setOf("bob", "alice"), highlight.endpointNodeIds)
         assertEquals(
             setOf(
                 Edge(fromNodeId = "relay-2", toNodeId = "bob"),
@@ -55,6 +56,7 @@ class ReceivedRouteHighlightTest {
 
         assertEquals(emptySet<String>(), highlight.nodeIds)
         assertEquals(emptySet<Edge>(), highlight.edges)
+        assertEquals(emptySet<String>(), highlight.endpointNodeIds)
     }
 
     @Test
@@ -78,6 +80,7 @@ class ReceivedRouteHighlightTest {
         val highlight = tree.shortestDirectedRouteHighlight(fromUser = "Alice", toUser = "Bob")
 
         assertEquals(setOf("alice", "bob-short"), highlight.nodeIds)
+        assertEquals(setOf("alice", "bob-short"), highlight.endpointNodeIds)
         assertEquals(setOf(Edge(fromNodeId = "alice", toNodeId = "bob-short")), highlight.edges)
     }
 }

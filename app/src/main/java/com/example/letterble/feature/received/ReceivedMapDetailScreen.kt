@@ -95,6 +95,7 @@ private fun ReceivedMapDetailContent(
                     highlightedEdges = routeHighlight.edges,
                     showEdgeArrows = true,
                     markerMinimumZoom = ReceivedMapDetailMarkerMinimumZoom,
+                    alwaysVisibleMarkerNodeIds = routeHighlight.endpointNodeIds,
                     modifier = Modifier.fillMaxSize()
                 )
             }
@@ -107,4 +108,4 @@ private fun ReceivedMapDetailContent(
     }
 }
 
-private const val ReceivedMapDetailMarkerMinimumZoom = 12f
+private const val ReceivedMapDetailMarkerMinimumZoom = 10f

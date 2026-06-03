@@ -101,6 +101,7 @@ fun LetterTreeMapView(
     highlightedEdges: Set<Edge> = emptySet(),
     showEdgeArrows: Boolean = false,
     markerMinimumZoom: Float? = null,
+    alwaysVisibleMarkerNodeIds: Set<String> = emptySet(),
     routeLineColor: androidx.compose.ui.graphics.Color = LetterBLEColors.RouteLine,
     highlightedRouteLineColor: androidx.compose.ui.graphics.Color = LetterBLEColors.HighlightedRouteLine,
     markerHue: Float = BitmapDescriptorFactory.HUE_AZURE,
@@ -126,6 +127,11 @@ fun LetterTreeMapView(
     var isMapLoaded by remember { mutableStateOf(false) }
     val shouldShowMarkers = markerMinimumZoom == null ||
         cameraPositionState.position.zoom >= markerMinimumZoom
+    val visibleMarkerNodeIds = if (shouldShowMarkers) {
+        null
+    } else {
+        alwaysVisibleMarkerNodeIds
+    }
 
     LaunchedEffect(isMapLoaded, nodePositions) {
         if (!isMapLoaded || nodePositions.isEmpty()) {
@@ -158,10 +164,11 @@ fun LetterTreeMapView(
             routeLineColor = routeLineColor,
             highlightedRouteLineColor = highlightedRouteLineColor
         )
-        if (shouldShowMarkers) {
+        if (visibleMarkerNodeIds == null || visibleMarkerNodeIds.isNotEmpty()) {
             TreeMarkers(
                 tree = tree,
                 highlightedNodeIds = highlightedNodeIds,
+                visibleNodeIds = visibleMarkerNodeIds,
                 markerHue = markerHue,
                 highlightedMarkerHue = highlightedMarkerHue
             )
@@ -176,10 +183,17 @@ fun LetterTreeMapView(
 private fun TreeMarkers(
     tree: Tree,
     highlightedNodeIds: Set<String>,
+    visibleNodeIds: Set<String>?,
     markerHue: Float,
     highlightedMarkerHue: Float
 ) {
-    tree.nodes.forEach { node ->
+    val visibleNodes = if (visibleNodeIds == null) {
+        tree.nodes
+    } else {
+        tree.nodes.filter { node -> node.id in visibleNodeIds }
+    }
+
+    visibleNodes.forEach { node ->
         val isHighlighted = node.id in highlightedNodeIds
         Marker(
             state = MarkerState(position = node.toLatLng()),
@@ -228,7 +242,7 @@ private fun TreeEdges(
             points = listOf(fromNode.toLatLng(), toNode.toLatLng()),
             color = if (isHighlighted) highlightedRouteLineColor else routeLineColor,
             endCap = endCap,
-            width = if (isHighlighted) DefaultRouteLineWidth * 1.5f else DefaultRouteLineWidth,
+            width = DefaultRouteLineWidth,
             zIndex = if (isHighlighted) HighlightedRouteZIndex else DefaultRouteZIndex
         )
     }

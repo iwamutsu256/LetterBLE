@@ -5,7 +5,8 @@ import com.example.letterble.domain.model.Tree
 
 internal data class RouteHighlight(
     val nodeIds: Set<String>,
-    val edges: Set<Edge>
+    val edges: Set<Edge>,
+    val endpointNodeIds: Set<String>
 )
 
 internal fun Tree.shortestDirectedRouteHighlight(
@@ -16,13 +17,13 @@ internal fun Tree.shortestDirectedRouteHighlight(
     val trimmedToUser = toUser.trim()
 
     if (trimmedFromUser.isEmpty() || trimmedToUser.isEmpty()) {
-        return RouteHighlight(nodeIds = emptySet(), edges = emptySet())
+        return EmptyRouteHighlight
     }
 
     val nodesById = nodes.associateBy { node -> node.id }
     val goalNodes = nodes.filter { node -> node.userName == trimmedToUser }
     if (goalNodes.isEmpty()) {
-        return RouteHighlight(nodeIds = emptySet(), edges = emptySet())
+        return EmptyRouteHighlight
     }
 
     val incomingEdgesByToNodeId = edges
@@ -55,7 +56,7 @@ internal fun Tree.shortestDirectedRouteHighlight(
         }
     }
 
-    return RouteHighlight(nodeIds = emptySet(), edges = emptySet())
+    return EmptyRouteHighlight
 }
 
 private fun buildRouteHighlightFrom(
@@ -73,5 +74,15 @@ private fun buildRouteHighlightFrom(
         currentNodeId = edge.toNodeId
     }
 
-    return RouteHighlight(nodeIds = routeNodeIds, edges = routeEdges)
+    return RouteHighlight(
+        nodeIds = routeNodeIds,
+        edges = routeEdges,
+        endpointNodeIds = setOfNotNull(routeNodeIds.firstOrNull(), routeNodeIds.lastOrNull())
+    )
 }
+
+private val EmptyRouteHighlight = RouteHighlight(
+    nodeIds = emptySet(),
+    edges = emptySet(),
+    endpointNodeIds = emptySet()
+)
