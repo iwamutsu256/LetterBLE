@@ -108,4 +108,4 @@ private fun ReceivedMapDetailContent(
     }
 }
 
-private const val ReceivedMapDetailMarkerMinimumZoom = 10f
+private const val ReceivedMapDetailMarkerMinimumZoom = 7f

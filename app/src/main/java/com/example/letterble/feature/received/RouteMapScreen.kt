@@ -119,4 +119,4 @@ private fun RouteMapScreenPreview() {
     }
 }
 
-private const val ReceivedRouteMarkerMinimumZoom = 10f
+private const val ReceivedRouteMarkerMinimumZoom = 7f
