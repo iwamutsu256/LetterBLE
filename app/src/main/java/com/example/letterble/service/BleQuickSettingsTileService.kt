@@ -1,9 +1,11 @@
 package com.example.letterble.service
 
+import android.app.PendingIntent
 import android.os.Build
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import com.example.letterble.LetterBleApplication
+import com.example.letterble.MainActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -44,15 +46,38 @@ class BleQuickSettingsTileService : TileService() {
         if (isBleActive) {
             bleStatusRepository.setBleEnabled(false)
             BleForegroundService.stop(this)
-        } else {
+            updateTile()
+            return
+        }
+
+        val prerequisites = BlePrerequisiteChecker.check(this)
+        if (prerequisites.isReady) {
             bleStatusRepository.setBleEnabled(true)
             BleForegroundService.startIfReady(
                 context = this,
                 userName = appContainer.userRepository.getCurrentUserName()
             )
+        } else {
+            openBleSetupScreen()
         }
 
         updateTile()
+    }
+
+    private fun openBleSetupScreen() {
+        val intent = MainActivity.createBleSetupIntent(this)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            val pendingIntent = PendingIntent.getActivity(
+                this,
+                0,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            startActivityAndCollapse(pendingIntent)
+        } else {
+            @Suppress("DEPRECATION")
+            startActivityAndCollapse(intent)
+        }
     }
 
     private fun updateTile() {
