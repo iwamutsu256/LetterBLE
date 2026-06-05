@@ -12,13 +12,12 @@
 
 ## Demo
 
-> デモ動画は撮影後に追加予定です。
-<!--
-```md
-<!-- Example 
-![Demo](./docs/demo.gif)
-```
+|手紙投函|受信|すれ違い|
+|:-:|:-:|:-:|
+|<video src="https://github.com/user-attachments/assets/9cbf8812-8b02-4107-b52d-f9833f810c10"></video>|<video src="https://github.com/user-attachments/assets/07687f36-d1a6-449b-ac3e-cac81193bc07"></video>|<video src="https://github.com/user-attachments/assets/c702099b-ddbc-4c98-841f-ab6f8183e7ba"></video>|
 
+
+<!--
 README には、最初に短いメインデモを 1 本置き、必要に応じて機能別の補足動画を追加する方針です。
 
 推奨構成:
@@ -314,8 +313,11 @@ MAPS_API_KEY=your_api_key
 
 チーム **WHAT YOU’R NAME**
 
+Member: [iwamutsu256](https://github.com/iwamutsu256),[Bamboo2651](https://github.com/Bamboo2651),[HAL0821](https://github.com/HAL0821),[Rin Shibayama](https://github.com/fruehlingstee),[SibaYuka](https://github.com/SibaYuka)
+<!--
 | Role | Member |
 |---|---|
 | Development | TBD |
 | Design | TBD |
 | Presentation / Support | TBD |
+-->
