@@ -1,9 +1,3 @@
-/**
- * HomeScreen.kt
- *
- * ホーム画面の見た目を作るファイル。
- * 現在ユーザー名と、各画面へ進むボタンを表示する。
- */
 package com.example.letterble.feature.home
 
 import android.os.Build
@@ -43,19 +37,22 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.letterble.R
 import com.example.letterble.di.AppContainer
+import com.example.letterble.service.BlePrerequisiteReport
 import com.example.letterble.ui.components.CommonBottomNavigation
 import com.example.letterble.ui.theme.LetterBLEColors
 import com.example.letterble.ui.theme.LetterBLETheme
 
-/**
- * ホーム画面を表示する Composable。
- */
 @Composable
 fun HomeScreen(
     navController: NavHostController,
     appContainer: AppContainer,
     blePermissionErrorMessage: String?,
+    bleSetupReport: BlePrerequisiteReport?,
     onOpenAppSettingsClicked: () -> Unit,
+    onOpenBluetoothSettingsClicked: () -> Unit,
+    onOpenLocationSettingsClicked: () -> Unit,
+    onRequestBlePermissionsClicked: () -> Unit,
+    onDismissBleSetupClicked: () -> Unit,
     onRequestAddBleTileClicked: () -> Unit,
     onReceivedClicked: () -> Unit,
     onCarryClicked: () -> Unit,
@@ -93,7 +90,12 @@ fun HomeScreen(
             isBleRunning = uiState.isBleRunning,
             shouldShowBleTilePrompt = uiState.shouldShowBleTilePrompt && canRequestAddBleTile,
             blePermissionErrorMessage = blePermissionErrorMessage,
+            bleSetupReport = bleSetupReport,
             onOpenAppSettingsClicked = onOpenAppSettingsClicked,
+            onOpenBluetoothSettingsClicked = onOpenBluetoothSettingsClicked,
+            onOpenLocationSettingsClicked = onOpenLocationSettingsClicked,
+            onRequestBlePermissionsClicked = onRequestBlePermissionsClicked,
+            onDismissBleSetupClicked = onDismissBleSetupClicked,
             onRequestAddBleTileClicked = {
                 viewModel.onBleTilePromptHandled()
                 onRequestAddBleTileClicked()
@@ -120,7 +122,12 @@ fun HomeScreenContent(
     isBleRunning: Boolean,
     shouldShowBleTilePrompt: Boolean,
     blePermissionErrorMessage: String?,
+    bleSetupReport: BlePrerequisiteReport?,
     onOpenAppSettingsClicked: () -> Unit,
+    onOpenBluetoothSettingsClicked: () -> Unit,
+    onOpenLocationSettingsClicked: () -> Unit,
+    onRequestBlePermissionsClicked: () -> Unit,
+    onDismissBleSetupClicked: () -> Unit,
     onRequestAddBleTileClicked: () -> Unit,
     onDismissBleTilePrompt: () -> Unit,
     onReceivedClicked: () -> Unit,
@@ -204,7 +211,7 @@ fun HomeScreenContent(
                 text = when {
                     isReceivedStatusLoading -> "受信状況を確認中"
                     receivedStatusErrorMessage != null -> "受信状況を確認できません"
-                    hasReceivedLetters -> "〒 受信した手紙 ${receivedLetterCount}件"
+                    hasReceivedLetters -> "受信した手紙 ${receivedLetterCount}件"
                     else -> "受信した手紙はありません"
                 },
                 color = LetterBLEColors.TextPrimary,
@@ -212,7 +219,15 @@ fun HomeScreenContent(
             )
         }
 
-        if (blePermissionErrorMessage != null) {
+        if (bleSetupReport != null) {
+            BleSetupDialog(
+                report = bleSetupReport,
+                onOpenBluetoothSettingsClicked = onOpenBluetoothSettingsClicked,
+                onOpenLocationSettingsClicked = onOpenLocationSettingsClicked,
+                onRequestBlePermissionsClicked = onRequestBlePermissionsClicked,
+                onDismissBleSetupClicked = onDismissBleSetupClicked
+            )
+        } else if (blePermissionErrorMessage != null) {
             AlertDialog(
                 onDismissRequest = {},
                 title = { Text("権限が必要です") },
@@ -225,7 +240,7 @@ fun HomeScreenContent(
             )
         }
 
-        if (shouldShowBleTilePrompt && blePermissionErrorMessage == null) {
+        if (shouldShowBleTilePrompt && blePermissionErrorMessage == null && bleSetupReport == null) {
             AlertDialog(
                 onDismissRequest = onDismissBleTilePrompt,
                 title = { Text("BLE通信をタイルで切り替えますか？") },
@@ -245,6 +260,53 @@ fun HomeScreenContent(
             )
         }
     }
+}
+
+@Composable
+private fun BleSetupDialog(
+    report: BlePrerequisiteReport,
+    onOpenBluetoothSettingsClicked: () -> Unit,
+    onOpenLocationSettingsClicked: () -> Unit,
+    onRequestBlePermissionsClicked: () -> Unit,
+    onDismissBleSetupClicked: () -> Unit
+) {
+    val missingItems = buildList {
+        if (!report.isBluetoothEnabled) add("Bluetooth")
+        if (!report.isLocationEnabled) add("位置情報")
+        if (!report.hasBleRuntimePermissions) add("アプリのBLE権限")
+    }.joinToString("、")
+
+    AlertDialog(
+        onDismissRequest = onDismissBleSetupClicked,
+        title = { Text("BLE通信の準備が必要です") },
+        text = {
+            Text("Letter BLEを開始するには、${missingItems}をONまたは許可してください。設定後、この画面に戻ると自動で再確認します。")
+        },
+        confirmButton = {
+            when {
+                !report.isBluetoothEnabled -> {
+                    TextButton(onClick = onOpenBluetoothSettingsClicked) {
+                        Text("Bluetoothを開く")
+                    }
+                }
+                !report.isLocationEnabled -> {
+                    TextButton(onClick = onOpenLocationSettingsClicked) {
+                        Text("位置情報を開く")
+                    }
+                }
+                !report.hasBleRuntimePermissions -> {
+                    TextButton(onClick = onRequestBlePermissionsClicked) {
+                        Text("権限を許可")
+                    }
+                }
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismissBleSetupClicked) {
+                Text("あとで")
+            }
+        }
+    )
 }
 
 @Composable
@@ -297,7 +359,12 @@ private fun HomeScreenSystemUIPreview() {
                 isBleRunning = true,
                 shouldShowBleTilePrompt = false,
                 blePermissionErrorMessage = null,
+                bleSetupReport = null,
                 onOpenAppSettingsClicked = {},
+                onOpenBluetoothSettingsClicked = {},
+                onOpenLocationSettingsClicked = {},
+                onRequestBlePermissionsClicked = {},
+                onDismissBleSetupClicked = {},
                 onRequestAddBleTileClicked = {},
                 onDismissBleTilePrompt = {},
                 onReceivedClicked = {},

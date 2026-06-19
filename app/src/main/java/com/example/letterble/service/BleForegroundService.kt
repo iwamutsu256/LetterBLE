@@ -1,15 +1,16 @@
 package com.example.letterble.service
 
-import android.Manifest
 import android.app.Service
+import android.bluetooth.BluetoothAdapter
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
+import android.content.IntentFilter
 import android.content.pm.ServiceInfo
+import android.location.LocationManager
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
-import androidx.core.content.ContextCompat
 import com.example.letterble.LetterBleApplication
 import com.example.letterble.data.repository.BleStatusRepository
 import com.example.letterble.notification.BleNotificationHelper
@@ -21,8 +22,23 @@ class BleForegroundService : Service() {
     private val appContainer by lazy {
         (application as LetterBleApplication).appContainer
     }
+    private var isSystemStateReceiverRegistered = false
+
+    private val systemStateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent?) {
+            when (intent?.action) {
+                BluetoothAdapter.ACTION_STATE_CHANGED,
+                LocationManager.PROVIDERS_CHANGED_ACTION -> stopIfPrerequisitesWereLost()
+            }
+        }
+    }
 
     override fun onBind(intent: Intent?): IBinder? = null
+
+    override fun onCreate() {
+        super.onCreate()
+        registerSystemStateReceiver()
+    }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
@@ -37,6 +53,7 @@ class BleForegroundService : Service() {
     }
 
     override fun onDestroy() {
+        unregisterSystemStateReceiver()
         appContainer.bleRepository.stopBle(disableByUser = false)
         super.onDestroy()
     }
@@ -51,6 +68,13 @@ class BleForegroundService : Service() {
         val userName = appContainer.userRepository.getCurrentUserName()?.takeIf { it.isNotBlank() }
         if (userName == null) {
             Log.w(TAG, "Cannot start BLE foreground service without registered user name.")
+            stopSelf()
+            return
+        }
+
+        if (!BlePrerequisiteChecker.check(this).isReady) {
+            Log.w(TAG, "Cannot start BLE foreground service while Bluetooth or location is off.")
+            appContainer.bleRepository.stopBle(disableByUser = false)
             stopSelf()
             return
         }
@@ -90,6 +114,45 @@ class BleForegroundService : Service() {
         stopSelf()
     }
 
+    private fun stopIfPrerequisitesWereLost() {
+        val isBleRunning = appContainer.bleStatusRepository.statusState.value.isBleRunning
+        if (!isBleRunning || BlePrerequisiteChecker.check(this).isReady) {
+            return
+        }
+
+        Log.w(TAG, "Stopping BLE because Bluetooth or location was turned off.")
+        appContainer.bleRepository.stopBle(disableByUser = false)
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        stopSelf()
+    }
+
+    private fun registerSystemStateReceiver() {
+        if (isSystemStateReceiverRegistered) {
+            return
+        }
+
+        val filter = IntentFilter().apply {
+            addAction(BluetoothAdapter.ACTION_STATE_CHANGED)
+            addAction(LocationManager.PROVIDERS_CHANGED_ACTION)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(systemStateReceiver, filter, RECEIVER_NOT_EXPORTED)
+        } else {
+            @Suppress("DEPRECATION")
+            registerReceiver(systemStateReceiver, filter)
+        }
+        isSystemStateReceiverRegistered = true
+    }
+
+    private fun unregisterSystemStateReceiver() {
+        if (!isSystemStateReceiverRegistered) {
+            return
+        }
+
+        unregisterReceiver(systemStateReceiver)
+        isSystemStateReceiverRegistered = false
+    }
+
     companion object {
         private const val ACTION_START = "com.example.letterble.service.action.START_BLE"
         private const val ACTION_STOP = "com.example.letterble.service.action.STOP_BLE"
@@ -104,8 +167,8 @@ class BleForegroundService : Service() {
                 Log.w(TAG, "Skip starting BLE foreground service: BLE is disabled by user.")
                 return
             }
-            if (!hasRequiredRuntimePermissions(context)) {
-                Log.w(TAG, "Skip starting BLE foreground service: required permission is missing.")
+            if (!hasRequiredPrerequisites(context)) {
+                Log.w(TAG, "Skip starting BLE foreground service: required BLE prerequisite is missing.")
                 return
             }
             start(context)
@@ -126,23 +189,8 @@ class BleForegroundService : Service() {
             context.stopService(Intent(context, BleForegroundService::class.java))
         }
 
-        private fun hasRequiredRuntimePermissions(context: Context): Boolean {
-            return requiredBlePermissions().all { permission ->
-                ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
-            }
-        }
-
-        private fun requiredBlePermissions(): List<String> {
-            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                listOf(
-                    Manifest.permission.BLUETOOTH_SCAN,
-                    Manifest.permission.BLUETOOTH_ADVERTISE,
-                    Manifest.permission.BLUETOOTH_CONNECT,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                )
-            } else {
-                listOf(Manifest.permission.ACCESS_COARSE_LOCATION)
-            }
+        private fun hasRequiredPrerequisites(context: Context): Boolean {
+            return BlePrerequisiteChecker.check(context).isReady
         }
     }
 }

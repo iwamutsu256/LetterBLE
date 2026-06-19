@@ -30,6 +30,7 @@ import com.example.letterble.feature.received.ReceivedMapDetailScreen
 import com.example.letterble.feature.received.ReceivedScreen
 import com.example.letterble.feature.register.RegisterScreen
 import com.example.letterble.service.BleForegroundService
+import com.example.letterble.service.BlePrerequisiteReport
 /**
  * アプリ全体の画面遷移を定義する。
  *
@@ -40,7 +41,12 @@ fun AppNavGraph(
     navController: NavHostController,
     appContainer: AppContainer,
     blePermissionErrorMessage: String? = null,
+    bleSetupReport: BlePrerequisiteReport? = null,
     onOpenAppSettingsClicked: () -> Unit = {},
+    onOpenBluetoothSettingsClicked: () -> Unit = {},
+    onOpenLocationSettingsClicked: () -> Unit = {},
+    onRequestBlePermissionsClicked: () -> Unit = {},
+    onDismissBleSetupClicked: () -> Unit = {},
     onRequestAddBleTileClicked: () -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -90,7 +96,12 @@ fun AppNavGraph(
                 navController = navController,
                 appContainer = appContainer,
                 blePermissionErrorMessage = blePermissionErrorMessage,
+                bleSetupReport = bleSetupReport,
                 onOpenAppSettingsClicked = onOpenAppSettingsClicked,
+                onOpenBluetoothSettingsClicked = onOpenBluetoothSettingsClicked,
+                onOpenLocationSettingsClicked = onOpenLocationSettingsClicked,
+                onRequestBlePermissionsClicked = onRequestBlePermissionsClicked,
+                onDismissBleSetupClicked = onDismissBleSetupClicked,
                 onRequestAddBleTileClicked = onRequestAddBleTileClicked,
                 onReceivedClicked = {
                     navController.navigate(Destinations.RECEIVED) {
